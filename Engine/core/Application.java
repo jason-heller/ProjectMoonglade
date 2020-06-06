@@ -6,11 +6,13 @@ import org.lwjgl.opengl.Display;
 import audio.AudioHandler;
 import dev.Console;
 import gl.Render;
+import gl.Window;
 import io.Controls;
 import io.Input;
 import scene.MainMenu;
 import scene.Scene;
 import ui.UI;
+import util.ObjToTilConverter;
 
 public class Application {
 	public static Scene scene;
@@ -44,10 +46,10 @@ public class Application {
 	}
 
 	public static void main(String[] args) throws InterruptedException {
+		AudioHandler.init();
 		Settings.init();
 		Controls.init();
 		Window.create();
-		AudioHandler.init();
 		Render.init();
 		Console.init();
 
@@ -56,7 +58,11 @@ public class Application {
 		scene = new MainMenu();
 
 		for (final String arg : args) {
-			Console.send(arg);
+			if (arg.toLowerCase().contains(".obj")) {
+				ObjToTilConverter.convert(arg);
+			} else {
+				Console.send(arg);
+			}
 		}
 
 		while (!Display.isCloseRequested() && !forceClose) {
@@ -70,15 +76,6 @@ public class Application {
 			if (tickTimer >= TICKRATE) {
 				tickTimer -= TICKRATE;
 
-				scene.update();
-				Render.render(scene);
-
-				Input.poll();
-				Console.update();
-				AudioHandler.update(scene.getCamera());
-				
-				Render.postRender(scene);
-
 				if (nextScene != null) {
 					try {
 						scene = (Scene) nextScene.newInstance();
@@ -89,6 +86,17 @@ public class Application {
 					}
 
 					nextScene = null;
+				} else {
+					scene.update();
+					Render.render(scene);
+
+					Input.poll();
+					Console.update();
+					AudioHandler.update(scene.getCamera());
+					
+					Render.postRender(scene);
+
+					
 				}
 
 			}

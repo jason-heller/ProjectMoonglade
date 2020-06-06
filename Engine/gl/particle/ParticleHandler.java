@@ -14,7 +14,6 @@ import org.lwjgl.opengl.GL11;
 import core.Globals;
 import core.Resources;
 import core.res.Texture;
-import dev.Console;
 import gl.Camera;
 
 public class ParticleHandler {
@@ -52,7 +51,7 @@ public class ParticleHandler {
 
 	public static void init() {
 		renderer = new ParticleRenderer();
-		Resources.addTexture("particles", "particles/particles.png", GL11.GL_TEXTURE_2D, true, 32);
+		Resources.addTexture("particles", "particles/particles.png", GL11.GL_TEXTURE_2D, true, 8);
 		Resources.addTexture("smoke", "particles/smoke.png", GL11.GL_TEXTURE_2D, true, 8);
 	}
 
@@ -105,13 +104,22 @@ public class ParticleHandler {
 		}
 	}
 
-	public static void addBurst(Texture texture, int start, int end, Vector3f position, int amount) {
-		for(int i = 0; i < amount; i ++) {
-			//Texture texture, Vector3f position, Vector3f velocity, float gravity, float life, float rotation,
-			//float rotationSpeed, float scale
-			Particle p = new Particle(texture, new Vector3f(position), new Vector3f(), Globals.gravity, 50, 0, 3, 5f);
-			p.setTextureAtlasRange(start, end);
-			add(p);
+	public static void addBurst(Texture texture, int start, int end, Vector3f position) {
+		for(float i = 0; i < .36f; i += .12f) {
+			for(float j = 0; j < .36f; j += .12f) {
+				for(float k = 0; k < .36f; k += .12f) {
+					float dx = -(.17f - i) / 18f;
+					float dy = .01f;
+					float dz = -(.17f - k) / 18f;
+					Particle p = new Particle(texture, new Vector3f(position.x+i, position.y+j+.25f, position.z+k), new Vector3f(dx,dy, dz), .0028f, 50, 1, 1, .15f);
+					p.setTextureAtlasRange(start, end);
+
+				}
+			}
 		}
+	}
+
+	public static int size() {
+		return particleCount;
 	}
 }

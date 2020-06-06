@@ -3,10 +3,10 @@ package gl.particle;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
-import core.Window;
 import core.res.Texture;
 import dev.Console;
 import gl.Camera;
+import gl.Window;
 
 public class Particle {
 	private Vector3f position, velocity;

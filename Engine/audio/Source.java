@@ -69,6 +69,13 @@ public class Source {
 		AL10.alSourcei(sourceId, AL10.AL_BUFFER, Resources.getSound(sound));
 		AL10.alSourcePlay(sourceId);
 	}
+	
+	public void playVariance(String sound) {
+		stop();
+		AL10.alSourcei(sourceId, AL10.AL_BUFFER, Resources.getSound(sound));
+		setPitch(.75f + (float)Math.random()*.5f);
+		AL10.alSourcePlay(sourceId);
+	}
 
 	public void removeEffect() {
 		AL11.alSource3i(sourceId, EFX10.AL_AUXILIARY_SEND_FILTER, EFX10.AL_EFFECTSLOT_NULL, 0, EFX10.AL_FILTER_NULL);

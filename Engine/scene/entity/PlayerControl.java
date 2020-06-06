@@ -3,6 +3,7 @@ package scene.entity;
 import org.joml.Vector3f;
 
 import gl.Camera;
+import gl.Window;
 import io.Input;
 import scene.Scene;
 import util.MathUtil;
@@ -12,15 +13,17 @@ public class PlayerControl {
 
 	public static float jumpVelocity = 4f;
 	public static float friction = 15f, airFriction = 0f;
-	public static float maxSpeed = 12.5f, maxAirSpeed = 3.125f;
-	public static float accelSpeed = 31.2f, airAccel = 1.56f, waterAccel = 5f;
+	public static float maxSpeed = 22f, maxAirSpeed = 3.125f, maxWaterSpeed = 16f;
+	public static float accelSpeed = 45.2f, airAccel = 1.56f, waterAccel = 16f;
 
-	private static final float CAMERA_STANDING_HEIGHT = .59f;
-	private static final float CAMERA_CROUCHING_HEIGHT = .375f;
+	private static final float CAMERA_STANDING_HEIGHT = .85f;
+	private static final float CAMERA_CROUCHING_HEIGHT = .5f;
 	
 	private static float cameraHeight = CAMERA_STANDING_HEIGHT;
-	private static float height = .625f;
+	private static float height = 1f;
 	private static float width = .23f;
+	
+	private static float walkSfxTimer = 0f;
 
 	public static PhysicsEntity getEntity() {
 		return entity;
@@ -29,6 +32,7 @@ public class PlayerControl {
 	private static void passPhysVars() {
 		entity.maxSpeed = maxSpeed;
 		entity.maxAirSpeed = maxAirSpeed;
+		entity.maxWaterSpeed = maxWaterSpeed;
 		entity.friction = friction;
 		entity.airFriction = airFriction;
 		entity.width = width;
@@ -89,7 +93,10 @@ public class PlayerControl {
 				speed /= 2;
 			}
 
-			if (!entity.isGrounded()) {
+			if (entity.isSubmerged()) {
+				speed = waterAccel;
+			}
+			else if (!entity.isGrounded()) {
 				speed = airAccel;
 			}
 
@@ -107,6 +114,22 @@ public class PlayerControl {
 		if (camera.getControlStyle() == Camera.FIRST_PERSON) {
 			camera.getPosition().set(getEntity().position.x, getEntity().position.y + cameraHeight,
 					getEntity().position.z);
+			
+			if (entity.isGrounded() && (W || A || S || D)) {
+				if (walkSfxTimer >= .7f-entity.velocity.length()/9f) {
+					walkSfxTimer = 0f;
+				}
+				
+				if (walkSfxTimer == 0f) {
+					//entity.getSource().playVariance("step_grass");
+				}
+				
+				walkSfxTimer += Window.deltaTime;
+				
+				
+			} else {
+				walkSfxTimer = 0f;
+			}
 		} else {
 			entity.position.set(camera.getPosition());
 			entity.velocity.zero();

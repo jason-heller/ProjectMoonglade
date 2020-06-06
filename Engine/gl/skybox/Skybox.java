@@ -6,10 +6,10 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 
 import core.Resources;
-import core.Window;
 import core.res.Model;
 import core.res.Texture;
 import gl.Camera;
+import gl.Window;
 import map.Enviroment;
 import util.MathUtil;
 
@@ -52,8 +52,8 @@ public class Skybox {
 		 * 
 		 * });
 		 */
-		starTexture = Resources.addTexture("skybox", "sky/stars.png", GL13.GL_TEXTURE_CUBE_MAP, true, 0);
-
+		starTexture = Resources.addCubemap("skybox", "sky/stars_rgt.png", "sky/stars_lft.png", "sky/stars_top.png",
+				"sky/stars_btm.png", "sky/stars_fnt.png", "sky/stars_bck.png");
 		GL11.glTexParameterf(GL13.GL_TEXTURE_CUBE_MAP, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
 	}
 
@@ -91,7 +91,7 @@ public class Skybox {
 		matrix.m32 = 0;
 		// matrix.rotateX(camera.getPitch());
 		matrix.rotateY(rotation);
-		rotation += Window.deltaTime / 2f;
+		rotation += Window.deltaTime / 10f;
 		shader.projectionMatrix.loadMatrix(camera.getProjectionMatrix());
 		shader.viewMatrix.loadMatrix(matrix);
 		/*

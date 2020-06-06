@@ -8,12 +8,12 @@ import org.joml.Vector3f;
 import dev.Console;
 import gl.Camera;
 import map.Chunk;
+import util.MathUtil;
 
 public class Tile {
 	private Chunk chunk;
 	private byte walls;
-	public int[] id;
-	private int subid;
+	public Material[] id;
 	
 	public static final float TILE_SIZE = POLYGON_SIZE/2f;
 	
@@ -24,17 +24,23 @@ public class Tile {
 						FRONT = 16,
 						BACK = 32;
 	
-	public Tile(Chunk chunk, int id, byte walls) {
+	public Tile(Chunk chunk, Material id, byte walls) {
 		this.chunk = chunk;
-		this.id = new int[8];
+		this.id = new Material[6];
 		this.walls = walls;
 		
 		int val = 1;
-		for(int i = 0; i < 8; i++) {
-			this.id[i] = (walls & val) != 0 ? id : 0;
+		for(int i = 0; i < 6; i++) {
+			this.id[i] = (walls & val) != 0 ? id : Material.NONE;
 		
 			val *= 2;
 		}
+	}
+	
+	public Tile(Chunk chunk, Material[] id, byte walls) {
+		this.chunk = chunk;
+		this.id = id;
+		this.walls = walls;	
 	}
 	
 	public byte getWalls() {
@@ -46,7 +52,7 @@ public class Tile {
 	}
 
 	public boolean isActive(byte wall) {
-		return (walls & wall) != 0;
+		return (walls & wall) != wall;
 	}
 
 	/**
@@ -78,27 +84,27 @@ public class Tile {
 		return FRONT;
 	}
 
-	public void append(byte wall, int id) {
+	void append(byte wall, Material mat) {
 		walls |= wall;
 		int val = 1;
-		for(int i = 0; i < 8; i++) {
-			this.id[i] = (wall & val) != 0 ? id : 0;
+		for(int i = 0; i < 6; i++) {
+			this.id[i] = (wall & val) != 0 ? mat : this.id[i];
 		
 			val *= 2;
 		}
 	}
 
-	public void remove(byte wall, int id) {
+	public void remove(byte wall, Material mat) {
 		int val = 1;
 		byte newWall = 0;
 		
-		for(int i = 0; i < 8; i++) {
-			if ((wall & val) != 0) {
-				this.id[i] = 0;
-			}
-			else if ((walls & val) != 0) {
-				newWall += val;
-			}
+		for(int i = 0; i < 6; i++) {
+			//if ((wall & val) != 0) {
+				this.id[i] = Material.NONE;
+			//}
+			//else if ((walls & val) != 0) {
+			//	newWall += val;
+			//}
 			
 			walls = newWall;
 			val *= 2;
@@ -127,11 +133,13 @@ public class Tile {
 	}
 
 	public static byte checkRay(Vector3f origin, Vector3f dir, float tx, float ty, float tz, byte sides) {
-		int dx = Math.round(dir.x);
-		int dy = Math.round(dir.y);
-		int dz = Math.round(dir.z);
+		Vector3f normal = MathUtil.rayBoxEscapeNormal(origin, dir, tx, ty, tz, .5f);
+		if (normal.x == 0 && normal.y == 0 && normal.z == 0) return 0;
+		final float dx = normal.x;
+		final float dy = normal.y;
+		final float dz = normal.z;
 		
-		if ((sides & LEFT) != 0 && dx == -1 && dy == 0 && dz == 0) {
+		if ((sides & (LEFT | RIGHT)) != 0 && dx == -1 && dy == 0 && dz == 0) {
 			return LEFT;
 		}
 		

@@ -5,6 +5,7 @@ import org.lwjgl.opengl.GL11;
 
 import core.Resources;
 import core.res.Texture;
+import dev.Console;
 import io.Input;
 import ui.Image;
 import ui.Image;
@@ -12,6 +13,7 @@ import ui.UI;
 
 public class Inventory {
 	private Item[] items;
+	private int[] amount;
 	private final int INV_WIDTH = 9;
 	
 	private int selected = 0;
@@ -22,12 +24,12 @@ public class Inventory {
 	
 	public Inventory() {
 		items = new Item[36];
+		amount = new int[36];
 		for(int i = 0; i < items.length; i++) {
 			items[i] = Item.AIR;
 		}
 		
-		items[27] = Item.SHOVEL;
-		items[28] = Item.COBBLE;
+		items[0] = Item.SHOVEL;
 		
 		itemTexture = Resources.addTexture("items", "item/items.png", GL11.GL_TEXTURE_2D, false, false, 0f,
 				false, true, 16);
@@ -39,12 +41,12 @@ public class Inventory {
 		
 		// Hotbar
 		int size = (itemTexSize+padding);
-		int dx = (int) (640 - size*4.5f);
+		int dx = (int) (640f - (size*4.5f)) - (size/2);
 		int dy = 720 - (size*2);
 		UI.drawString(getSelected().getName(), dx, dy-12, .15f, false);
 		
-		for(int i = INV_WIDTH*3; i < items.length; i++) {
-			if (i == selected + (INV_WIDTH*3)) {
+		for(int i = 0; i < 9; i++) {
+			if (i == selected) {
 				UI.drawRect(dx-1, dy-2, size+2, size+2, Vector3f.Z_AXIS);
 			}
 			else {
@@ -56,6 +58,12 @@ public class Inventory {
 				img.setUvOffset(items[i].getTX()*.125f, items[i].getTY()*.125f, .0625f, .0625f);
 			}
 			dx += size + padding*2;
+		}
+		
+		for(int i = 1; i <= 9; i++) {
+			if (Input.isPressed("item slot "+i)) {
+				selected = i-1;
+			}
 		}
 		
 		int dWheel = Input.getMouseDWheel();
@@ -74,6 +82,19 @@ public class Inventory {
 	}
 	
 	public Item getSelected() {
-		return items[selected + (INV_WIDTH*3)];
+		return items[selected];
+	}
+
+	public void addItem(Item drop, int numDrops) {
+		if (numDrops == 0) 
+			return;
+		;
+		for(int i = 0; i < items.length; i++) {
+			if (items[i] == drop || items[i] == Item.AIR) {
+				items[i] = drop;
+				amount[i] += numDrops;
+				return;
+			}
+		}
 	}
 }

@@ -34,17 +34,17 @@ public abstract class Noise {
 		return noiseSum / weightSum;
 	}
 	
-	public float turbulence(float x, float y, float size) {
+	/*public float turbulence(float x, float y, float size) {
 		float value = 0f;
 		float startingSize = size;
-		float drift = NoiseUtil.noise2d((long)x, (long)y);
+		float drift = NoiseUtil.valueNoise2d((long)x, (long)y);
 		
 		while(size >= 1f) {
 			value += noise((x+drift) / size, (y+drift) / size) * size;
 			size /= 2.0f;
-			drift = NoiseUtil.noise2d((long)x, (long)y, (long)value);
+			drift = NoiseUtil.valueNoise2d((long)x, (long)y, (long)value);
 		}
 		
 		return value / startingSize;
-	}
+	}*/
 }

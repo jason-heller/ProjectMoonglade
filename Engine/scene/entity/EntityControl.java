@@ -14,11 +14,11 @@ import core.Application;
 import core.res.Model;
 import core.res.Texture;
 import gl.Camera;
-import scene.entity.render.EntityShader;
+import scene.entity.render.GenericMeshShader;
 
 public class EntityControl {
 
-	private static EntityShader shader;
+	private static GenericMeshShader shader;
 	private static Map<Texture, List<Entity>> entities;
 
 	public static void addEntity(Entity obj) {
@@ -40,7 +40,7 @@ public class EntityControl {
 	}
 
 	public static void init() {
-		shader = new EntityShader();
+		shader = new GenericMeshShader();
 		entities = new HashMap<Texture, List<Entity>>();
 	}
 
@@ -80,7 +80,7 @@ public class EntityControl {
 				model.unbind(0, 1, 2);
 			}
 		}
-
+	
 		GL20.glDisableVertexAttribArray(0);
 		GL20.glDisableVertexAttribArray(1);
 		GL20.glDisableVertexAttribArray(2);
@@ -117,5 +117,9 @@ public class EntityControl {
 				entity.update(Application.scene);
 			}
 		}
+	}
+	
+	public static GenericMeshShader getShader() {
+		return shader;
 	}
 }

@@ -10,6 +10,7 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
 import anim.component.Skeleton;
+import dev.Console;
 
 public class Model {
 	private static final int BYTES_PER_FLOAT = 4;

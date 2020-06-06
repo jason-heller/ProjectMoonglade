@@ -48,6 +48,11 @@ public class Controls {
 		controls.put("jump", Keyboard.KEY_SPACE);
 		controls.put("sneak", Keyboard.KEY_LCONTROL);
 		controls.put("use_backpack", Keyboard.KEY_E);
+		controls.put("pause", Keyboard.KEY_ESCAPE);
+		
+		for(int i = 1; i <= 9; i++) {
+			controls.put("item slot "+i, Keyboard.KEY_1 + (i-1));
+		}
 	}
 
 	public static int get(String id) {

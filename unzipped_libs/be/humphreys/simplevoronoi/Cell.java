@@ -105,6 +105,6 @@ public class Cell {
 
 	// TODO: This is bad
 	public void setType() {
-		type = (int) (NoiseUtil.noise2d((long) center.x, (long) center.y, BIOME_SEED) * 4f);
+		type = (int) (NoiseUtil.valueNoise2d((long) center.x, (long) center.y, BIOME_SEED) * 4f);
 	}
 }

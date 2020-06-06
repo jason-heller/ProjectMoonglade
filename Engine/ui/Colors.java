@@ -28,7 +28,7 @@ public class Colors {
 	public static final Vector3f GOLD = new Vector3f(.83f, .68f, .21f);
 
 	public static final Vector3f GUI_BORDER_COLOR = DK_GREY;
-	public static final Vector3f GUI_BACKGROUND_COLOR = GREY;;
+	public static final Vector3f GUI_BACKGROUND_COLOR = BLACK;
 	public static final Vector3f GUI_ACCENT_COLOR = DK_VIOLET;
 
 	public static Vector3f alertColor() {

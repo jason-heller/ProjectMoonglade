@@ -7,16 +7,16 @@ import org.joml.Vector3f;
 
 import core.res.Model;
 import core.res.Vbo;
-import map.BiomeColors;
 import map.Chunk;
-import procedural.BiomeData;
-import procedural.BiomeVoronoi;
+import map.building.Building;
+import map.building.Tile;
+import procedural.biome.BiomeData;
+import procedural.biome.BiomeVoronoi;
+import procedural.biome.types.BiomeColors;
 import util.ModelBuilder;
 
 public class TerrainMeshBuilder {
 	
-	private static int steepestSlope = 32;
-
 	private static ModelBuilder groundBuilder;
 	private static ModelBuilder wallBuilder;
 	
@@ -103,7 +103,7 @@ public class TerrainMeshBuilder {
 	}
 	
 	public static void addWall(ModelBuilder builder, Vector3f p1, Vector3f p2, Vector3f p3,
-			Vector3f p4) {
+			Vector3f p4, Chunk chunk) {
 		
 		Vector3f normal = Vector3f.cross(Vector3f.sub(p3, p1), Vector3f.sub(p2, p1));
 		normal.normalize().negate();
@@ -120,31 +120,73 @@ public class TerrainMeshBuilder {
 			p4.set(hold);
 		}
 		
+		Building b = chunk.getBuilding();
+		int cx = chunk.x*Chunk.CHUNK_SIZE;
+		int cz = chunk.z*Chunk.CHUNK_SIZE;
+		
 		float y1 = p1.y;
 		float y2 = p2.y;
 		for(; y1 > p3.y + Chunk.POLYGON_SIZE; y1 -= Chunk.POLYGON_SIZE) {
-			v1.set(p1.x, y1, p1.z);
-			v2.set(p2.x, y2, p2.z);
-			v3.set(p3.x, y2 - Chunk.POLYGON_SIZE, p3.z);
-			v4.set(p4.x, y1 - Chunk.POLYGON_SIZE, p4.z);
+			Tile t = b.getTileAt(p1.x-cx, y2, p1.z-cz);
 			
-			builder.addVertex(v1);
-			builder.addVertex(v2);
-			builder.addVertex(v3);
+			if (t == null || !t.isActive()) {
+				v1.set(p1.x, y1, p1.z);
+				v2.set(p2.x, y2, p2.z);
+				v3.set(p3.x, y2 - Chunk.POLYGON_SIZE, p3.z);
+				v4.set(p4.x, y1 - Chunk.POLYGON_SIZE, p4.z);
+				
+				builder.addVertex(v1);
+				builder.addVertex(v2);
+				builder.addVertex(v3);
+				builder.addVertex(v4);
+				
+				builder.addTextureCoord(1,0);
+				builder.addTextureCoord(0,0);
+				builder.addTextureCoord(0,1);
+				builder.addTextureCoord(1,1);
+				
+				builder.addNormal(normal);
+				builder.addNormal(normal);
+				builder.addNormal(normal);
+				builder.addNormal(normal);
+				
+				float colFactor1 = 1;//p1.y - y1;
+				float colFactor2 = 1;//p2.y - y2;
+				Vector3f dirtColor = BiomeColors.DIRT_COLOR;
+				builder.addColor(dirtColor.x*colFactor2, dirtColor.y*colFactor2, dirtColor.z*colFactor2);
+				builder.addColor(dirtColor.x*colFactor1, dirtColor.y*colFactor1, dirtColor.z*colFactor1);
+				builder.addColor(dirtColor.x*colFactor1, dirtColor.y*colFactor1, dirtColor.z*colFactor1);
+				builder.addColor(dirtColor.x*colFactor2, dirtColor.y*colFactor2, dirtColor.z*colFactor2);
+				
+				builder.addRelativeIndices(4, 0, 1, 3, 3, 1, 2);
+			}
+			y2 -= Chunk.POLYGON_SIZE;
+		}
+		
+		Tile t = b.getTileAt(p3.x-cx, y1, p3.z-cz);
+		
+		if (t == null || !t.isActive()) {
+			v3.set(p3.x, y2, p3.z);
+			v4.set(p4.x, y1, p4.z);
+			
 			builder.addVertex(v4);
+			builder.addVertex(v3);
+			builder.addVertex(p3);
+			builder.addVertex(p4);
 			
 			builder.addTextureCoord(1,0);
 			builder.addTextureCoord(0,0);
-			builder.addTextureCoord(0,1);
-			builder.addTextureCoord(1,1);
+			builder.addTextureCoord(0,(v3.y-p3.y)/Chunk.POLYGON_SIZE);
+			builder.addTextureCoord(1,(v4.y-p4.y)/Chunk.POLYGON_SIZE);
 			
 			builder.addNormal(normal);
 			builder.addNormal(normal);
 			builder.addNormal(normal);
 			builder.addNormal(normal);
 			
-			float colFactor1 = 1;//p1.y - y1;
-			float colFactor2 = 1;//p2.y - y2;
+			
+			float colFactor1 = 1;//(v4.y - y1)/256;
+			float colFactor2 = 1;//(v3.y - y2)/256;
 			Vector3f dirtColor = BiomeColors.DIRT_COLOR;
 			builder.addColor(dirtColor.x*colFactor2, dirtColor.y*colFactor2, dirtColor.z*colFactor2);
 			builder.addColor(dirtColor.x*colFactor1, dirtColor.y*colFactor1, dirtColor.z*colFactor1);
@@ -152,35 +194,6 @@ public class TerrainMeshBuilder {
 			builder.addColor(dirtColor.x*colFactor2, dirtColor.y*colFactor2, dirtColor.z*colFactor2);
 			
 			builder.addRelativeIndices(4, 0, 1, 3, 3, 1, 2);
-			y2 -= Chunk.POLYGON_SIZE;
 		}
-		
-		v3.set(p3.x, y2, p3.z);
-		v4.set(p4.x, y1, p4.z);
-		
-		builder.addVertex(v4);
-		builder.addVertex(v3);
-		builder.addVertex(p3);
-		builder.addVertex(p4);
-		
-		builder.addTextureCoord(1,0);
-		builder.addTextureCoord(0,0);
-		builder.addTextureCoord(0,(v3.y-p3.y)/Chunk.POLYGON_SIZE);
-		builder.addTextureCoord(1,(v4.y-p4.y)/Chunk.POLYGON_SIZE);
-		
-		builder.addNormal(normal);
-		builder.addNormal(normal);
-		builder.addNormal(normal);
-		builder.addNormal(normal);
-		
-		float colFactor1 = 1;//(v4.y - y1)/256;
-		float colFactor2 = 1;//(v3.y - y2)/256;
-		Vector3f dirtColor = BiomeColors.DIRT_COLOR;
-		builder.addColor(dirtColor.x*colFactor2, dirtColor.y*colFactor2, dirtColor.z*colFactor2);
-		builder.addColor(dirtColor.x*colFactor1, dirtColor.y*colFactor1, dirtColor.z*colFactor1);
-		builder.addColor(dirtColor.x*colFactor1, dirtColor.y*colFactor1, dirtColor.z*colFactor1);
-		builder.addColor(dirtColor.x*colFactor2, dirtColor.y*colFactor2, dirtColor.z*colFactor2);
-		
-		builder.addRelativeIndices(4, 0, 1, 3, 3, 1, 2);
 	}
 }

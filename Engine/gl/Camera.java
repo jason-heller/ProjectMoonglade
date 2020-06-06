@@ -8,7 +8,6 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 
 import core.Globals;
-import core.Window;
 import dev.Console;
 import geom.Frustum;
 import io.Input;
@@ -20,7 +19,7 @@ public class Camera {
 
 	private static float zoom, targetZoom, zoomSpeed;
 
-	public static float cameraSpeed = 4f;
+	public static float cameraSpeed = .5f;
 	public static final float FAR_PLANE = 4500f;
 
 	public static final float NEAR_PLANE = .1f;
@@ -45,7 +44,7 @@ public class Camera {
 	private Matrix4f projectionMatrix;
 	private final Matrix4f projectionViewMatrix = new Matrix4f();
 	private final Matrix4f viewMatrix = new Matrix4f();
-	private final Vector3f position = new Vector3f(8, 8, 8);
+	private final Vector3f position = new Vector3f();
 	private final Frustum frustum = new Frustum();
 	private float yaw;
 	private float pitch;

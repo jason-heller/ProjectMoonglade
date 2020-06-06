@@ -7,6 +7,7 @@ import org.joml.Vector3f;
 import org.lwjgl.opengl.GL15;
 
 import core.res.Model;
+import core.res.TileableModel;
 import core.res.Vbo;
 
 public class ModelBuilder {
@@ -44,7 +45,7 @@ public class ModelBuilder {
 		model.createIndexBuffer(indices);
 		model.unbind();
 
-		model.setVertexData(indices, vertices);
+		//model.setVertexData(indices, vertices);
 
 		return model;
 	}
@@ -58,17 +59,20 @@ public class ModelBuilder {
 		model.createIndexBuffer(indices);
 		model.unbind();
 
-		model.setVertexData(indices, vertices);
+		//model.setVertexData(indices, vertices);
 
+		
 		return model;
 	}
 	
 	public Model finish() {
+		indexRel = 0;
 		return (hasColorChannel) ? createModel(vertices, uvs, normals, colors, indices) :
 			createModel(vertices, uvs, normals, indices);
 	}
 	
 	public Vbo[] asVbos() {
+		indexRel = 0;
 		return asVbos(vertices, uvs, normals, colors, indices);
 	}
 	
@@ -251,6 +255,13 @@ public class ModelBuilder {
 		indexRel += jump;
 	}
 	
+	public void addRelativeIndices(int jump, byte... inds) {
+		for (final byte i : inds) {
+			indices.add(indexRel+i);
+		}
+		indexRel += jump;
+	}
+	
 	public void addNormal(float nx, float ny, float nz) {
 		normals.add(nx);
 		normals.add(ny);
@@ -289,6 +300,14 @@ public class ModelBuilder {
 		colors.add(1f);
 		hasColorChannel = true;
 	}
+	
+	public void addColor(float x, float y, float z, float w) {
+		colors.add(x);
+		colors.add(y);
+		colors.add(z);
+		colors.add(w);
+		hasColorChannel = true;
+	}
 
 	public void addVertex(Vector3f v) {
 		vertices.add(v.x);
@@ -305,7 +324,7 @@ public class ModelBuilder {
 		return vertices;
 	}
 
-	public void addQuad(Vector3f p1, Vector3f p2, Vector3f p3, Vector3f p4) {
+	public void addQuad(Vector3f p1, Vector3f p2, Vector3f p3, Vector3f p4, Vector3f tex) {
 			
 		Vector3f normal = Vector3f.cross(Vector3f.sub(p3, p1), Vector3f.sub(p2, p1));
 		normal.normalize().negate();
@@ -314,18 +333,52 @@ public class ModelBuilder {
 		addVertex(p2);
 		addVertex(p3);
 		addVertex(p4);
-		
-		addTextureCoord(1,0);
-		addTextureCoord(0,0);
-		addTextureCoord(0,1);
-		addTextureCoord(1,1);
-		
+
+		addTextureCoord(tex.x + tex.z, tex.y);
+		addTextureCoord(tex.x, tex.y);
+		addTextureCoord(tex.x, tex.y + tex.z);
+		addTextureCoord(tex.x + tex.z, tex.y + tex.z);
+
 		addNormal(normal);
 		addNormal(normal);
 		addNormal(normal);
 		addNormal(normal);
 		
 		addRelativeIndices(4, 0, 1, 3, 3, 1, 2);
+	}
+
+	public void addTileableModel(float rx, float ry, float rz, TileableModel tiledModel) {
+		int len = tiledModel.getVertices(0).length / 3;
+		float[] vertices = tiledModel.getVertices(0);
+		float[] uvs = tiledModel.getUvs(0);
+		float[] normals = tiledModel.getNormals(0);
+		
+		for (int i = 0; i < len; i++) {
+			addVertex(rx + vertices[i * 3], ry + vertices[i * 3 + 1], rz + vertices[i * 3 + 2]);
+			addTextureCoord(uvs[i * 2], uvs[i * 2 + 1]);
+			addNormal(normals[i * 3], normals[i * 3 + 1], normals[i * 3 + 2]);
+			addColor(1, 1, 1, 0);
+		}
+		
+		int[] indices = tiledModel.getIndices(0);
+		addRelativeIndices(len, indices);
+
+		/*this.addQuad(new Vector3f(rx,ry,rz-1),
+				new Vector3f(rx-1,ry,rz),
+				new Vector3f(rx,ry,rz),
+				new Vector3f(rx-1,ry,rz-1), new Vector3f(rx,ry,rz));*/
+	}
+	
+	public void addTileableModel(float rx, float ry, float rz, TileableModel tiledModel, byte flags) {
+		// TODO finish this
+	}
+
+	public List<Float> getTextureCoords() {
+		return this.uvs;
+	}
+
+	public List<Integer> getIndices() {
+		return indices;
 	}
 
 	

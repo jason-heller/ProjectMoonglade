@@ -9,7 +9,7 @@ public class Texture {
 
 	private final int type;
 
-	private int atlasRows = 0;
+	private int atlasRows = 1;
 
 	private boolean transparent = false;
 

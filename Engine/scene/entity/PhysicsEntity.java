@@ -4,12 +4,11 @@ import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
+import audio.Source;
 import core.Application;
 import core.Globals;
 import core.Resources;
-import core.Window;
-import dev.Console;
-import io.Input;
+import gl.Window;
 import map.Chunk;
 import map.Terrain;
 import scene.Scene;
@@ -24,12 +23,14 @@ public class PhysicsEntity extends Entity {
 	private boolean grounded = false;
 	private boolean previouslyGrounded = false;
 	private boolean sliding = false;
-	private final boolean submerged = false;
+	private boolean submerged = false;
 	private boolean climbing = false;
 
-	public float maxSpeed = 25f, maxAirSpeed = 5f;
+	public float maxSpeed = 25f, maxAirSpeed = 5f, maxWaterSpeed = 1f;
 	public float friction = DEFAULT_FRICTION;
 	public float airFriction = 0f;
+	
+	private Source source;
 	
 	float width;
 	float height;
@@ -50,6 +51,8 @@ public class PhysicsEntity extends Entity {
 		this.model = model == null ? null : Resources.getModel(model);
 		this.diffuse = diffuse == null ? null : Resources.getTexture(diffuse);
 		EntityControl.addEntity(this);
+		
+		source = new Source();
 	}
 
 	public void accelerate(Vector3f dir, float amount) {
@@ -64,7 +67,12 @@ public class PhysicsEntity extends Entity {
 
 			// If necessary, truncate the accelerated velocity so the vector projection does
 			// not exceed max_velocity
-			final float speedCap = submerged && !grounded ? maxSpeed * 2.8f : grounded ? maxSpeed : maxAirSpeed;
+			final float speedCap;
+			if (submerged) {
+				speedCap = maxWaterSpeed;
+			} else {
+				speedCap = grounded ? maxSpeed : maxAirSpeed;
+			}
 			// if (projVel + accelVel < -speedCap)
 			// accelVel = -speedCap - projVel;
 
@@ -80,16 +88,20 @@ public class PhysicsEntity extends Entity {
 
 	private void collide(Terrain terrain) {
 		Chunk chunk = terrain.getChunkAt(position.x, position.z);
-
-		if (chunk == null) {
-			return;
-		}
 		
 		final float relx = position.x - (chunk.x * Chunk.CHUNK_SIZE);
 		final float relz = position.z - (chunk.z * Chunk.CHUNK_SIZE);
-		int tx = ((int) Math.floor(relx / Chunk.POLYGON_SIZE))*2 + 1;
-		int tz = ((int) Math.floor(relz / Chunk.POLYGON_SIZE))*2 + 1;
+		int tx = ((int) Math.floor(relx / Chunk.POLYGON_SIZE));
+		int tz = ((int) Math.floor(relz / Chunk.POLYGON_SIZE));
 		
+		submerged = false;
+		final float waterHeight = chunk.getWaterHeight(tx, tz);
+		if (waterHeight != Float.MIN_VALUE && waterHeight > position.y) {
+			submerged = true;
+		}
+		
+		tx = (tx*2)+1;
+		tz = (tz*2)+1;
 		// TODO: Spaghetti code ahead, refactor
 		
 		// Top
@@ -274,5 +286,15 @@ public class PhysicsEntity extends Entity {
 		collide(((Overworld) Application.scene).getEnviroment().getTerrain());
 
 		super.update(scene);
+	}
+	
+	@Override
+	public void destroy() {
+		super.destroy();
+		this.source.delete();
+	}
+
+	public Source getSource() {
+		return source;
 	}
 }

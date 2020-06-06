@@ -8,12 +8,14 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 
 import core.Globals;
-import core.Window;
+import gl.Window;
 
 public enum Input {
 
 	INPUT;
 
+	private static final float KEY_TIMEOUT = 1f;
+	
 	private static int mouseScreenPosX;
 	private static int mouseScreenPosY;
 
@@ -316,13 +318,21 @@ public enum Input {
 		final int[] keys = INPUT.keys;
 		final int[] states = INPUT.states;
 		// int[] mouse = INPUT.mouse;
-
-		for (; i < INPUT.MAX_KEYS; i++) {
-			if (states[i] == INPUT.RELEASED) {
+		
+		if (Window.deltaTime > KEY_TIMEOUT) {
+			for (; i < INPUT.MAX_KEYS; i++) {
 				keys[i] = 0;
+				states[i] = INPUT.NOT_PRESSED;
 			}
-			if (states[i] == INPUT.PRESSED) {
-				states[i] = INPUT.HELD_DOWN;
+		} else {
+
+			for (; i < INPUT.MAX_KEYS; i++) {
+				if (states[i] == INPUT.RELEASED) {
+					keys[i] = 0;
+				}
+				if (states[i] == INPUT.PRESSED) {
+					states[i] = INPUT.HELD_DOWN;
+				}
 			}
 		}
 

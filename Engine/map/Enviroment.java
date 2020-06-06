@@ -1,16 +1,17 @@
 package map;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.joml.Vector3f;
 
 import core.Application;
 import core.Globals;
+import dev.Console;
 import gl.Camera;
-import map.render.TerrainRender;
-import procedural.BiomeVoronoi;
+import gl.terrain.TerrainRender;
+import map.weather.Weather;
+import procedural.biome.Biome;
+import procedural.biome.BiomeMap;
+import procedural.biome.BiomeVoronoi;
+import procedural.terrain.GenTerrain;
 import scene.Scene;
 import util.MathUtil;
 
@@ -19,10 +20,13 @@ public class Enviroment {
 
 	public static final int DAY_LENGTH = 60000;
 	private static final double DAY_START = 0;
+
+	public static int biomeScale = 8*Chunk.CHUNK_SIZE;
 	public static int timeSpeed = 1;
 	public static int time = 0;
 	private static boolean toggleTime = true;
 	
+	private BiomeMap biomeMap;
 	private BiomeVoronoi biomeVoronoi;
 	
 	private final Vector3f lightDirection;
@@ -35,10 +39,8 @@ public class Enviroment {
 	private Weather weather;
 	public static Terrain terrain;
 
-	public static Map<Temperature, Map<Moisture, List<Biome>>> biomeMap = new HashMap<Temperature, Map<Moisture, List<Biome>>>();
-	
-	
 	public Enviroment(Scene scene) {
+		GenTerrain.init(5, 7, 11, 13);
 		long seed = System.currentTimeMillis();
 		
 		//skyboxRenderer = new SkyboxRenderer();
@@ -46,22 +48,22 @@ public class Enviroment {
 
 		lightDirection = new Vector3f();
 
-		x = chunkArrSize / 2;
-		z = chunkArrSize / 2;
-		
 		Vector3f c = scene.getCamera().getPosition();
-		biomeVoronoi = new BiomeVoronoi(3, Chunk.CHUNK_SIZE*(15), c.x, c.z, 223443);
-		
+		biomeMap = new BiomeMap();
+		biomeVoronoi = new BiomeVoronoi(this, chunkArrSize, biomeScale, c.x, c.z, (int)seed);
 		weather = new Weather(seed, 3);
 		terrain = new Terrain(this, chunkArrSize);
-		terrain.populate(0, 0);
+
+		reposition(-chunkArrSize/2, -chunkArrSize/2);
+		
+		
 	}
 	
 	public void cleanUp() {
-
 		//skyboxRenderer.cleanUp();
 		terrainRender.cleanUp();
 		terrain.cleanUp();
+		weather.cleanUp();
 		//Resources.removeTextureReference("terrain_tiles");
 	}
 
@@ -88,30 +90,24 @@ public class Enviroment {
 		x = camX;
 		z = camZ;
 		
-		//biomeVoronoi.update(camX, camZ);
-		terrain.populate(x - chunkArrSize / 2, z - chunkArrSize / 2);
+		terrain.populate(x, z);
 	}
 
 	public void resize(int chunkArrSize) {
-		final int dSize = chunkArrSize / 2;// - (World.chunkArrSize/2);
 		Terrain.size = chunkArrSize;
-		// x -= dSize;
-		// z -= dSize;
 		terrain.cleanUp();
 		terrain = new Terrain(this, chunkArrSize);
-		terrain.populate(x - dSize, z - dSize);
+		terrain.populate(x, z);
 	}
 
 	public void update(Scene scene) {
 		final Camera camera = scene.getCamera();
 
-		final int camX = (int) Math.floor(camera.getPosition().x / Chunk.CHUNK_SIZE);
-		final int camZ = (int) Math.floor(camera.getPosition().z / Chunk.CHUNK_SIZE);
+		final int camX = (int) Math.floor(camera.getPosition().x / Chunk.CHUNK_SIZE) - (chunkArrSize / 2);
+		final int camZ = (int) Math.floor(camera.getPosition().z / Chunk.CHUNK_SIZE) - (chunkArrSize / 2);
 
-		weather.update();
+		weather.update(camera);
 		biomeVoronoi.update(camera.getPosition().x, camera.getPosition().z);//camera.getPosition().x, camera.getPosition().z
-		terrain.update();
-		
 		if (x != camX) {
 			final int dx = camX - x;
 			if (Math.abs(dx) > 1) {
@@ -131,6 +127,8 @@ public class Enviroment {
 			}
 			z = camZ;
 		}
+		
+		terrain.update(camera);
 
 		// DAY/NIGHT time
 		time = (time + timeSpeed) % DAY_LENGTH;
@@ -138,17 +136,20 @@ public class Enviroment {
 		lightDirection.y = (float) Math.sin(DAY_START + time * MathUtil.TAU / DAY_LENGTH);
 		lightDirection.x = 0;
 		
-		if (weather.getWeatherCells()[1][1] < -.6f) {
-			lightDirection.mul(.5f);
-		}
+		lightDirection.mul(weather.getLightingDim());
+
 	}
 	
 	public BiomeVoronoi getBiomeVoronoi() {
 		return biomeVoronoi;
 	}
 
-	public Biome getBiome() {
-		return Biome.values()[(int)biomeVoronoi.getClosest()[2]];
+	public Biome getClosestBiome() {
+		return biomeVoronoi.getClosest().biome;
+	}
+	
+	public Biome calcBiome(int nx, int ny, int seed, Temperature temperature, Moisture moisture, float randBiomeChange) {
+		return biomeMap.getBiome(nx, ny, seed, temperature, moisture, randBiomeChange);
 	}
 	
 	public Weather getWeather() {

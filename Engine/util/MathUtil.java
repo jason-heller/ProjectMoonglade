@@ -139,7 +139,7 @@ public class MathUtil {
 		dy = y2 - y1;
 		dx = x2 - x1;
 
-		return (float) -Math.toDegrees(Math.atan2(dy, dx));
+		return (float) -(Math.atan2(dy, dx));
 	}
 
 	public static float pointDirection(float x1, float y1, float z1, float x2, float y2, float z2) {
@@ -192,24 +192,125 @@ public class MathUtil {
 				y++;
 				slopeErr -= 2 * (x2 - x1);
 			}
-		}/*
-		int dx, dy, p, x, y;
-		dx = x1 - x1;
-		dy = y1 - y1;
-		x = x1;
-		y = y1;
-		p = 2 * dy - dx;
-		while (x < x2) {
-			if (p >= 0) {
-				points.add(new Vector2f(x,y));
-				y = y + 1;
-				p = p + 2 * dy - 2 * dx;
-			} else {
-				points.add(new Vector2f(x,y));
-				p = p + 2 * dy;
-			}
-			x = x + 1;
-		}*/
+		}
 		return points;
 	}
+	
+	public static List<int[]> bresenham(float x1, float y1, float x2, float y2) {
+		List<int[]> points = new ArrayList<int[]>();
+		
+		int x = (int) Math.floor(x1);
+		int y = (int) Math.floor(y1);
+		double dx = x2 - x1;
+		double dy = y2 - y1;
+		int stepX = (int) Math.signum(dx);
+		int stepY = (int) Math.signum(dy);
+		
+		// Straight dist to first vertical boundary
+		double xOffset = (x2 > x1) ? Math.ceil(x1) - x1 : x1 - Math.floor(x1);
+		// Straight dist to first horiz boundary
+		double yOffset = (y2 > y1) ? Math.ceil(y1) - y1 : y1 - Math.floor(y1);
+		
+		double theta = Math.atan2(-dy, dx);
+		// 'time' until boundary reached
+		double tx = xOffset / Math.cos(theta);
+		double ty = yOffset / Math.sin(theta);
+		// delta time for movement
+		double deltaX  = 1.0 / Math.cos(theta);
+		double deltaY = 1.0 / Math.sin(theta);
+
+		double manhattanDist = Math.abs(Math.floor(x2) - Math.floor(x1)) + Math.abs(Math.floor(y2) - Math.floor(y1));
+		
+		for (int t = 0; t <= manhattanDist; t++) {
+			points.add(new int[] {x, y});
+			if (Math.abs(tx) < Math.abs(ty)) {
+				tx += deltaX;
+				x += stepX;
+			} else {
+				ty += deltaY;
+				y += stepY;
+			}
+		}
+		return points;
+	}
+
+	final static Vector3f[] boxNormals = new Vector3f[] {
+			new Vector3f(1,0,0),
+			new Vector3f(0,1,0),
+			new Vector3f(0,0,1),
+			new Vector3f(-1,0,0),
+			new Vector3f(0,-1,0),
+			new Vector3f(0,0,-1)
+	};
+	
+	public static Vector3f rayBoxEscapeNormal(Vector3f origin, Vector3f dir, float tx, float ty, float tz, float size) {
+		final Vector3f topLeft = new Vector3f(tx,ty+size,tz);
+		final Vector3f btmRight = new Vector3f(tx+size,ty,tz+size);
+		float shortest = Float.MAX_VALUE;
+		Vector3f outputNormal = new Vector3f();
+		
+		shortest = testAgainst(outputNormal, shortest, boxNormals[5], topLeft, origin, dir);
+		shortest = testAgainst(outputNormal, shortest, boxNormals[4], btmRight, origin, dir);
+		shortest = testAgainst(outputNormal, shortest, boxNormals[3], topLeft, origin, dir);
+		shortest = testAgainst(outputNormal, shortest, boxNormals[2], btmRight, origin, dir);
+		shortest = testAgainst(outputNormal, shortest, boxNormals[1], topLeft, origin, dir);
+		shortest = testAgainst(outputNormal, shortest, boxNormals[0], btmRight, origin, dir);
+		return outputNormal;
+	}
+	
+	private static float testAgainst(Vector3f output, float originalDistance, Vector3f planeNormal, Vector3f planeOrigin, Vector3f rayOrigin, Vector3f rayNormal) {
+		float dist = Float.MAX_VALUE;
+		
+		float d = planeNormal.dot(rayNormal);
+		if (Math.abs(d) > .00001f) {
+			dist = (Vector3f.sub(planeOrigin, rayOrigin).dot(planeNormal)) / d;
+		}
+		
+		if (dist == Float.MAX_VALUE || dist < 0) {
+			return originalDistance;
+		}
+
+		if (dist < originalDistance) {
+			output.set(planeNormal);
+			return dist;
+		}
+		
+		return originalDistance;
+	}
+/*		final Vector3f topLeft = new Vector3f(tx,ty+size,tz);
+		final Vector3f btmRight = new Vector3f(tx+size,ty,tz+size);
+		float longest = 0;
+		Vector3f outputNormal = null;
+		
+		longest = testAgainst(outputNormal, longest, boxNormals[5], btmRight, origin, dir, size);
+		longest = testAgainst(outputNormal, longest, boxNormals[4], btmRight, origin, dir, size);
+		longest = testAgainst(outputNormal, longest, boxNormals[3], btmRight, origin, dir, size);
+		longest = testAgainst(outputNormal, longest, boxNormals[2], topLeft, origin, dir, size);
+		longest = testAgainst(outputNormal, longest, boxNormals[1], topLeft, origin, dir, size);
+		longest = testAgainst(outputNormal, longest, boxNormals[0], topLeft, origin, dir, size);
+		return outputNormal;
+	}
+
+	private static float testAgainst(Vector3f output, float originalDistance, Vector3f planeNormal, Vector3f planeOrigin, Vector3f rayOrigin, Vector3f rayNormal, float boxSize) {
+		Plane plane = new Plane(planeOrigin, planeNormal);
+		Vector3f intersectionPoint = plane.rayIntersection(new Vector3f(rayOrigin), new Vector3f(rayNormal));
+		if (intersectionPoint == null) {
+			return originalDistance;
+		}
+
+		if (Math.abs(intersectionPoint.x - planeOrigin.x) > boxSize+.05f ||
+				Math.abs(intersectionPoint.y - planeOrigin.y) > boxSize+.05f ||
+				Math.abs(intersectionPoint.z - planeOrigin.z) > boxSize+.05f) {
+			return originalDistance;
+		}
+		
+		float dist = Vector3f.distanceSquared(rayOrigin, intersectionPoint);
+		if (dist > originalDistance) {
+			output=(planeNormal);
+			Console.log("yehaw",planeNormal);
+			return dist;
+		}
+		
+		return originalDistance;
+	}*/
 }

@@ -1,6 +1,6 @@
 package gl.post;
 
-import core.Window;
+import gl.Window;
 import gl.fbo.FboUtils;
 import gl.fbo.FrameBuffer;
 import shader.ShaderProgram;

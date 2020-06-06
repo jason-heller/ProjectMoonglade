@@ -54,11 +54,18 @@ class Command {
 		else if (type == CommandType.METHOD) {
 			if (args != null) {
 				determineArgs(args);
+				for(Method method : this.locationClass.getMethods()) {
+					if (method.getName().equals(value)) {
+						this.method = method;
+						return;
+					}
+				}
 			} else {
 				for(Method method : this.locationClass.getMethods()) {
-					if (method.getName().equals(name)) {
+					if (method.getName().equals(value)) {
 						determineArgs(method);
 						this.method = method;
+						
 						return;
 					}
 				}

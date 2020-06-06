@@ -1,21 +1,39 @@
 package map;
 
+import static map.Chunk.VERTEX_COUNT;
+
+import java.util.List;
+
 import org.joml.Vector3f;
 
+import core.Resources;
+import core.res.TileableModel;
 import core.res.Vbo;
 import dev.Console;
+import geom.Plane;
+import gl.Camera;
+import io.ChunkStreamer;
+import map.building.Building;
+import map.building.Material;
 import map.building.Tile;
-import procedural.terrain.TerrainGen;
+import map.tile.EnvTile;
+import map.tile.TileData;
+import util.MathUtil;
 
 public class Terrain {
 
-	static int size;
-	private map.Chunk[][] data;
+	public static int size;
+	private Chunk[][] data;
 	private Enviroment enviroment;
+	private TileData itemResources;
+	private ChunkStreamer streamer;
 	
 	public Terrain(Enviroment enviroment, int chunkArrSize) {
 		size = chunkArrSize;
+
+		itemResources = new TileData();
 		
+		streamer = new ChunkStreamer(this);
 		if (size < 0) {
 			throw new IllegalArgumentException("Illegal Capacity: " + size);
 		}
@@ -23,17 +41,29 @@ public class Terrain {
 		this.enviroment = enviroment;
 		this.data = new Chunk[size][size];
 		
+		Resources.addSound("step_grass", "step_grass.ogg");
+		
 		// colorData = TextureUtils.getRawTextureData("res/terrain/ground_color.png");
 	}
 
 	public void cleanUp() {
+
+		itemResources = null;
 		
 		for (final Chunk[] chunkBatch : get()) {
 			for (final Chunk chunk : chunkBatch) {
 				if (chunk != null)
-					chunk.cleanUp();
+					cleanUpChunk(chunk);
 			}
 		}
+		//streamer.save(Application.scene.getCamera().getPosition());
+		streamer.finish();
+		
+		Resources.removeSound("step_grass");
+	}
+
+	private void cleanUpChunk(Chunk chunk) {
+		streamer.queueForSaving(chunk);
 	}
 
 	public Chunk[][] get() {
@@ -44,169 +74,138 @@ public class Terrain {
 		return data[x][y];
 	}
 
-	public Chunk getChunkAt(float x, float z) {
-		final float relx = x - data[0][0].x * Chunk.CHUNK_SIZE;
-		final float relz = z - data[0][0].z * Chunk.CHUNK_SIZE;
-		final int tx = (int) Math.floor(relx / Chunk.CHUNK_SIZE);
-		final int tz = (int) Math.floor(relz / Chunk.CHUNK_SIZE);
-
-		if (tx < 0 || tz < 0 || tx >= data.length || tz >= data[0].length) {
-			return null;
-		}
-
-		return data[tx][tz];
-	}
-
 	public void populate(int x, int z) {
 		for (final Chunk[] chunkBatch : get()) {
 			for (final Chunk chunk : chunkBatch) {
 				if (chunk != null) {
-					chunk.cleanUp();
+					cleanUpChunk(chunk);
 				}
 			}
 		}
+		
+		//streamer.save(Application.scene.getCamera().getPosition());
 
 		for (int i = 0; i < size; i++) {
 			for (int j = 0; j < size; j++) {
-				loadChunk(x+i, z+j, i, j, null);
+				addChunk(i-(size/2), j-(size/2), i, j, null);
 			}
 		}
+		
+		//streamer.load();
 	}
 	
-	public void update() {
+	public void update(Camera camera) {
 		for (int i = 0; i < size; i++) {
 			for (int j = 0; j < size; j++) {
 				final Chunk chunk = data[i][j];
-				if (chunk.getLoadedState() == Chunk.UNLOADED) {
-					fillAdjacents(chunk, i, j);
-					chunk.load(this, enviroment.getBiomeVoronoi());
+				switch(chunk.getState()) {
+				case Chunk.GENERATING:
+					chunk.generate(this, enviroment.getBiomeVoronoi(), i, j);
+					break;
+				case Chunk.BUILDING:
+					chunk.build(enviroment.getBiomeVoronoi());
+					break;
+				case Chunk.UNLOADING:
+					chunk.cleanUp();
+					break;
+				case Chunk.LOADED:
+					chunk.checkIfCulled(camera.getFrustum());
+					break;
 				}
 			}
 		}
+		
+		streamer.update();
+		
 	}
 
+	final float raycastDelta = 0.1f;
 	public Vector3f buildingRaycast(Vector3f origin, Vector3f dir, float maxDist) {
-		int i, dx, dy, dz, l, m, n, x_inc, y_inc, z_inc, err_1, err_2, dx2, dy2, dz2;
 		Tile output;
 		
-		Vector3f point = Vector3f.div(origin, Tile.TILE_SIZE);
-		Vector3f endPoint = Vector3f.add(point, Vector3f.mul(dir, maxDist/Tile.TILE_SIZE));
-		//point.y--;
-		//endPoint.y--;
+		Vector3f point = new Vector3f(origin);
+		Vector3f offset = Vector3f.mul(dir, raycastDelta);
 		
-	    dx = (int)(endPoint.x - point.x);
-	    dy = (int)(endPoint.y - point.y);
-	    dz = (int)(endPoint.z - point.z);
-	    x_inc = (dx < 0) ? -1 : 1;
-	    l = Math.abs(dx);
-	    y_inc = (dy < 0) ? -1 : 1;
-	    m = Math.abs(dy);
-	    z_inc = (dz < 0) ? -1 : 1;
-	    n = Math.abs(dz);
-	    dx2 = l << 1;
-	    dy2 = m << 1;
-	    dz2 = n << 1;
-	    
-	    if ((l >= m) && (l >= n)) {
-	        err_1 = dy2 - l;
-	        err_2 = dz2 - l;
-	        for (i = 0; i < l; i++) {
-	        	float tx = point.x*Tile.TILE_SIZE;
-	        	float ty = point.y*Tile.TILE_SIZE;
-	        	float tz = point.z*Tile.TILE_SIZE;
-	        	output = getTileAt(tx, ty, tz);
+		float tx = Float.MIN_VALUE;
+		float ty = Float.MIN_VALUE;
+		float tz = Float.MIN_VALUE;
+		
+		for(float i = 0; i <= maxDist; i += raycastDelta) {
+			float x = (float) ((Math.floor(point.x/Tile.TILE_SIZE))*Tile.TILE_SIZE);
+			float y = (float) ((Math.floor(point.y/Tile.TILE_SIZE))*Tile.TILE_SIZE);
+			float z = (float) ((Math.floor(point.z/Tile.TILE_SIZE))*Tile.TILE_SIZE);
+			if (x != tx || y != ty || z != tz) {
+				tx = x;
+				ty = y;
+				tz = z;
+				output = getTileAt(tx, ty, tz);
+				//EntityControl.addEntity(new TestEntity(tx,ty,tz));
+				
+				
 	        	if (output != null) {
-	        		byte side = Tile.checkRay(origin, dir, tx, ty, tz, output.getWalls());
+	        		byte side = Tile.checkRay(point, dir, x, y, z, output.getWalls());
 	        		if (side != 0) {
-	        			return Vector3f.mul(point, Tile.TILE_SIZE);
+	        			return new Vector3f(tx, ty, tz);
 	        		}
 	        	}
-	            if (err_1 > 0) {
-	            	point.y += y_inc;
-	                err_1 -= dx2;
-	            }
-	            if (err_2 > 0) {
-	            	point.z += z_inc;
-	                err_2 -= dx2;
-	            }
-	            err_1 += dy2;
-	            err_2 += dz2;
-	            point.x += x_inc;
-	        }
-	    } else if ((m >= l) && (m >= n)) {
-	        err_1 = dx2 - m;
-	        err_2 = dz2 - m;
-	        for (i = 0; i < m; i++) {
-	        	float tx = point.x*Tile.TILE_SIZE;
-	        	float ty = point.y*Tile.TILE_SIZE;
-	        	float tz = point.z*Tile.TILE_SIZE;
-	        	output = getTileAt(tx, ty, tz);
-	        	if (output != null) {
-	        		byte side = Tile.checkRay(origin, dir, tx, ty, tz, output.getWalls());
-	    
-	        		if (side != 0) {
-	        			return Vector3f.mul(point, Tile.TILE_SIZE);
-	        		}
-	        	}
-	            if (err_1 > 0) {
-	            	point.x += x_inc;
-	                err_1 -= dy2;
-	            }
-	            if (err_2 > 0) {
-	            	point.z += z_inc;
-	                err_2 -= dy2;
-	            }
-	            err_1 += dx2;
-	            err_2 += dz2;
-	            point.y += y_inc;
-	        }
-	    } else {
-	        err_1 = dy2 - n;
-	        err_2 = dx2 - n;
-	        for (i = 0; i < n; i++) {
-	        	float tx = point.x*Tile.TILE_SIZE;
-	        	float ty = point.y*Tile.TILE_SIZE;
-	        	float tz = point.z*Tile.TILE_SIZE;
-	        	output = getTileAt(tx, ty, tz);
-	        	if (output != null) {
-	        		byte side = Tile.checkRay(origin, dir, tx, ty, tz, output.getWalls());
-	        		if (side != 0) {
-	        			return Vector3f.mul(point, Tile.TILE_SIZE);
-	        		}
-	        	}
-	            if (err_1 > 0) {
-	            	point.y += y_inc;
-	                err_1 -= dz2;
-	            }
-	            if (err_2 > 0) {
-	            	point.x += x_inc;
-	                err_2 -= dz2;
-	            }
-	            err_1 += dy2;
-	            err_2 += dx2;
-	            point.z += z_inc;
-	        }
-	    }
-	    float tx = point.x*Tile.TILE_SIZE;
-    	float ty = point.y*Tile.TILE_SIZE;
-    	float tz = point.z*Tile.TILE_SIZE;
-    	output = getTileAt(tx, ty, tz);
-    	if (output != null) {
-    		byte side = Tile.checkRay(origin, dir, tx, ty, tz, output.getWalls());
-    		if (side != 0) {
-    			return Vector3f.mul(point, Tile.TILE_SIZE);
-    		}
-    	}
-    	
-	    return null;
+			}
+			
+			point.add(offset);
+		}
+		
+		return null;
 	}
+	
+	public Vector3f terrainRaycast(Vector3f origin, Vector3f dir, float maxDist) {
+		Vector3f end = Vector3f.add(origin, Vector3f.mul(dir, maxDist));
+		List<int[]> terrainTiles = MathUtil.bresenham(origin.x, origin.z, end.x, end.z);
+		for(int[] point : terrainTiles) {
+			Chunk c = getChunkAt(point[0], point[1]);
+			if (c == null) return null;
+			Plane plane = c.getPlane(point[0], point[1], false);
+			Vector3f hit = plane.rayIntersection(origin, dir);
 
-	public Tile getTileAt(float x, float y, float z) {
-		Chunk chunkPtr = getChunkAt(x, z);
-		return chunkPtr.getBuilding().getTileAt(
-				x - (chunkPtr.x*Chunk.CHUNK_SIZE),
-				y,
-				z - (chunkPtr.z*Chunk.CHUNK_SIZE));
+			if (hit != null && hit.x < point[0] + 1 && hit.x >= point[0] && hit.z < point[1] + 1 && hit.z >= point[1]) {
+				
+				return hit;
+			} else {
+				plane = getChunkAt(point[0], point[1]).getPlane(point[0], point[1], true);
+				hit = plane.rayIntersection(origin, dir);
+				if (hit != null && hit.x < point[0] + 1 && hit.x >= point[0] && hit.z < point[1] + 1 && hit.z >= point[1]) {
+					
+					return hit;
+				}
+			}
+		}
+		/*float height;
+		
+		Vector3f point = new Vector3f(origin);
+		Vector3f offset = Vector3f.mul(dir, raycastDelta);
+		
+		float tx = Float.MIN_VALUE;
+		float ty = Float.MIN_VALUE;
+		float tz = Float.MIN_VALUE;
+		
+		for(float i = 0; i <= maxDist; i += raycastDelta) {
+			float x = (float) ((Math.floor(point.x/Tile.TILE_SIZE))*Tile.TILE_SIZE);
+			float y = (float) ((Math.floor(point.y/Tile.TILE_SIZE))*Tile.TILE_SIZE);
+			float z = (float) ((Math.floor(point.z/Tile.TILE_SIZE))*Tile.TILE_SIZE);
+
+			if (x != tx || y != ty || z != tz) {
+				tx = x;
+				ty = y;
+				tz = z;
+				
+				height = getHeightAt(tx,tz);
+				if (height >= point.y) {
+	        		return new Vector3f(point.x, height, point.z);
+	        	}
+			}
+			
+			point.add(offset);
+		}*/
+		
+		return null;
 	}
 	
 	public void shiftX(int dx) {
@@ -219,9 +218,10 @@ public class Terrain {
 				if (i == shiftStartPos) {
 					Chunk chunk = data[i - shiftDir][j];
 					if (chunk != null)
-						chunk.cleanUp();
+						cleanUpChunk(chunk);
 				}
 				data[i - shiftDir][j] = data[i][j];
+				data[i - shiftDir][j].arrX = i - shiftDir;
 			}
 		}
 
@@ -229,8 +229,11 @@ public class Terrain {
 			final int i = shiftDir == 1 ? size - 1 : 0;
 			final int nx = data[i][j].x + shiftDir;
 			final int nz = data[i][j].z;
-			loadChunk(nx, nz, i, j, null);
+			addChunk(nx, nz, i, j, null);
 		}
+		
+		//streamer.save(Application.scene.getCamera().getPosition());
+		//streamer.load();
 	}
 
 	public void shiftY(int k) {
@@ -243,10 +246,11 @@ public class Terrain {
 				if (j == shiftStartPos) {
 					Chunk chunk = data[i][j - shiftDir];
 					if (chunk != null)
-						chunk.cleanUp();
+						cleanUpChunk(chunk);
 				}
 
 				data[i][j - shiftDir] = data[i][j];
+				data[i][j - shiftDir].arrZ = j - shiftDir;
 
 			}
 		}
@@ -255,39 +259,76 @@ public class Terrain {
 			final int j = shiftDir == 1 ? size - 1 : 0;
 			final int nx = data[i][j].x;
 			final int nz = data[i][j].z + shiftDir;
-			loadChunk(nx, nz, i, j, null);
+			addChunk(nx, nz, i, j, null);
 		}
+		
+		//streamer.save(Application.scene.getCamera().getPosition());
+		//streamer.load();
 	}
 
-	private void loadChunk(int x, int z, int arrX, int arrY, Vbo[][] vbos) {
-		float[][] heightmap = new float[Chunk.VERTEX_COUNT*2][Chunk.VERTEX_COUNT*3];
-		heightmap = TerrainGen.buildHeightmap(x*(Chunk.VERTEX_COUNT-1), 0, z*(Chunk.VERTEX_COUNT-1), Chunk.VERTEX_COUNT, Chunk.POLYGON_SIZE, enviroment.getBiomeVoronoi(), heightmap);
 	
+	// Called by populate, shiftX, and shiftY
+	private void addChunk(int x, int z, int arrX, int arrY, Vbo[][] vbos) {
+		
+		float[][] heightmap = new float[Chunk.VERTEX_COUNT*2][Chunk.VERTEX_COUNT*3];
+		int[][] tileItems = new int[Chunk.VERTEX_COUNT-1][Chunk.VERTEX_COUNT-1];
+		
 		Chunk chunk = new Chunk(x, z, this);
 		chunk.heightmap = heightmap;
+		chunk.items.tilemap = tileItems;
+		chunk.arrX = arrX;
+		chunk.arrZ = arrY;
+		
+		streamer.queueForLoading(chunk);
+		
 		data[arrX][arrY] = chunk;
 	}
 	
-	// The adjacents[] array is structured as follows: {LEFT, RIGHT, TOP, BOTTOM}
-	private void fillAdjacents(Chunk chunk, int arrX, int arrY) {
-		// I hate if condition spam AAAAAAAA
-		if (arrX > 0)
-			chunk.getAdjacents()[0] = data[arrX - 1][arrY];
-		if (arrX < size - 2)
-			chunk.getAdjacents()[1] = data[arrX + 1][arrY];
-		if (arrY > 0)
-			chunk.getAdjacents()[2] = data[arrX][arrY - 1];
-		if (arrY < size - 2)
-			chunk.getAdjacents()[3] = data[arrX][arrY + 1];
+	public void loadChunk() {
+		
+	}
+	
+	public void setChunkState(int x, int z, byte state) {
+		
+	}
+	
+	public Chunk getChunkAt(float x, float z) {
+		final float relx = x - data[0][0].x * Chunk.CHUNK_SIZE;
+		final float relz = z - data[0][0].z * Chunk.CHUNK_SIZE;
+		final int tx = (int) Math.floor(relx / Chunk.CHUNK_SIZE);
+		final int tz = (int) Math.floor(relz / Chunk.CHUNK_SIZE);
+
+		if (tx < 0 || tz < 0 || tx >= data.length || tz >= data[0].length) {
+			return null;
+		}
+
+		return data[tx][tz];
+	}
+	
+	public Tile getTileAt(float x, float y, float z) {
+		Chunk chunkPtr = getChunkAt(x, z);
+		return chunkPtr.getBuilding().getTileAt(
+				x - (chunkPtr.x*Chunk.CHUNK_SIZE),
+				y,
+				z - (chunkPtr.z*Chunk.CHUNK_SIZE));
 	}
 
 	public float getHeightAt(float x, float z) {
-		Chunk c = this.getChunkAt(x, z);
+		Chunk c = getChunkAt(x, z);
 		if (c == null)
-			return 0;
-		int rx = (int) (x - (c.x * Chunk.CHUNK_SIZE)) / Chunk.POLYGON_SIZE;
-		int rz = (int) (z - (c.z * Chunk.CHUNK_SIZE)) / Chunk.POLYGON_SIZE;
+			return Float.MIN_VALUE;
+		return c.getPolygon(x, z).barryCentric(x, z);
+	}
+	
+	public TileableModel getTileItem(int id) {
+		return itemResources.getModel(id);
+	}
 
-		return c.heightmap[rx*2+1][rz*2+1];
+	public int getArraySize() {
+		return Terrain.size;
+	}
+
+	public EnvTile getTileById(int id) {
+		return this.itemResources.get(id);
 	}
 }

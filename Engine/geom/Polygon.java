@@ -6,6 +6,8 @@ import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 public class Polygon {
+	private static final float EPSILON = .00001f;
+	
 	public static Polygon transform(Polygon polyNotTransformed, Matrix4f matrix) {
 		final Polygon poly = new Polygon(polyNotTransformed);
 		poly.applyMatrix(matrix);
@@ -147,5 +149,44 @@ public class Polygon {
 		p1.add(i, j, k);
 		p2.add(i, j, k);
 		p3.add(i, j, k);
+	}
+
+	public Vector3f rayIntersection(Vector3f rayOrigin, Vector3f rayDir) {
+		Vector3f out = new Vector3f();
+        Vector3f    u, v, n;
+        Vector3f    dir, w0;
+        float     r, a, b;
+        
+        u = new Vector3f(p2);
+        u.sub(p1);
+        v = new Vector3f(p3);
+        v.sub(p1);
+        n = Vector3f.cross(u, v);
+        
+        if (n.length() == 0) {
+            return null;
+        }
+        
+        dir = new Vector3f(rayDir);
+        w0 = new Vector3f(rayOrigin);
+        w0.sub(p1);
+        a = -(new Vector3f(n).dot(w0));
+        b = new Vector3f(n).dot(dir);
+        
+        if ((float)Math.abs(b) < EPSILON) {
+            return null;
+        }
+        
+        r = a / b;
+        if (r < 0.0) {
+            return null;
+        }
+        
+        out = new Vector3f(rayOrigin);
+        out.x += r * dir.x;
+        out.y += r * dir.y;
+        out.z += r * dir.z;
+        
+        return out;
 	}
 }

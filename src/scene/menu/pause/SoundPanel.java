@@ -11,7 +11,7 @@ public class SoundPanel extends GuiPanel {
 	private final GuiSlider volume;
 
 	public SoundPanel(GuiPanel parent, int x, int y) {
-		super(parent);
+		super(parent, x, y);
 		setLayout(new GuiFlowLayout(GuiFlowLayout.VERTICAL), x, y, 582, 392);
 
 		volume = new GuiSlider(x, y, "Volume", 0f, 1f, Globals.volume, .01f);

@@ -10,7 +10,7 @@ public class OptionsPanel extends GuiLayeredPane {
 	private final SoundPanel sfx;
 
 	public OptionsPanel(GuiPanel parent) {
-		super(parent, 200, 240, 890, 400, "Options");
+		super(parent, 264, 100, 954, 999, "Options");
 
 		setMenu("Controls", "Graphics", "Sound", "Back");
 
@@ -19,6 +19,11 @@ public class OptionsPanel extends GuiLayeredPane {
 		sfx = new SoundPanel(this, tabX + 4, y + 4);
 
 		setPanels(controls, gfx, sfx);
+	}
+	
+	@Override
+	public void update() {
+		getPane().update();
 	}
 
 	@Override

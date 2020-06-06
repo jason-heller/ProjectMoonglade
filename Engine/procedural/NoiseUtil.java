@@ -1,33 +1,23 @@
 package procedural;
 
+import java.util.Random;
+
 public class NoiseUtil {
-	//TODO: Remove this class
 	public static int seed = 0;
 	
-	/*public static void reseed() {
+	public static void reseed() {
 		Random r = new Random();
 		seed = r.nextInt()*19990303;
-	}*/
-	
-	public static double noise1d(int x) {
-		x += seed;
-		//x = (x >> 13);//(int) Math.pow(, x);
-		int nn = (x * (x * x * 60493 + 19990303) + 1376312589) & 0x7fffffff;
-	  return 1.0 - ((double)nn / 1073741824.0);
 	}
 	
-	public static double noise1d(int x, long s) {
+	public static double valueNoise1d(int x, long s) {
 		x += s;
 		//x = (x >> 13);//(int) Math.pow(, x);
 		int nn = (x * (x * x * 60493 + 19990303) + 1376312589) & 0x7fffffff;
 	  return 1.0 - ((double)nn / 1073741824.0);
 	}
 	
-	public static float noise2d(long x, long y) {
-		return noise2d(x, y, seed);
-	}
-	
-	public static float noise2d(long x, long y, long s) {
+	public static float valueNoise2d(long x, long y, long s) {
 		x *= s;
 		y *= s*60493;
 		/* mix around the bits in x: */
@@ -49,20 +39,17 @@ public class NoiseUtil {
 		return (x & 0x00ffffff) * (1.0f / 0x1000000);
 	}
 	
-	public static double noiseLerp1d(double x) {
+	public static double interpNoise1d(double x, long s) {
 		int intX = (int) (Math.floor(x));
-		double n0 = noise1d(intX);
-		double n1 = noise1d(intX + 1);
+		double n0 = valueNoise1d(intX, s);
+		double n1 = valueNoise1d(intX + 1, s);
 		double weight = x - Math.floor(x);
 		double noise = lerp(n0, n1, curve(weight));
 		return noise;
 	}
 	
-	public static double noiseLerp2d(double x, double y) {
-		x += (x%2==0) ? 1451 : 804;
-		y += (y%2==1) ? 7057 : 6046;
-		
-		return noiseLerp1d(x/1.0)/2.0 + noiseLerp1d(y/1.0)/2.0;
+	public static double interpNoise2d(double x, double y, long s) {
+		return interpNoise1d(szudzik(x, y), s);
 	}
 	
 	private static double curve(double weight) {
@@ -77,9 +64,20 @@ public class NoiseUtil {
 		seed = terrainSeed.hashCode();
 	}
 
-	public static long szudzik(int x, int y) {
-		// NXN -> N pairing funct
+	public static long szudzik(long x, long y) {
 		return y > x ? y * y + x : x * x + x + y;
+	}
+
+	public static double szudzik(double x, double y) {
+		return pairNxZ(szudzik(pairZxN(x), pairZxN(y)));
+	}
+
+	private static long pairZxN(double z) {
+		return (long) ((z >= 0) ? 2 * z : (-2 * z) - 1);
+	}
+
+	private static double pairNxZ(long n) {
+		return ((n % 2 == 0) ? n : -(n + 1)) / 2f;
 	}
 }
 

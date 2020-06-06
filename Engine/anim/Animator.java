@@ -11,8 +11,8 @@ import anim.component.Keyframe;
 import anim.component.Skeleton;
 import anim.render.AnimationControl;
 import core.Resources;
-import core.Window;
 import core.res.Model;
+import gl.Window;
 import scene.entity.Entity;
 import util.MathUtil;
 

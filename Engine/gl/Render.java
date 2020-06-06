@@ -1,5 +1,6 @@
 package gl;
 
+import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 
 import core.Resources;
@@ -9,6 +10,7 @@ import gl.particle.ParticleHandler;
 import gl.water.WaterRender;
 import map.Enviroment;
 import scene.Scene;
+import scene.entity.EntityControl;
 import scene.overworld.Overworld;
 import ui.UI;
 
@@ -19,7 +21,7 @@ public class Render {
 	public static FrameBuffer reflection;
 	public static FrameBuffer refraction;
 	private static int waterQuality = 3;
-	public static float waterLevel = -64;
+	public static float waterLevel = -0.2f;
 	
 	private static WaterRender waterRender;
 	
@@ -50,7 +52,7 @@ public class Render {
 		Resources.addTexture("skybox", "default.png");
 		Resources.addTexture("default", "default.png");
 		Resources.addTexture("none", "flat.png");
-		Resources.addModel("cube", "cube.mod", true);
+		Resources.addObjModel("cube", "cube.obj", true);
 		Resources.addSound("click", "lighter_click.ogg");
 
 		initGuiTextures();
@@ -59,7 +61,6 @@ public class Render {
 	private static void initGuiTextures() {
 		Resources.addTexture("gui_slider", "gui/slider.png");
 		Resources.addTexture("gui_arrow", "gui/arrow.png");
-		Resources.addTexture("loading_screen", "gui/loading_screen.png");
 	}
 
 	public static void postRender(Scene scene) {
@@ -81,12 +82,12 @@ public class Render {
 		ParticleHandler.update(scene.getCamera());
 		renderRefractions(scene, camera);
 		renderReflections(scene, camera);
-		
 		GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
 		
 		scene.render(0, 1, 0, -100000);
 		if (scene instanceof Overworld) {
-			Enviroment e = ((Overworld)scene).getEnviroment();
+			Overworld ow = ((Overworld)scene);
+			Enviroment e = ow.getEnviroment();
 			waterRender.render(camera, e);
 		}
 		ParticleHandler.render(scene.getCamera());
@@ -106,7 +107,7 @@ public class Render {
 		
 		if (waterQuality  > 1) {
 			
-			scene.render(0, -1, 0, 0);
+			scene.render(0, 1, 0, waterLevel);
 			if (waterQuality > 2) {
 				//Terrain.render(camera, 0,1,0,-waterLevel);
 				//ObjectControl.render(camera, 0,1,0,-waterLevel);
@@ -128,7 +129,7 @@ public class Render {
 		
 		//Terrain.render(camera, 0, -1, 0, waterLevel);
 		if (waterQuality > 0) {
-			scene.render(0, 1, 0, 0);
+			scene.render(0, -1, 0, waterLevel);
 
 			if (waterQuality > 2) {
 				//ObjectControl.render(camera, 0, -1, 0, -waterLevel);

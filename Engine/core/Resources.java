@@ -195,7 +195,15 @@ public class Resources {
 		textureMap.put(key, tex);
 		return tex;
 	}
-
+	
+	public static Texture addCubemap(String key, String ... paths) {
+		byte[][] data = TextureUtils.getRawTextureData(paths);
+		int wid = (int) Math.sqrt(data[0].length / 3);
+		final Texture tex = TextureUtils.createTexture(data, wid, wid);
+		textureMap.put(key, tex);
+		return tex;
+	}
+	
 	public static Texture addTexture(String key, Texture texture) {
 		textureMap.put(key, texture);
 		return texture;
@@ -255,5 +263,15 @@ public class Resources {
 	public static void removeTextureReference(String key) {
 		textureMap.get(key).delete();
 		textureMap.remove(key);
+	}
+	
+	public static void removeSound(String sound) {
+		AL10.alDeleteBuffers(soundMap.remove(sound));
+	}
+	
+	public static void removeAllSounds() {
+		for(int sound : soundMap.values()) {
+			AL10.alDeleteBuffers(sound);
+		}
 	}
 }

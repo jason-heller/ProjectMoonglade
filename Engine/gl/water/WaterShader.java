@@ -4,7 +4,6 @@ import shader.ShaderProgram;
 import shader.UniformFloat;
 import shader.UniformMatrix;
 import shader.UniformSampler;
-import shader.UniformVec4;
 
 public class WaterShader extends ShaderProgram {
 
@@ -16,11 +15,10 @@ public class WaterShader extends ShaderProgram {
 	protected UniformSampler refraction = new UniformSampler("refraction");
 	protected UniformSampler dudv = new UniformSampler("dudv");
 	//public UniformVec3 lightDirection = new UniformVec3("lightDirection");
-	public UniformVec4 offset = new UniformVec4("offset");
 	public UniformFloat timer = new UniformFloat("timer");
 
 	public WaterShader() {
 		super(VERTEX_SHADER, FRAGMENT_SHADER, "in_position", "in_textureCoords");
-		super.storeAllUniformLocations(offset, projectionViewMatrix, reflection, refraction, dudv, timer);
+		super.storeAllUniformLocations(projectionViewMatrix, reflection, refraction, dudv, timer);
 	}
 }

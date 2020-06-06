@@ -5,8 +5,8 @@ import org.joml.Vector4f;
 
 import core.Globals;
 import core.Resources;
-import core.Window;
 import core.res.Texture;
+import gl.Window;
 
 public class Image implements Component {
 

@@ -2,9 +2,10 @@ package audio;
 
 import java.io.InputStream;
 import java.nio.IntBuffer;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Queue;
 
 import org.joml.Vector3f;
 import org.lwjgl.LWJGLException;
@@ -19,13 +20,14 @@ import org.lwjgl.util.WaveData;
 import org.newdawn.slick.openal.OggData;
 import org.newdawn.slick.openal.OggDecoder;
 
-import core.Window;
+import core.Resources;
 import gl.Camera;
+import gl.Window;
 import io.FileUtils;
 
 public class AudioHandler {
 
-	public static ArrayList<Source> sources = new ArrayList<Source>();
+	public static Queue<Source> sources = new LinkedList<Source>();	// All active sources
 	private static Map<SoundEffects, SoundEffect> effects = new HashMap<SoundEffects, SoundEffect>();
 	private static Map<SoundFilters, Integer> filters = new HashMap<SoundFilters, Integer>();
 
@@ -44,7 +46,7 @@ public class AudioHandler {
 	public static void cleanUp() {
 
 		while (sources.size() > 0) {
-			sources.get(0).delete();
+			sources.remove().delete();
 		}
 
 		for (final SoundEffect sfx : getEffects().values()) {
@@ -55,6 +57,8 @@ public class AudioHandler {
 		for (final int filter : getFilters().values()) {
 			EFX10.alDeleteFilters(filter);
 		}
+		
+		Resources.removeAllSounds();
 
 		AL.destroy();
 	}
@@ -66,7 +70,7 @@ public class AudioHandler {
 	public static Map<SoundFilters, Integer> getFilters() {
 		return filters;
 	}
-
+	
 	public static void init() {
 		try {
 			AL.create();
@@ -74,6 +78,7 @@ public class AudioHandler {
 			setupEFX();
 			setupEffects();
 			setupFilters();
+			Thread.sleep(50);
 		} catch (final LWJGLException e) {
 			e.printStackTrace();
 		} catch (final Exception e) {

@@ -34,16 +34,17 @@ public class MainMenuUI {
 		mainMenu.setBordered(true);
 		options = new OptionsPanel(null);
 
-		title = new Text("Leatherboot", 50, 125, .75f, false);
+		title = new Text("Title", 50, 125, .75f, false);
 		background = new Image(mainMenuBg, 0, 0, (int) Globals.guiWidth, (int) Globals.guiHeight);
 
 		UI.addComponent(background);
 		UI.addComponent(title);
-
+		
 		mainMenu.addListener(new MenuListener() {
 
 			@Override
 			public void onClick(String option, int index) {
+				
 				switch (index) {
 				case 0:
 					Application.changeScene(Overworld.class);
@@ -73,9 +74,12 @@ public class MainMenuUI {
 			return;
 		}
 
-		mainMenu.draw();
+		
 		if (options.isFocused()) {
+			options.update();
 			options.draw();
+		} else {
+			mainMenu.draw();
 		}
 
 		scene.getCamera().updateViewMatrix();

@@ -1,10 +1,13 @@
 package scene.menu.pause;
 
+import java.util.Iterator;
+
 import core.Globals;
 import io.Controls;
 import ui.menu.GuiButton;
 import ui.menu.GuiElement;
 import ui.menu.GuiKeybind;
+import ui.menu.GuiLabel;
 import ui.menu.GuiPanel;
 import ui.menu.GuiSlider;
 import ui.menu.layout.GuiFlowLayout;
@@ -17,11 +20,23 @@ public class ControlsPanel extends GuiPanel {
 	private final GuiButton reset;
 
 	public ControlsPanel(GuiPanel parent, int x, int y) {
-		super(parent);
-		setLayout(new GuiFlowLayout(GuiFlowLayout.VERTICAL), x, y, 582, 392);
+		super(parent, x, y);
 
-		for (final String bind : Controls.controls.keySet()) {
-			addBind(bind);
+		setScrollable(true);
+		setLayout(new GuiFlowLayout(GuiFlowLayout.VERTICAL), x, y, 582, 9999);//392
+
+		int i = 0;
+		Iterator<String> iter = Controls.controls.keySet().iterator();
+		
+		add(new GuiLabel(x, y ,"#SMovement"));
+		for (; i < 7; i++) {
+			addBind(iter.next());
+		}
+		
+		addSeparator();
+		add(new GuiLabel(x, y ,"#SInventory"));
+		for (; i < 15; i++) {
+			addBind(iter.next());
 		}
 
 		addSeparator();

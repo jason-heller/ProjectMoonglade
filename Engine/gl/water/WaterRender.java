@@ -5,10 +5,11 @@ import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 
 import core.Resources;
-import core.Window;
 import core.res.Model;
+import dev.Console;
 import gl.Camera;
 import gl.Render;
+import gl.Window;
 import map.Chunk;
 import map.Enviroment;
 
@@ -18,7 +19,6 @@ public class WaterRender {
 	
 	public WaterRender() {
 		// Todo, this should always be loaded prob
-		Resources.addObjModel("water", "water/water.obj");
 		Resources.addTexture("water", "water/water.png");
 		Resources.addTexture("dudv", "water/dudv.png");
 		
@@ -44,16 +44,18 @@ public class WaterRender {
 		
 		Resources.getTexture("dudv").bind(2);
 		
-		Model model = Resources.getModel("water");
-		
-		model.bind(0,1);
 		shader.projectionViewMatrix.loadMatrix(camera.getProjectionViewMatrix());
 		shader.timer.loadFloat(timer);
 		
 		for(Chunk[] chunks : env.getTerrain().get()) {
 			for(Chunk chunk : chunks) {
-				//shader.offset.loadVec4(chunk.x, chunk.z, Chunk.CHUNK_SIZE, Render.waterLevel);
-				//GL11.glDrawElements(GL11.GL_TRIANGLES, model.getIndexCount(), GL11.GL_UNSIGNED_INT, 0);
+				Model model = chunk.getWaterModel();
+				if (model != null && !chunk.isCulled()) {
+					
+					model.bind(0,1);
+					model.getIndexVbo().bind();
+					GL11.glDrawElements(GL11.GL_TRIANGLES, model.getIndexCount(), GL11.GL_UNSIGNED_INT, 0);
+				}
 			}
 		}
 		

@@ -15,6 +15,19 @@ public abstract class GuiElement {
 		update();
 		tempDisable = false;
 	}
+	
+	public void draw(int dx, int dy) {
+		if (!isFocused()) {
+			return;
+		}
+
+		x += dx;
+		y += dy;
+		update();
+		tempDisable = false;
+		x -= dx;
+		y -= dy;
+	}
 
 	public boolean isFocused() {
 		return hasFocus;
@@ -32,5 +45,5 @@ public abstract class GuiElement {
 
 	public abstract void setPosition(int x, int y);
 
-	protected abstract void update();
+	public abstract void update();
 }

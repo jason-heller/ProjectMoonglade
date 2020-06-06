@@ -2,12 +2,14 @@ package dev;
 
 import static dev.CommandType.GETTER;
 import static dev.CommandType.SETTER;
+import static dev.CommandType.METHOD;
 
 import core.Globals;
-import core.Window;
 import gl.Camera;
+import gl.Window;
 import io.Controls;
 import map.Enviroment;
+import map.weather.Weather;
 
 enum CommandData {
 	// Methods
@@ -19,6 +21,10 @@ enum CommandData {
 	run(false),
 	bind(Controls.class, false, "key", "action"),
 	chunk_distance(false),
+	tp(true),
+	weather(true, "set/add/freeze", "float"),
+	give(true, "id/item", "amount"),
+	fps(false),
 	
 	// Getters
 	version("VERSION", Globals.class, GETTER, false),

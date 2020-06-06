@@ -9,7 +9,7 @@ import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL32;
 
 import core.Globals;
-import core.Window;
+import gl.Window;
 
 public class FboUtils {
 

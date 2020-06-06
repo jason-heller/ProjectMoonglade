@@ -10,7 +10,7 @@ public class PausePanel extends GuiPanel {
 	private final OptionsPanel options;
 
 	public PausePanel(PauseGui gui) {
-		super(null);
+		super(null, 0, 0);
 		pauseMenu = new GuiMenu(100, 300, "Resume", "Options", "Debug", "Back To Menu");
 		// pauseMenu.setBordered(true);
 

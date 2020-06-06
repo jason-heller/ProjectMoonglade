@@ -4,7 +4,7 @@ import org.lwjgl.opengl.DisplayMode;
 
 import core.Application;
 import core.Globals;
-import core.Window;
+import gl.Window;
 import ui.menu.GuiDropdown;
 import ui.menu.GuiPanel;
 import ui.menu.GuiSlider;
@@ -22,7 +22,7 @@ public class GraphicsPanel extends GuiPanel {
 	private final String[] resMenuOptions;
 
 	public GraphicsPanel(GuiPanel parent, int x, int y) {
-		super(parent);
+		super(parent, x, y);
 		setLayout(new GuiFlowLayout(GuiFlowLayout.VERTICAL), x, y, 582 / 2, 392);
 
 		resolutions = Window.getDisplayModes();

@@ -14,6 +14,7 @@ import org.lwjgl.opengl.GLContext;
 
 import de.matthiasmann.twl.utils.PNGDecoder;
 import de.matthiasmann.twl.utils.PNGDecoder.Format;
+import dev.Console;
 import io.FileUtils;
 
 class TextureData {
@@ -123,12 +124,12 @@ public class TextureUtils {
 		GL13.glActiveTexture(GL13.GL_TEXTURE0);
 		GL11.glBindTexture(GL13.GL_TEXTURE_CUBE_MAP, texID);
 
-		final ByteBuffer buf = ByteBuffer.allocateDirect(width * height * 4);
+		final ByteBuffer buf = ByteBuffer.allocateDirect(width * height * 3);
 		for (int i = 0; i < 6; i++) {
 			buf.put(rgba[i]);
 
 			buf.flip();
-			GL11.glTexImage2D(GL13.GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL11.GL_RGBA, width, height, 0, GL12.GL_BGRA,
+			GL11.glTexImage2D(GL13.GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL11.GL_RGB, width, height, 0, GL12.GL_BGR,
 					GL11.GL_UNSIGNED_BYTE, buf);
 			buf.clear();
 		}
@@ -160,6 +161,7 @@ public class TextureUtils {
 		textureData.setMipmap(mipmap);
 		textureData.setBias(bias);
 		textureData.setClampEdges(clampEdges);
+		textureData.setTransparent(isTransparent);
 		final int textureId = loadTextureToOpenGL(textureData);
 		return new Texture(textureId, type, textureData.getWidth(), isTransparent, numRows);
 	}
@@ -190,6 +192,35 @@ public class TextureUtils {
 				data[i][j][0] = (byteArr[byteArrInd+2] & 0xFF) / 255f;
 				data[i][j][1] = (byteArr[byteArrInd+1] & 0xFF) / 255f;
 				data[i][j][2] = (byteArr[byteArrInd+0] & 0xFF) / 255f;
+				
+				byteArrInd += 4;
+			}
+		}
+		
+		return data;
+	}
+	
+	public static byte[][] getRawTextureData(String... paths) {
+		byte[][] data = new byte[paths.length][];
+		byte[] byteArr;
+		
+		for(int n = 0; n < paths.length; n++) {
+			TextureData td = readTextureData("res/" + paths[n]);
+			
+			int w = td.getWidth();
+			
+			ByteBuffer buf = td.getBuffer();
+			final int len = w * w * 3;
+			data[n] = new byte[len];
+			byteArr = new byte[buf.remaining()];
+			buf.get(byteArr);
+			int byteArrInd = 0;
+			
+			for(int i = 0; i < len; i+=3) {
+				// AGRB
+				data[n][i] = byteArr[byteArrInd+2];
+				data[n][i+1] = byteArr[byteArrInd+1];
+				data[n][i+2] = byteArr[byteArrInd+0];
 				
 				byteArrInd += 4;
 			}

@@ -38,6 +38,11 @@ public class Plane {
 		this.normal = normal;
 		dist = -(normal.x * origin.x + normal.y * origin.y + normal.z * origin.z);
 	}
+	
+	public Plane(Vector3f p1, Vector3f p2, Vector3f p3) {
+		normal = Vector3f.cross(Vector3f.sub(p2, p1), Vector3f.sub(p3, p1)).normalize();
+		dist = (normal.x * p1.x + normal.y * p1.y + normal.z * p1.z);
+	}
 
 	public byte classify(Vector3f point, float planeThickness) {
 		final float fDist = Vector3f.dot(normal, point) - dist;
@@ -67,7 +72,7 @@ public class Plane {
 		final float t = (dist - normal.dot(rayOrigin)) / normal.dot(rayDirection);
 		return Vector3f.add(rayOrigin, rayDirection.mul(t));
 	}
-
+	
 	public void set(float a, float b, float c, float d) {
 		normal.set(a, b, c);
 

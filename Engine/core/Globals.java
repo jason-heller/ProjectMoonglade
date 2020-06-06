@@ -13,10 +13,10 @@ public class Globals {
 	public static int viewportWidth = 1280;
 	public static int viewportHeight = 720;
 	public static int maxFramerate = 120;
-	public static String windowTitle = "LeatherBoot Engine [WIP]";
+	public static String windowTitle = "yeet";
 
 	/* Technical stuff */
-	public static boolean debugMode = false;
+	public static boolean debugMode = true;
 	public static int fov = 90;
 
 	public static float gravity = 10f;
