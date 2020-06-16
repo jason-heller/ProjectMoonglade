@@ -14,7 +14,6 @@ import org.lwjgl.opengl.GLContext;
 
 import de.matthiasmann.twl.utils.PNGDecoder;
 import de.matthiasmann.twl.utils.PNGDecoder.Format;
-import dev.Console;
 import io.FileUtils;
 
 class TextureData {
@@ -129,7 +128,7 @@ public class TextureUtils {
 			buf.put(rgba[i]);
 
 			buf.flip();
-			GL11.glTexImage2D(GL13.GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL11.GL_RGB, width, height, 0, GL12.GL_BGR,
+			GL11.glTexImage2D(GL13.GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL11.GL_RGB, width, height, 0, GL11.GL_RGB,
 					GL11.GL_UNSIGNED_BYTE, buf);
 			buf.clear();
 		}
@@ -258,8 +257,8 @@ public class TextureUtils {
 
 		if (data.type == GL13.GL_TEXTURE_CUBE_MAP) {
 			for (int i = 0; i < 6; i++) {
-				GL11.glTexImage2D(GL13.GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL11.GL_RGBA, data.getWidth(),
-						data.getHeight(), 0, GL12.GL_BGRA, GL11.GL_UNSIGNED_BYTE, data.getBuffer());
+				GL11.glTexImage2D(GL13.GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL11.GL_RGB, data.getWidth(),
+						data.getHeight(), 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, data.getBuffer());
 			}
 		} else {
 			GL11.glTexImage2D(data.type, 0, GL11.GL_RGBA, data.getWidth(), data.getHeight(), 0, GL12.GL_BGRA,

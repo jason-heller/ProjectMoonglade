@@ -3,7 +3,6 @@ package ui;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
-import core.Globals;
 import core.Resources;
 import core.res.Texture;
 import gl.Window;
@@ -84,19 +83,19 @@ public class Image implements Component {
 	}
 
 	public Vector4f getTransform() {
-		final float scaledWidth = w / Globals.guiWidth * Globals.displayWidth;
-		final float scaledHeight = h / Globals.guiHeight * Globals.displayHeight;
-		final float scaledX = x / Globals.guiWidth * Globals.displayWidth;
-		final float scaledY = y / Globals.guiHeight * Globals.displayHeight;
+		final float scaledWidth = w / UI.width * Window.displayWidth;
+		final float scaledHeight = h / UI.height * Window.displayHeight;
+		final float scaledX = x / UI.width * Window.displayWidth;
+		final float scaledY = y / UI.height * Window.displayHeight;
 
-		final float width = scaledWidth / (Globals.displayWidth / 2f);
-		final float height = scaledHeight / (Globals.displayHeight / 2f);
+		final float width = scaledWidth / (Window.displayWidth / 2f);
+		final float height = scaledHeight / (Window.displayHeight / 2f);
 		// float rotCos = (float)Math.cos(rotation);
 		// float rotSin = (float)Math.sin(rotation);
 		// float rx = rotCos * width + (-rotSin) * height;
 		// float ry = rotSin * width + rotCos * height;
-		return new Vector4f(-0.5f + scaledX / Globals.displayWidth,
-				-(0.5f - height / 2f) + scaledY / Globals.displayHeight, width, height);
+		return new Vector4f(-0.5f + scaledX / Window.displayWidth,
+				-(0.5f - height / 2f) + scaledY / Window.displayHeight, width, height);
 	}
 
 	public Vector4f getUvOffset() {

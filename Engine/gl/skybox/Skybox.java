@@ -36,7 +36,7 @@ public class Skybox {
 			// Copy of morning
 			new Vector3f(255 / 255f, 153 / 255f, 153 / 255f), new Vector3f(255 / 255f, 51 / 255f, 153 / 255f) };
 
-	private final float[] BG_ALPHAS = new float[] { .25f, 0f, .5f, 1f, .25f };
+	private final float[] BG_ALPHAS = new float[] { 0f, 0f, .5f, 1f, 0f };
 
 	private final Texture starTexture;
 

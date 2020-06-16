@@ -28,8 +28,8 @@ public class WaterMeshBuilder {
 	}
 	
 	public static Vbo[] buildVbos(Chunk chunk) {
-		final int x = chunk.x * Chunk.CHUNK_SIZE;
-		final int z = chunk.z * Chunk.CHUNK_SIZE;
+		final int x = chunk.realX;
+		final int z = chunk.realZ;
 		final float[][] table = chunk.waterTable;
 		
 		List<Float> vertices = new ArrayList<Float>();

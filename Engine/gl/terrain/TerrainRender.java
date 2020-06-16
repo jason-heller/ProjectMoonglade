@@ -10,9 +10,9 @@ import core.res.Model;
 import core.res.Texture;
 import dev.Debug;
 import gl.Camera;
+import gl.building.BuildingRender;
 import map.Chunk;
 import map.Terrain;
-import map.building.BuildingRender;
 import procedural.terrain.GenTerrain;
 
 public class TerrainRender {
@@ -20,7 +20,7 @@ public class TerrainRender {
 	private final Texture grass, snow, bush, sand, fauna;
 
 	public TerrainRender() {
-		BuildingRender.loadMaterialTexture();
+		BuildingRender.loadAssets();
 		shader = new TerrainShader();
 		//, boolean nearest, boolean isTransparent,
 		//boolean clampEdges, boolean mipmap, float offset
@@ -38,15 +38,16 @@ public class TerrainRender {
 		Resources.removeTextureReference("sand");
 		Resources.removeTextureReference("fauna");
 		shader.cleanUp();
+		BuildingRender.cleanUp();
 	}
 
-	public void render(Camera camera, Vector3f lightDir, Terrain chunks, float px, float py, float pz, float pw) {
+	public void render(Camera camera, Vector3f lightDir, Vector3f selectionPt, byte facing, Terrain chunks, float px, float py, float pz, float pw) {
 		if (Debug.terrainWireframe) {
 			GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
 			GL11.glDisable(GL11.GL_TEXTURE_2D);
 		}
 		
-		BuildingRender.render(camera, lightDir, chunks);
+		BuildingRender.render(camera, lightDir, selectionPt, facing, chunks);
 		
 		shader.start();
 		shader.sampler1.loadTexUnit(0);
@@ -69,7 +70,7 @@ public class TerrainRender {
 		//Resources.getTexture("default").bind(1);
 		for (final Chunk[] chunkBatch : chunks.get()) {
 			for (final Chunk chunk : chunkBatch) {
-				if (chunk == null || chunk.isCulled()) {
+				if (chunk == null || chunk.isCulled() || chunk.getState() != Chunk.LOADED) {
 					continue;
 				}
 

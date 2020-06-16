@@ -3,6 +3,7 @@ package audio;
 import java.io.InputStream;
 import java.nio.IntBuffer;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
@@ -30,8 +31,11 @@ public class AudioHandler {
 	public static Queue<Source> sources = new LinkedList<Source>();	// All active sources
 	private static Map<SoundEffects, SoundEffect> effects = new HashMap<SoundEffects, SoundEffect>();
 	private static Map<SoundFilters, Integer> filters = new HashMap<SoundFilters, Integer>();
+	
+	private static Queue<Source> sourceDeletionQueue = new LinkedList<Source>();
 
 	private static float pauseDelay = 0f;
+	public static float volume = 0.5f;
 
 	public static void addSource(Source source) {
 		sources.add(source);
@@ -198,10 +202,23 @@ public class AudioHandler {
 				}
 			}
 		}
+		
+		Iterator<Source> iter = sourceDeletionQueue.iterator();
+		while(iter.hasNext()) {
+			Source source = iter.next();
+			if (!source.isPlaying()) {
+				source.delete();
+				iter.remove();
+			}
+		}
 
 		final Vector3f p = camera.getPosition();
 		AL10.alListener3f(AL10.AL_POSITION, p.x, p.y, p.z);
 		AL10.alListener3f(AL10.AL_VELOCITY, 0, 0, 0);
+	}
+
+	public static void deleteSource(Source source) {
+		sourceDeletionQueue.add(source);
 	}
 
 }

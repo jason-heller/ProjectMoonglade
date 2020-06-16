@@ -7,7 +7,6 @@ import map.Enviroment;
 import map.Moisture;
 import map.Temperature;
 import procedural.Noise;
-import procedural.NoiseUtil;
 import procedural.SimplexNoise;
 import procedural.biome.Biome;
 import procedural.biome.BiomeData;
@@ -40,41 +39,48 @@ public class GenTerrain {
 		float terrainHeight;
 		int terrainTile;
 		float[][] heights = chunk.heightmap;
-		int[][] tileItems = chunk.items.tilemap;
+		int[][] tileItems = chunk.items.getTilemap();
 		float[][] waterTable = chunk.waterTable;
 		
+		boolean needsTileItems = (chunk.editFlags & 0x02) == 0;
+		boolean needsHeights = (chunk.editFlags & 0x04) == 0;
+		
 		Random r = new Random();
-		r.setSeed(NoiseUtil.szudzik(x*vertexStripeSize, z*vertexStripeSize));
+		r.setSeed(chunk.getSeed());
 		
 		for(int j = 0; j < vertexStripeSize; j++) {
 			for(int i = 0; i < vertexStripeSize; i++) {
 				BiomeData biomeData = biomeVoronoi.getDataAt((x+i)*polygonSize, (z+j)*polygonSize);
 
-				terrainHeight = getTerrainNoise(x+i, z+j, biomeData, r);
-				
-				float height = y + terrainHeight;//(float) (Math.floor(y + terrainHeight/.5f)*.5f);
-				if (i != vertexStripeSize-1 && j != vertexStripeSize-1) {
-					terrainTile = getTerrainTileItems(x+i,z+j, height, biomeData, r);
-					tileItems[i][j] = terrainTile;
-				}
-
-				heights[(i*2)+1][(j*2)+1] = height;
-				waterTable[i][j] = getTerrainWaterTable(x+i,z+j, height, biomeData);
-				
 				boolean l = (i*2) >= 0;
 				boolean t = (j*2) >= 0;
 				
-				chunk.getMax().y = Math.max(chunk.getMax().y, height);
-				chunk.getMin().y = Math.min(chunk.getMin().y, height);
+				if (needsHeights) {
+					terrainHeight = getTerrainNoise(x+i, z+j, biomeData, r);
+					
+					float height = y + terrainHeight;//(float) (Math.floor(y + terrainHeight/.5f)*.5f);
+					
+					chunk.getMax().y = Math.max(chunk.getMax().y, height);
+					chunk.getMin().y = Math.min(chunk.getMin().y, height);
+					
+					heights[(i*2)+1][(j*2)+1] = height;
+					
+					if (l)
+						heights[(i*2)][(j*2)+1] = height;
+					
+					if (t)
+						heights[(i*2)+1][(j*2)] = height;
+					
+					if (l && t)
+						heights[(i*2)][(j*2)] = height;
+				}
 				
-				if (l)
-					heights[(i*2)][(j*2)+1] = height;
-				
-				if (t)
-					heights[(i*2)+1][(j*2)] = height;
-				
-				if (l && t)
-					heights[(i*2)][(j*2)] = height;
+				if (needsTileItems && i != vertexStripeSize-1 && j != vertexStripeSize-1) {
+					terrainTile = getTerrainTileItems(x+i,z+j, heights[(i*2)+1][(j*2)+1], biomeData, r);
+					tileItems[i][j] = terrainTile;
+				}
+
+				waterTable[i][j] = getTerrainWaterTable(x+i,z+j, heights[(i*2)+1][(j*2)+1], biomeData);
 			}
 		}
 		
@@ -85,12 +91,32 @@ public class GenTerrain {
 			heights[0][i] = heights[1][i];
 		}
 		
-		/*for(int i = 0; i < heights.length; i++) {
-			for(int j = 0; j < heights.length; j++) {
-				System.err.print((int)heights[i][j] + ", ");
-			}System.err.println();
-		}*/
+		chunk.getMax().y += 10;
+		return heights;
+	}
+	
+	public static float[][] buildFlatTerrain(Chunk chunk, int x, int y, int z, int vertexStripeSize, int polygonSize, BiomeVoronoi biomeVoronoi) {
+		int terrainTile;
+		float[][] heights = chunk.heightmap;
+		int[][] tileItems = chunk.items.getTilemap();
+		float[][] waterTable = chunk.waterTable;
 		
+		Random r = new Random();
+		r.setSeed(chunk.getSeed());
+		
+		for(int j = 0; j < vertexStripeSize; j++) {
+			for(int i = 0; i < vertexStripeSize; i++) {
+				BiomeData biomeData = biomeVoronoi.getDataAt((x+i)*polygonSize, (z+j)*polygonSize);
+
+				if (i != vertexStripeSize-1 && j != vertexStripeSize-1) {
+					terrainTile = getTerrainTileItems(x+i,z+j, 0, biomeData, r);
+					tileItems[i][j] = terrainTile;
+				}
+
+				waterTable[i][j] = getTerrainWaterTable(x+i,z+j, 0, biomeData);
+			}
+		}
+	
 		chunk.getMax().y += 10;
 		return heights;
 	}

@@ -11,17 +11,17 @@ import util.MathUtil;
 public class PlayerControl {
 	private static PhysicsEntity entity;
 
-	public static float jumpVelocity = 4f;
+	public static float jumpVelocity = 5f;
 	public static float friction = 15f, airFriction = 0f;
-	public static float maxSpeed = 22f, maxAirSpeed = 3.125f, maxWaterSpeed = 16f;
-	public static float accelSpeed = 45.2f, airAccel = 1.56f, waterAccel = 16f;
+	public static float maxSpeed = 80f, maxAirSpeed = 4.2f, maxWaterSpeed = 32f;
+	public static float accelSpeed = 80f, airAccel = 1.56f, waterAccel = 32f;
 
-	private static final float CAMERA_STANDING_HEIGHT = .85f;
-	private static final float CAMERA_CROUCHING_HEIGHT = .5f;
+	private static final float CAMERA_STANDING_HEIGHT = 1.7f;
+	private static final float CAMERA_CROUCHING_HEIGHT = 1f;
 	
 	private static float cameraHeight = CAMERA_STANDING_HEIGHT;
-	private static float height = 1f;
-	private static float width = .23f;
+	private static float height = 2f;
+	private static float width = .35f;
 	
 	private static float walkSfxTimer = 0f;
 
@@ -105,6 +105,7 @@ public class PlayerControl {
 		}
 
 		final Camera camera = scene.getCamera();
+		// TODO: Fps != 120 makes for bad times
 		if (CTRL) {
 			cameraHeight = MathUtil.sCurveLerp(cameraHeight, CAMERA_CROUCHING_HEIGHT, .16f);
 		} else {
@@ -121,10 +122,10 @@ public class PlayerControl {
 				}
 				
 				if (walkSfxTimer == 0f) {
-					//entity.getSource().playVariance("step_grass");
+					entity.getSource().play("walk_grass");
 				}
 				
-				walkSfxTimer += Window.deltaTime;
+				walkSfxTimer += Window.deltaTime*.2f;
 				
 				
 			} else {

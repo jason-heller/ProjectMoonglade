@@ -43,7 +43,7 @@ public class GuiLayeredPane extends GuiPanel {
 		border.setOpacity(bgOpacity);
 
 		accent = new Image("none", x, y - 2).setColor(Colors.GUI_ACCENT_COLOR);
-		accent.w = width;
+		accent.w = width - tabWidth;
 		accent.h = 2;
 
 		tabs = new Image("none", x, y).setColor(Colors.GUI_BACKGROUND_COLOR);

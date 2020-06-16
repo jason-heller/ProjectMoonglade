@@ -12,8 +12,8 @@ public class GrasslandBiome extends Biome {
 		this.name = "Grassland";
 		this.temp = Temperature.TEMPERATE;
 		this.moisture = Moisture.AVERAGE;
-		this.terrainHeightFactor = 1.1f;
-		this.terrainRoughness = 1f;
+		this.terrainHeightFactor = 0.1f;
+		this.terrainRoughness = 0f;
 		
 		this.skyColor = BiomeColors.DEFAULT_SKY;
 		this.groundColor = BiomeColors.DEFAULT_GRASS;

@@ -4,6 +4,7 @@ import java.util.Random;
 
 import map.Moisture;
 import map.Temperature;
+import procedural.NoiseUtil;
 import procedural.biome.Biome;
 
 public class DesertBiome extends Biome {
@@ -27,9 +28,11 @@ public class DesertBiome extends Biome {
 	
 	@Override
 	public int getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r) {
-		float tile = r.nextFloat();
-		if (tile > .999f) {
-			return 4;
+		int tile = r.nextInt(420);
+		switch(tile) { 
+		case 0: return 4;
+		case 1: return 7;
+		case 2: return 8;
 		}
 		return 0;
 	}

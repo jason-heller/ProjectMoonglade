@@ -17,4 +17,6 @@ public interface GuiLayout {
 	public void init(int x, int y, int w, int h);
 
 	public void newElement(GuiElement element);
+
+	public void reset();
 }

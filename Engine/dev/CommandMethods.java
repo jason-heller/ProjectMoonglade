@@ -9,10 +9,14 @@ import org.joml.Vector3f;
 
 import audio.AudioHandler;
 import core.Application;
-import core.Globals;
 import gl.Camera;
+import gl.Window;
 import map.Enviroment;
+import map.Terrain;
 import map.weather.Weather;
+import scene.entity.Entity;
+import scene.entity.EntityControl;
+import scene.entity.EntityData;
 import scene.overworld.Overworld;
 import scene.overworld.inventory.Inventory;
 import scene.overworld.inventory.Item;
@@ -23,7 +27,7 @@ public class CommandMethods {
 	}
 	
 	public static void volume(float value) {
-		Globals.volume = value;
+		AudioHandler.volume = value;
 		AudioHandler.changeMasterVolume();
 
 	}
@@ -39,6 +43,25 @@ public class CommandMethods {
 		}
 	}
 	
+	public static void spawn(String name) {
+		if (Application.scene instanceof Overworld) {
+			Overworld scene = ((Overworld)Application.scene);
+			Vector3f at = scene.getSelectionPoint();
+			if (at == null) at = scene.getPlayer().position;
+			
+			int id = EntityData.data.getId(name + "Entity");
+			
+			if (id == 0) {
+				Console.log("No such entity exists");
+				return;
+			}
+			
+			Entity entity = EntityData.data.instantiate(id);
+			entity.position.set(at);
+			EntityControl.addEntity(entity);
+		}
+	}
+	
 	public static void noclip() {
 		if (Application.scene.getCamera().getControlStyle() == Camera.FIRST_PERSON) {
 			Application.scene.getCamera().setControlStyle(Camera.SPECTATOR);
@@ -49,7 +72,7 @@ public class CommandMethods {
 	
 	public static void chunk_distance(int distance) {
 		distance = Math.max(distance, 1);
-		Globals.chunkRenderDist = distance;
+		Terrain.size = distance;
 		if (Application.scene instanceof Overworld) {
 			Overworld scene = ((Overworld)Application.scene);
 			scene.getEnviroment().reloadTerrain();
@@ -61,7 +84,7 @@ public class CommandMethods {
 			Overworld scene = ((Overworld)Application.scene);
 			scene.getCamera().setPosition(new Vector3f(x,y,z));
 			scene.getEnviroment().reposition((int)x, (int)z);
-			scene.getEnviroment().update(scene);
+			scene.getEnviroment().tick(scene);
 			scene.getPlayer().position.set(x,y,z);
 		}
 	}
@@ -121,6 +144,8 @@ public class CommandMethods {
 			return;
 		}
 		
+		amount = Math.max(amount, 1);
+		
 		Overworld overworld = (Overworld) Application.scene;
 		Inventory inv = overworld.getInventory();
 		
@@ -134,12 +159,12 @@ public class CommandMethods {
 	}
 	
 	public static void fov(int fov) {
-		Globals.fov = fov;
+		Camera.fov = fov;
 		Application.scene.getCamera().updateProjection();
 	}
 	
 	public static void fps(int fps) {
-		Globals.maxFramerate = fps;
+		Window.maxFramerate = fps;
 	}
 
 	public static void quit() {

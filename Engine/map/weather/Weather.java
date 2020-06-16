@@ -20,12 +20,12 @@ public class Weather {
 	
 	private PrecipitationEmitter emitter;
 	
-	private float weatherCell;
+	public static float weatherCell;
 	private float prevWeather, targetWeather;
 	private float thunderTimer = 0, nextThunder = 10;
 	public boolean freeze = false;
 	
-	private int weather = CLEAR;
+	public static int weather = CLEAR;
 	
 	private Source ambientSource;
 	private Source eventSource;
@@ -48,7 +48,7 @@ public class Weather {
 		Resources.addSound("rain", "ambient/rain_ambient1.ogg");
 	}
 	
-	public void update(Camera camera) {
+	public void tick(Camera camera) {
 		if (!freeze) {
 			actionTimer += Enviroment.timeSpeed;
 			if (weather == THUNDER) {
@@ -93,7 +93,7 @@ public class Weather {
 		
 		weatherCell = MathUtil.lerp(prevWeather, targetWeather, actionTimer/50000f);
 		
-		if (actionTimer >= 50000f) {
+		if (actionTimer >= 1500000f) {
 			doAction();
 		}
 	}
@@ -137,7 +137,7 @@ public class Weather {
 		if (determineSkyColor().x == 10f) {
 			return 2f;
 		} else {
-			return weatherCell;
+			return 1;
 		}
 	}
 	

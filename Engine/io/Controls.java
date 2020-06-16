@@ -12,13 +12,11 @@ import java.util.Map;
 
 import org.lwjgl.input.Keyboard;
 
-import core.Globals;
-import core.Settings;
 import dev.Console;
 
 public class Controls {
 
-	public static File controlsFile = new File(Globals.SETTINGS_FOLDER + "/controls.ini");
+	public static File controlsFile = new File(FileUtils.SETTINGS_FOLDER + "/controls.ini");
 
 	public static Map<String, Integer> controls = new LinkedHashMap<String, Integer>();
 	public static Map<Integer, String> customBinds = new LinkedHashMap<Integer, String>();

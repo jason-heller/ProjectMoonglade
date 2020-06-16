@@ -3,7 +3,7 @@ package io;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.TreeMap;
 
 import org.joml.Vector3f;
 
@@ -14,6 +14,8 @@ import map.Terrain;
 
 public class ChunkStreamer extends Thread {
 	
+	private String worldName = "world1";
+	
 	// String of region file, and chunk
 	private Map<String, Map<Integer, Chunk>> loadList = new HashMap<String, Map<Integer, Chunk>>();
 	private Map<String, Map<Integer, Chunk>> saveList = new HashMap<String, Map<Integer, Chunk>>();
@@ -21,13 +23,16 @@ public class ChunkStreamer extends Thread {
 	private Map<String, int[]> cachedHeaders = new HashMap<String, int[]>();
 	
 	private boolean running = true;
-	public boolean tick = false;
+	public volatile boolean tick = false;
 
-	public ChunkStreamer(Terrain terrain) {
+	public ChunkStreamer(String worldName, Terrain terrain) {
 		RegionIO.terrainPtr = terrain;
+		this.worldName = worldName;
+		start();
 	}
 	
 	public void update() {
+		tick = true;
 		if (!loadList.isEmpty()) {
 			load();
 			loadList.clear();
@@ -37,8 +42,24 @@ public class ChunkStreamer extends Thread {
 			save(Application.scene.getCamera().getPosition());
 			saveList.clear();
 		}
-		
-		
+	}
+	
+	@Override
+	public void run() {
+		/*while(running) {
+			if (tick) {
+				if (!loadList.isEmpty()) {
+					load();
+					loadList.clear();
+				}
+				
+				if (!saveList.isEmpty()) {
+					save(Application.scene.getCamera().getPosition());
+					saveList.clear();
+				}
+				tick = false;
+			}
+		}*/
 	}
 	
 	public void finish() {
@@ -70,8 +91,13 @@ public class ChunkStreamer extends Thread {
 				
 			}*/
 			RegionIO.save(filename, saveList.get(filename));
-			iter.remove();
+			
+			//TEMP
+			for(Chunk c : saveList.get(filename).values()) {
+				c.cleanUp();
+			}
 		}
+		
 	}
 	
 	private void load() {
@@ -80,10 +106,10 @@ public class ChunkStreamer extends Thread {
 			
 			int[] header = cachedHeaders.get(filename);
 			if (header != null) {
-				RegionIO.load(filename, header, chunks);
+				RegionIO.load(filename, header, chunks, false);
 				
 			} else {
-				RegionIO.load(filename, chunks);
+				RegionIO.load(filename, chunks, false);
 				
 			}
 		}
@@ -91,40 +117,42 @@ public class ChunkStreamer extends Thread {
 		cachedHeaders.clear();
 	}
 	
-	public void queueForSaving(Chunk chunk) {
-		int regionX = chunk.x >> 4;
-		int regionY = 0;
-		int regionZ = chunk.z >> 4;
+	public synchronized void queueForSaving(Chunk chunk) {
+		if (chunk.editFlags == 0x0) {
+			return;
+		}
 		
-		int id = RegionIO.getOffset(chunk.x, 0, chunk.z);
+		int regionX = chunk.dataX >> 4;
+		int regionY = 0;
+		int regionZ = chunk.dataZ >> 4;
+		
+		int id = RegionIO.getOffset(chunk.dataX, 0, chunk.dataZ);
 		
 		String filename = RegionIO.getFilename(regionX, regionY, regionZ);
 		
 		Map<Integer, Chunk> map = saveList.get(filename);
 		
 		if (map == null) {
-			map = new ConcurrentSkipListMap<Integer, Chunk>();
+			map = new TreeMap<Integer, Chunk>();//ConcurrentSkipListMap
 			saveList.put(filename, map);
 		}
 		
 		map.put(id, chunk);
 	}
 	
-	public void queueForLoading(Chunk chunk) {
-		int regionX = chunk.x >> 4;
+	public synchronized void queueForLoading(Chunk chunk) {
+		int regionX = chunk.dataX >> 4;
 		int regionY = 0;
-		int regionZ = chunk.z >> 4;
+		int regionZ = chunk.dataZ >> 4;
 		
-		
-		
-		int id = RegionIO.getOffset(chunk.x, 0, chunk.z);
+		int id = RegionIO.getOffset(chunk.dataX, 0, chunk.dataZ);
 		
 		String filename = RegionIO.getFilename(regionX, regionY, regionZ);
 		
 		Map<Integer, Chunk> map = loadList.get(filename);
 		
 		if (map == null) {
-			map = new ConcurrentSkipListMap<Integer, Chunk>();
+			map = new TreeMap<Integer, Chunk>();
 			loadList.put(filename, map);
 		};
 		

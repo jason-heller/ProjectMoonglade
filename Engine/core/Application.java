@@ -9,12 +9,16 @@ import gl.Render;
 import gl.Window;
 import io.Controls;
 import io.Input;
+import io.Settings;
 import scene.MainMenu;
 import scene.Scene;
 import ui.UI;
 import util.ObjToTilConverter;
 
 public class Application {
+	
+	public static final String VERSION = "0.1.1";
+	
 	public static Scene scene;
 	private static Class<?> nextScene;
 
@@ -22,9 +26,9 @@ public class Application {
 	private static boolean forceClose;
 	private static boolean inLoadingState;
 	public static boolean paused = false;
-	public static final int TICKS_PER_SECOND = 120;
+	public static final int TICKS_PER_SECOND = 25;
 	public static final float TICKRATE = 1f / TICKS_PER_SECOND;
-
+	
 	public static void changeScene(Class<?> sceneClass) {
 		scene.cleanUp();
 		UI.clear();
@@ -58,8 +62,8 @@ public class Application {
 		scene = new MainMenu();
 
 		for (final String arg : args) {
-			if (arg.toLowerCase().contains(".obj")) {
-				ObjToTilConverter.convert(arg);
+			if (arg.toLowerCase().contains("tile.txt")) {
+				ObjToTilConverter.tileTileParser(arg);
 			} else {
 				Console.send(arg);
 			}
@@ -70,35 +74,37 @@ public class Application {
 				handleSceneLoad();
 				continue;
 			}
-
+			
 			Window.update();
-			tickTimer += Window.deltaTime;
-			if (tickTimer >= TICKRATE) {
-				tickTimer -= TICKRATE;
-
-				if (nextScene != null) {
-					try {
-						scene = (Scene) nextScene.newInstance();
-					} catch (final InstantiationException e) {
-						e.printStackTrace();
-					} catch (final IllegalAccessException e) {
-						e.printStackTrace();
-					}
-
-					nextScene = null;
-				} else {
-					scene.update();
-					Render.render(scene);
-
-					Input.poll();
-					Console.update();
-					AudioHandler.update(scene.getCamera());
-					
-					Render.postRender(scene);
-
-					
+			
+			if (nextScene != null) {
+				try {
+					scene = (Scene) nextScene.newInstance();
+				} catch (final InstantiationException e) {
+					e.printStackTrace();
+				} catch (final IllegalAccessException e) {
+					e.printStackTrace();
 				}
 
+				nextScene = null;
+			} else {
+				tickTimer += Window.deltaTime;
+				if (tickTimer >= TICKRATE) {
+					tickTimer -= TICKRATE;
+					Input.poll();
+					UI.update();
+					
+					Console.update();
+					scene.tick();
+					AudioHandler.update(scene.getCamera());
+					
+				}
+				
+				scene.update();
+				
+				Render.render(scene);
+
+				Render.postRender(scene);
 			}
 		}
 

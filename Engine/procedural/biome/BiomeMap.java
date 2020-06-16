@@ -12,6 +12,8 @@ import procedural.biome.types.DeciduousForestBiome;
 import procedural.biome.types.DesertBiome;
 import procedural.biome.types.FenBiome;
 import procedural.biome.types.GrasslandBiome;
+import procedural.biome.types.MangroveBiome;
+import procedural.biome.types.PineForestBiome;
 import procedural.biome.types.SnowyPineForestBiome;
 
 public class BiomeMap {
@@ -23,7 +25,9 @@ public class BiomeMap {
 		addBiome(new GrasslandBiome());
 		addBiome(new DesertBiome());
 		addBiome(new FenBiome());
+		addBiome(new PineForestBiome());
 		addBiome(new SnowyPineForestBiome());
+		addBiome(new MangroveBiome());
 	}
 	
 	private void addBiome(Biome biome) {

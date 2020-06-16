@@ -5,11 +5,13 @@ import org.joml.Vector3f;
 public class BiomeColors {
 	// DIRT
 	public static final Vector3f DIRT_COLOR = rgb(169, 100, 55);
+	public static final Vector3f MUD_COLOR = rgb(94, 63, 29);
 	public static final Vector3f ROCK_COLOR = new Vector3f(0.3f, 0.3f, 0.4f);
 	
 	// SKY
 	public static final Vector3f DEFAULT_SKY = new Vector3f(1,1,1);
 	static final Vector3f DESERT_SKY = new Vector3f(1, 1, .5f);
+	static final Vector3f SNOW_SKY = new Vector3f(.8f, .8f, .8f);
 	
 	// GROUND
 	public static final Vector3f DEFAULT_GRASS = rgb(77, 178, 21);

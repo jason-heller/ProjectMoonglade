@@ -1,6 +1,6 @@
 package gl;
 
-import org.joml.Vector3f;
+import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 
 import core.Resources;
@@ -10,7 +10,6 @@ import gl.particle.ParticleHandler;
 import gl.water.WaterRender;
 import map.Enviroment;
 import scene.Scene;
-import scene.entity.EntityControl;
 import scene.overworld.Overworld;
 import ui.UI;
 
@@ -21,7 +20,7 @@ public class Render {
 	public static FrameBuffer reflection;
 	public static FrameBuffer refraction;
 	private static int waterQuality = 3;
-	public static float waterLevel = -0.2f;
+	public static float waterLevel = -0.5f;
 	
 	private static WaterRender waterRender;
 	
@@ -89,6 +88,8 @@ public class Render {
 			Overworld ow = ((Overworld)scene);
 			Enviroment e = ow.getEnviroment();
 			waterRender.render(camera, e);
+			
+			ow.getInventory().render(camera, e.getLightDirection());
 		}
 		ParticleHandler.render(scene.getCamera());
 		

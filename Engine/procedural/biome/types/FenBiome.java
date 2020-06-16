@@ -32,11 +32,19 @@ public class FenBiome extends Biome {
 	
 	@Override
 	public int getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r) {
+		if (currentHeight > -1 && currentHeight < 0.1f) {
+			int n = r.nextInt(10);
+			if (n == 1) {
+				return 5;
+			}
+		}
+		
 		if (currentHeight >= 0) {
 			double noise = NoiseUtil.interpNoise2d(x/4f, z/4f, subseed);
 			if (noise > .2) {
 				if (noise > .87) {
-					if (r.nextInt(20) == 1) {
+					int n = r.nextInt(20);
+					if (n == 1) {
 						return 2;
 					}
 				}

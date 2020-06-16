@@ -3,21 +3,23 @@ package map;
 import org.joml.Vector3f;
 
 import core.Application;
-import core.Resources;
 import core.res.Model;
-import dev.Console;
+import dev.Debug;
 import geom.Frustum;
 import geom.Plane;
 import geom.Polygon;
 import gl.particle.ParticleHandler;
 import map.building.Building;
-import map.building.Material;
 import map.tile.ChunkTiles;
 import map.tile.EnvTile;
+import map.tile.TileProperties;
+import procedural.NoiseUtil;
 import procedural.biome.BiomeVoronoi;
 import procedural.terrain.GenTerrain;
 import procedural.terrain.TerrainMeshBuilder;
 import procedural.terrain.WaterMeshBuilder;
+import scene.entity.EntityControl;
+import scene.entity.FallingTreeEntity;
 import scene.overworld.Overworld;
 import util.ModelBuilder;
 
@@ -26,12 +28,13 @@ public class Chunk {
 	public static int POLYGON_SIZE = 1;//32;
 	public static int VERTEX_COUNT = 16;//16;
 	public static int CHUNK_SIZE = (VERTEX_COUNT - 1) * POLYGON_SIZE;
-	public static float DIG_SIZE = 8 / 32f;
+	public static float DIG_SIZE = 1f;
 
 	/* Async loading */
 	public static final byte UNLOADED = 0, LOADING = 1, BUILDING = 2, LOADED = 3, UNLOADING = 4, GENERATING = 5;
 
-	public int x, z;
+	public final int dataX, dataZ;
+	public final int realX, realZ;
 	public float[][] heightmap;
 	public ChunkTiles items;
 	public float[][] waterTable;
@@ -46,26 +49,38 @@ public class Chunk {
 	private boolean culled = true;
 	
 	private Terrain terrain;
+	
+	public byte editFlags;
+	
+	private long seed;
 
 	public Chunk(int x, int z, Terrain terrain) {
 		heightmap = new float[VERTEX_COUNT][VERTEX_COUNT];
 		waterTable = new float[VERTEX_COUNT][VERTEX_COUNT];
-		this.x = x;
-		this.z = z;
+		this.dataX = x;
+		this.dataZ = z;
+		this.realX = x * CHUNK_SIZE;
+		this.realZ = z * CHUNK_SIZE;
 
-		this.min = new Vector3f(x * CHUNK_SIZE, -128, z * CHUNK_SIZE);
+		this.min = new Vector3f(realX, -128, realZ);
 		this.max = new Vector3f(min.x + CHUNK_SIZE, 1, min.z + CHUNK_SIZE);
 		
 		items = new ChunkTiles(x, z, this, null);
 		
 		building = new Building(this);
 		this.terrain = terrain;
+		
+		seed = NoiseUtil.szudzik(x*VERTEX_COUNT, z*VERTEX_COUNT) * Enviroment.seed;
 	}
 	
 	void generate(Terrain terrain, BiomeVoronoi biomeVoronoi, int arrX, int arrZ) {
 		//loadState = BUILDING;
 		final int wid = (VERTEX_COUNT-1);
-		GenTerrain.buildTerrain(this, x*wid, 0, z*wid, VERTEX_COUNT, POLYGON_SIZE, biomeVoronoi);
+		if (Debug.flatTerrain) {
+			GenTerrain.buildFlatTerrain(this, dataX*wid, 0, dataZ*wid, VERTEX_COUNT, POLYGON_SIZE, biomeVoronoi);
+		} else {
+			GenTerrain.buildTerrain(this, dataX*wid, 0, dataZ*wid, VERTEX_COUNT, POLYGON_SIZE, biomeVoronoi);
+		}
 		
 		Model[] models = TerrainMeshBuilder.buildMeshes(this, biomeVoronoi);
 		items.buildModel();
@@ -84,10 +99,8 @@ public class Chunk {
 	public void build(BiomeVoronoi biomeVoronoi) {
 		building.buildModel();
 		
-		//TEMP
 		final int wid = (VERTEX_COUNT-1);
-		GenTerrain.buildTerrain(this, x*wid, 0, z*wid, VERTEX_COUNT, POLYGON_SIZE, biomeVoronoi);
-		//
+		GenTerrain.buildTerrain(this, dataX*wid, 0, dataZ*wid, VERTEX_COUNT, POLYGON_SIZE, biomeVoronoi);
 		
 		Model[] models = TerrainMeshBuilder.buildMeshes(this, biomeVoronoi);
 		items.buildModel();
@@ -95,6 +108,7 @@ public class Chunk {
 		groundModel = models[0];
 		wallModel = models[1];
 		waterModel = WaterMeshBuilder.buildChunkMesh(this);
+		rebuildWalls();
 		
 		setState(LOADED);
 	}
@@ -104,6 +118,8 @@ public class Chunk {
 	}
 
 	public void cleanUp() {
+		
+		EntityControl.onChunkUnload(this);
 		
 		if (groundModel != null) {
 			groundModel.cleanUp();
@@ -142,12 +158,9 @@ public class Chunk {
 		return waterModel;
 	}
 	
-	public void build(int x, int y, int z, byte wall, Material item) {
-		building.add(x, y, z, wall, item);
-	}
-	
-	public void destroy(int x, int y, int z, byte wall, Material item) {
-		building.remove(x, y, z, wall, item);
+	public void setTile(int x, int y, int z, byte wall, Material material, byte specialFlags) {
+		building.setTile(x, y, z, wall, material, specialFlags);
+		editFlags |= 0x01;
 	}
 	
 	public void smoothHeight(int x, int z) {
@@ -156,21 +169,38 @@ public class Chunk {
 		float bl = heightmap[x*2+1][z*2+2];
 		float br = heightmap[x*2+2][z*2+2];
 		float lowest = Math.min(tr, Math.min(tl, Math.min(br, bl)));
-		lowest = (float) (Math.floor(lowest / Chunk.DIG_SIZE)*Chunk.DIG_SIZE);
+		lowest = (float) (Math.round(lowest / Chunk.DIG_SIZE)*Chunk.DIG_SIZE);
 		
 		setHeight(x, z, lowest);
 	}
 	
-	public boolean breakTile(int relX, int relZ) {
-		
-		int id = items.tilemap[relX][relZ];
+	public void damageEnvTile(int relX, int relZ, byte damage) {
+		editFlags |= 0x02;
+		int id = items.getTileId(relX, relZ);
+		TileProperties props = items.getTileProperties(relX, relZ);
 		final EnvTile tile = terrain.getTileById(id);
-		// TODO: Drop on floor
+		if (tile != null) {
+			props.damage -= damage;
+			
+			if (props.damage <= 0) {
+				float dx = ((relX+realX)*Chunk.POLYGON_SIZE)+.5f;
+				float dz = ((relZ+realZ)*Chunk.POLYGON_SIZE)+.5f;
+				float dy = this.getTerrain().getHeightAt(dx, dz);
+				EntityControl.addEntity(new FallingTreeEntity(tile, dx, dy, dz, props.scale));
+				breakEnvTile(relX, relZ);
+			}
+		}
+	}
+	
+	public boolean breakEnvTile(int relX, int relZ) {
+		editFlags |= 0x02;
+		int id = items.getTileId(relX, relZ);
+		final EnvTile tile = terrain.getTileById(id);
+		
 		if (tile != null) {
 			((Overworld) Application.scene).getInventory().addItem(tile.getDrop(), tile.getNumDrops());
 
-			items.tilemap[relX][relZ] = 0;
-			
+			items.removeTile(relX, relZ);
 			items.buildModel();
 			return true;
 		}
@@ -198,13 +228,13 @@ public class Chunk {
 			terrain.get(arrX, arrZ+1).rebuildWalls();
 		}
 		
-		float rx = ((this.x * (Chunk.VERTEX_COUNT - 1)) + x) * Chunk.POLYGON_SIZE;
-		float rz = ((this.z * (Chunk.VERTEX_COUNT - 1)) + z) * Chunk.POLYGON_SIZE;
+		float rx = ((this.dataX * (Chunk.VERTEX_COUNT - 1)) + x) * Chunk.POLYGON_SIZE;
+		float rz = ((this.dataZ * (Chunk.VERTEX_COUNT - 1)) + z) * Chunk.POLYGON_SIZE;
 		rx += (Chunk.POLYGON_SIZE/2f);
 		rz += (Chunk.POLYGON_SIZE/2f);
 		
 		if (offset <= 0) {
-			ParticleHandler.addBurst(Resources.getTexture("particles"), 0, 0,
+			ParticleHandler.addBurst("particles", 0, 0,
 					new Vector3f(rx, heightmap[x*2 + 2][z*2 + 1], rz));
 		}
 	}
@@ -235,34 +265,14 @@ public class Chunk {
 			terrain.get(arrX, arrZ+1).rebuildWalls();
 		}
 		
-		float rx = ((this.x * (Chunk.VERTEX_COUNT - 1)) + x) * Chunk.POLYGON_SIZE;
-		float rz = ((this.z * (Chunk.VERTEX_COUNT - 1)) + z) * Chunk.POLYGON_SIZE;
+		float rx = ((this.dataX * (Chunk.VERTEX_COUNT - 1)) + x) * Chunk.POLYGON_SIZE;
+		float rz = ((this.dataZ * (Chunk.VERTEX_COUNT - 1)) + z) * Chunk.POLYGON_SIZE;
 		rx += (Chunk.POLYGON_SIZE/2f);
 		rz += (Chunk.POLYGON_SIZE/2f);
 		
 		if (offset <= 0) {
-			ParticleHandler.addBurst(Resources.getTexture("particles"), 0, 0,
+			ParticleHandler.addBurst("particles", 0, 0,
 					new Vector3f(rx, heightmap[x*2 + 2][z*2 + 1], rz));
-		}
-	}
-
-	private void dumpHeightmapToConsole(Chunk compare) {
-		Console.log("Comparing ("+compare.arrX,compare.arrZ+") to ("+this.arrX,this.arrZ+")");
-		for(int i = 0; i < heightmap.length; i++ ) {
-			String s ="";
-			
-			if (compare != null) {
-				
-				for(int j = 0; j < compare.heightmap.length; j++) {
-					s+=((compare.heightmap[j][i]>=0)?" ":"")+String.format("%.0f", compare.heightmap[j][i]);
-				}
-				
-			}
-			
-			s+= " | ";
-			for(int j = 0; j < heightmap.length; j++) {
-				s+=((heightmap[j][i]>=0)?" ":"")+String.format("%.0f", heightmap[j][i]);
-			}Console.log(s);
 		}
 	}
 
@@ -270,14 +280,27 @@ public class Chunk {
 		// Adjust heightmap model
 		int index = (z * (Chunk.VERTEX_COUNT - 1) + (x));
 
-		int rx = ((this.x * (Chunk.VERTEX_COUNT - 1)) + x) * Chunk.POLYGON_SIZE;
-		int rz = ((this.z * (Chunk.VERTEX_COUNT - 1)) + z) * Chunk.POLYGON_SIZE;
+		int rx = ((this.dataX * (Chunk.VERTEX_COUNT - 1)) + x) * Chunk.POLYGON_SIZE;
+		int rz = ((this.dataZ * (Chunk.VERTEX_COUNT - 1)) + z) * Chunk.POLYGON_SIZE;
+		
+		final float topRight = heightmap[x * 2 + 2][z * 2 + 1];
+		final float topLeft = heightmap[x * 2 + 1][z * 2 + 1];
+		final float btmRight = heightmap[x * 2 + 1][z * 2 + 2];
+		final float btmLeft = heightmap[x * 2 + 2][z * 2 + 2];
+		
+		Vector3f normal = Vector3f.cross(new Vector3f(POLYGON_SIZE, topRight-topLeft, 0),
+				new Vector3f(0, btmLeft-topLeft, POLYGON_SIZE));
+		normal.normalize().negate();
 
 		this.getGroundModel().getVbo(0).updateData((index * 12),
-				new float[] { (rx + Chunk.POLYGON_SIZE), heightmap[x * 2 + 2][z * 2 + 1], rz,
-						rx, heightmap[x * 2 + 1][z * 2 + 1], rz,
-						rx, heightmap[x * 2 + 1][z * 2 + 2], (rz + Chunk.POLYGON_SIZE),
-						(rx + Chunk.POLYGON_SIZE), heightmap[x * 2 + 2][z * 2 + 2] });
+				new float[] { (rx + Chunk.POLYGON_SIZE), topRight, rz,
+						rx, topLeft, rz,
+						rx, btmRight, (rz + Chunk.POLYGON_SIZE),
+						(rx + Chunk.POLYGON_SIZE), btmLeft });
+		
+		this.getGroundModel().getVbo(2).updateData((index * 12),
+				new float[] {normal.x, normal.y, normal.z, normal.x, normal.y, normal.z,
+						normal.x, normal.y, normal.z, normal.x, normal.y, normal.z});
 
 		// Fill in gaps
 		rebuildWalls();
@@ -315,13 +338,12 @@ public class Chunk {
 				terrain.get(arrX, arrZ+1).heightmap[x][z] = val;
 			}
 		}
+		
+		editFlags |= 0x04;
 	}
 
 	public void rebuildWalls() {
 		ModelBuilder wallBuilder = new ModelBuilder();
-		
-		int cx = this.x*Chunk.CHUNK_SIZE;
-		int cz = this.z*Chunk.CHUNK_SIZE;
 		
 		for(int j = 1; j < heightmap.length; j += 2) {
 			for (int i = 1; i < heightmap.length; i += 2) {
@@ -339,9 +361,9 @@ public class Chunk {
 					p2n = heightmap[i-1][j+1];//heightLookup(i - 1, j + 1);
 					
 					if (p1 != p1n || p2 != p2n) {
-						TerrainMeshBuilder.addWall(wallBuilder, new Vector3f(cx + rx, p1n, cz + rz),
-								new Vector3f(cx + rx, p2n, cz + rz + s), new Vector3f(cx + rx, p2, cz + rz + s),
-								new Vector3f(cx + rx, p1, cz + rz), this);
+						TerrainMeshBuilder.addWall(wallBuilder, new Vector3f(realX + rx, p1n, realZ + rz),
+								new Vector3f(realX + rx, p2n, realZ + rz + s), new Vector3f(realX + rx, p2, realZ + rz + s),
+								new Vector3f(realX + rx, p1, realZ + rz), (i-2)/2, (j-1)/2, this);
 					}
 				}
 				
@@ -353,9 +375,9 @@ public class Chunk {
 					p2n = heightmap[i-2][j-1];//heightLookup(i - 1, j + 1);
 					
 					if (p1 != p1n || p2 != p2n) {
-						TerrainMeshBuilder.addWall(wallBuilder, new Vector3f(cx + rx, p1n, cz + rz),
-								new Vector3f(cx + rx - s, p2n, cz + rz), new Vector3f(cx + rx - s, p2, cz + rz),
-								new Vector3f(cx + rx, p1, cz + rz), this);
+						TerrainMeshBuilder.addWall(wallBuilder, new Vector3f(realX + rx, p1n, realZ + rz),
+								new Vector3f(realX + rx - s, p2n, realZ + rz), new Vector3f(realX + rx - s, p2, realZ + rz),
+								new Vector3f(realX + rx, p1, realZ + rz), (i-2)/2, (j-1)/2, this);
 					}
 				}
 			}
@@ -402,13 +424,13 @@ public class Chunk {
 	}*/
 	
 	public Plane getPlane(float x, float z, boolean bottomPlane) {
-		final float relx = x - this.x * Chunk.CHUNK_SIZE;
-		final float relz = z - this.z * Chunk.CHUNK_SIZE;
+		final float relx = x - this.dataX * Chunk.CHUNK_SIZE;
+		final float relz = z - this.dataZ * Chunk.CHUNK_SIZE;
 		int terrainx = (int) Math.floor(relx / Chunk.POLYGON_SIZE);
 		int terrainz = (int) Math.floor(relz / Chunk.POLYGON_SIZE);
 
-		final float trueX = this.x * Chunk.CHUNK_SIZE + terrainx * Chunk.POLYGON_SIZE;
-		final float trueZ = this.z * Chunk.CHUNK_SIZE + terrainz * Chunk.POLYGON_SIZE;
+		final float trueX = this.dataX * Chunk.CHUNK_SIZE + terrainx * Chunk.POLYGON_SIZE;
+		final float trueZ = this.dataZ * Chunk.CHUNK_SIZE + terrainz * Chunk.POLYGON_SIZE;
 		
 		terrainx = (terrainx*2)+1;
 		terrainz = (terrainz*2)+1;
@@ -425,17 +447,17 @@ public class Chunk {
 	}
 
 	public Polygon getPolygon(float x, float z) {
-		final float relx = x - this.x * Chunk.CHUNK_SIZE;
-		final float relz = z - this.z * Chunk.CHUNK_SIZE;
+		final float relx = x - this.dataX * Chunk.CHUNK_SIZE;
+		final float relz = z - this.dataZ * Chunk.CHUNK_SIZE;
 		int terrainx = (int) Math.floor(relx / Chunk.POLYGON_SIZE);
 		int terrainz = (int) Math.floor(relz / Chunk.POLYGON_SIZE);
 
-		final float trueX = this.x * Chunk.CHUNK_SIZE + terrainx * Chunk.POLYGON_SIZE;
-		final float trueZ = this.z * Chunk.CHUNK_SIZE + terrainz * Chunk.POLYGON_SIZE;
+		final float trueX = this.dataX * Chunk.CHUNK_SIZE + terrainx * Chunk.POLYGON_SIZE;
+		final float trueZ = this.dataZ * Chunk.CHUNK_SIZE + terrainz * Chunk.POLYGON_SIZE;
 
 		if (terrainx < 0 || terrainz < 0 || terrainx >= heightmap.length - 1 || terrainz >= heightmap.length - 1) {
-			System.err.println(relx + "," + terrainx + "," + this.x * Chunk.CHUNK_SIZE);
-			System.err.println(relz + "," + terrainz + "," + this.z * Chunk.CHUNK_SIZE);
+			System.err.println(relx + "," + terrainx + "," + this.dataX * Chunk.CHUNK_SIZE);
+			System.err.println(relz + "," + terrainz + "," + this.dataZ * Chunk.CHUNK_SIZE);
 			System.err.println();
 			return null;
 		}
@@ -487,5 +509,9 @@ public class Chunk {
 	
 	public Vector3f getMin() {
 		return min;
+	}
+
+	public long getSeed() {
+		return seed;
 	}
 }

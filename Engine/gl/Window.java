@@ -13,6 +13,8 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.PixelFormat;
 
+import core.Application;
+
 public class Window {
 	private static long lastFrameTime;
 	private static float aspectRatio;
@@ -24,9 +26,12 @@ public class Window {
 	public static float timeScale = 1f;
 	
 	public static int maxFramerate = 120;
+	public static boolean hasBorder = false;
 	
 	public static int viewportWidth, viewportHeight;
 	public static boolean fullscreen;
+	public static int displayWidth = 1920;
+	public static int displayHeight = 1080;
 	public static String windowTitle = "";
 
 	/**
@@ -39,7 +44,7 @@ public class Window {
 		// Globals.fov = Settings.getInt("fov");
 
 		try {
-			// resize(Globals.displayWidth, Globals.displayHeight);
+			System.setProperty("org.lwjgl.opengl.Window.undecorated", hasBorder ? "true" : "false");
 			ContextAttribs attribs = new ContextAttribs(3,3).withProfileCore(true).withForwardCompatible(true);
 			Display.create(new PixelFormat(), attribs);
 			Display.setTitle(windowTitle);
@@ -216,8 +221,8 @@ public class Window {
 		}
 
 		// Update Display
-		Display.sync(maxFramerate);
 		Display.update();
+		Display.sync(maxFramerate);
 
 		// Get delta time
 		final long currentFrameTime = getCurrentTime();
@@ -231,5 +236,10 @@ public class Window {
 			lastFramerate += 1000;
 		}
 		frameTime++;
+	}
+	
+	public static void setBorder(boolean border) {
+		System.setProperty("org.lwjgl.opengl.Window.undecorated", border ? "true" : "false");
+		Window.setDisplayMode(Display.getDisplayMode());
 	}
 }

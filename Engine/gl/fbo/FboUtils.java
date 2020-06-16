@@ -8,16 +8,17 @@ import org.lwjgl.opengl.GL14;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL32;
 
-import core.Globals;
 import gl.Window;
 
 public class FboUtils {
-
+	
+	public static int fboSamplingAmt = 2;
+	
 	public static int createDepthBufferAttachment(int width, int height, boolean multisampled) {
 		final int depthBuffer = GL30.glGenRenderbuffers();
 		GL30.glBindRenderbuffer(GL30.GL_RENDERBUFFER, depthBuffer);
 		if (multisampled) {
-			GL30.glRenderbufferStorageMultisample(GL30.GL_RENDERBUFFER, Globals.fboSamplingAmt, GL11.GL_DEPTH_COMPONENT,
+			GL30.glRenderbufferStorageMultisample(GL30.GL_RENDERBUFFER, fboSamplingAmt, GL11.GL_DEPTH_COMPONENT,
 					width, height);
 		} else {
 			GL30.glRenderbufferStorage(GL30.GL_RENDERBUFFER, GL11.GL_DEPTH_COMPONENT, width, height);
@@ -47,7 +48,7 @@ public class FboUtils {
 	public static int createMultisampleColorAttachment(int width, int height, int attachment) {
 		final int colorBuffer = GL30.glGenRenderbuffers();
 		GL30.glBindRenderbuffer(GL30.GL_RENDERBUFFER, colorBuffer);
-		GL30.glRenderbufferStorageMultisample(GL30.GL_RENDERBUFFER, Globals.fboSamplingAmt, GL11.GL_RGBA8, width,
+		GL30.glRenderbufferStorageMultisample(GL30.GL_RENDERBUFFER, fboSamplingAmt, GL11.GL_RGBA8, width,
 				height);
 		GL30.glFramebufferRenderbuffer(GL30.GL_FRAMEBUFFER, attachment, GL30.GL_RENDERBUFFER, colorBuffer);
 		return colorBuffer;

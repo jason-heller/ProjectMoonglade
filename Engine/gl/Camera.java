@@ -7,7 +7,6 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 
-import core.Globals;
 import dev.Console;
 import geom.Frustum;
 import io.Input;
@@ -20,6 +19,10 @@ public class Camera {
 	private static float zoom, targetZoom, zoomSpeed;
 
 	public static float cameraSpeed = .5f;
+
+	public static int fov = 90;
+
+	public static float mouseSensitivity = 1f;
 	public static final float FAR_PLANE = 4500f;
 
 	public static final float NEAR_PLANE = .1f;
@@ -28,7 +31,7 @@ public class Camera {
 	private static Matrix4f createProjectionMatrix() {
 		final Matrix4f projectionMatrix = new Matrix4f();
 		final float aspectRatio = (float) Display.getWidth() / (float) Display.getHeight();
-		final float y_scale = (float) (1f / Math.tan(Math.toRadians((Globals.fov - zoom) / 2f)));
+		final float y_scale = (float) (1f / Math.tan(Math.toRadians((fov - zoom) / 2f)));
 		final float x_scale = y_scale / aspectRatio;
 		final float frustum_length = FAR_PLANE - NEAR_PLANE;
 
@@ -140,9 +143,9 @@ public class Camera {
 		// Yaw/pitch look
 		if (controlStyle == SPECTATOR || controlStyle == FIRST_PERSON) {
 			if (Mouse.isGrabbed()) {
-				final float offset = 1;
-				final float pitchChange = Input.getMouseDY() * (Globals.mouseSensitivity / offset);
-				final float angleChange = Input.getMouseDX() * (Globals.mouseSensitivity / offset);
+				final float offset = 10f;
+				final float pitchChange = Input.getMouseDY() * (mouseSensitivity / offset);
+				final float angleChange = Input.getMouseDX() * (mouseSensitivity / offset);
 				pitch -= pitchChange;
 				angleAroundPlayer -= angleChange;
 				clampPitch();

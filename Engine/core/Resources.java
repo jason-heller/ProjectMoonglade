@@ -138,14 +138,41 @@ public class Resources {
 	}
 
 	public static int addSound(String key, String path) {
+		return addSound(key, path, false);
+	}
+	
+	public static int addSound(String key, String path, boolean doPitchVariance) {
 		int buffer = -1;
 		if (path.charAt(path.length() - 1) == 'g') {
 			buffer = AudioHandler.loadOgg("res/sfx/" + path);
 		} else {
 			buffer = AudioHandler.loadWav("res/sfx/" + path);
 		}
-
+		buffer |= (doPitchVariance ? 1 : 0) << 20;
 		soundMap.put(key, buffer);
+		return buffer;
+	}
+	
+	public static int addSound(String key, String path, int versions) {
+		return addSound(key, path, versions, false);
+	}
+	
+	// uuuuuuuuuuuvnnnn################
+	// # = sound buffer id number
+	// n = number of variations (step_grass1, step_grass2 etc)
+	// v = pitch variance flag
+	public static int addSound(String key, String path, int numVersions, boolean doPitchVariance) {
+		int buffer = -1;
+		for(int version = numVersions; version != 0; version--) {
+			if (path.charAt(path.length() - 1) == 'g') {
+				buffer = AudioHandler.loadOgg("res/sfx/" + path.replace(".", version + "."));
+			} else {
+				buffer = AudioHandler.loadWav("res/sfx/" + path.replace(".", version + "."));
+			}
+			buffer |= ((numVersions - version) & 0xff) << 16; // First 16 bits are id, rest are flags
+			buffer |= (doPitchVariance ? 1 : 0) << 20;
+			soundMap.put(key, buffer);
+		}
 		return buffer;
 	}
 
@@ -266,7 +293,16 @@ public class Resources {
 	}
 	
 	public static void removeSound(String sound) {
-		AL10.alDeleteBuffers(soundMap.remove(sound));
+		int mapData = soundMap.remove(sound);
+		int buffer = (mapData & 0xffff);
+		AL10.alDeleteBuffers(buffer);
+		int variationNum = ((mapData >> 16) & 0xf);
+		
+		for(int i = 1; i <= variationNum; i++) {
+			AL10.alDeleteBuffers(buffer - i);
+			Console.log("remove", sound, buffer - i);
+			
+		}
 	}
 	
 	public static void removeAllSounds() {

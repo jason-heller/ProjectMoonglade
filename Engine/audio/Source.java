@@ -5,7 +5,6 @@ import org.lwjgl.openal.AL10;
 import org.lwjgl.openal.AL11;
 import org.lwjgl.openal.EFX10;
 
-import core.Globals;
 import core.Resources;
 
 public class Source {
@@ -60,21 +59,28 @@ public class Source {
 
 	public void play(int buffer) {
 		stop();
-		AL10.alSourcei(sourceId, AL10.AL_BUFFER, buffer);
-		AL10.alSourcePlay(sourceId);
+		if (soundHasVariance(buffer)) {
+			setPitch(.8f + (float) Math.random() * .4f);
+			// if (soundHasAlternatives(buffer)) {
+			buffer -= (int) (Math.random() * (((buffer >> 16) & 0xf) + 1));
+			// }
+			AL10.alSourcei(sourceId, AL10.AL_BUFFER, (buffer & 0xffff));
+			AL10.alSourcePlay(sourceId);
+			
+		} else {
+			setPitch(1f);
+			buffer -= (int) (Math.random() * (((buffer >> 16) & 0xf) + 1));
+			AL10.alSourcei(sourceId, AL10.AL_BUFFER, (buffer & 0xffff));
+			AL10.alSourcePlay(sourceId);
+		}
 	}
 
 	public void play(String sound) {
-		stop();
-		AL10.alSourcei(sourceId, AL10.AL_BUFFER, Resources.getSound(sound));
-		AL10.alSourcePlay(sourceId);
+		play(Resources.getSound(sound));
 	}
 	
-	public void playVariance(String sound) {
-		stop();
-		AL10.alSourcei(sourceId, AL10.AL_BUFFER, Resources.getSound(sound));
-		setPitch(.75f + (float)Math.random()*.5f);
-		AL10.alSourcePlay(sourceId);
+	public static boolean soundHasVariance(int buffer) {
+		return ((buffer & 0x100000) != 0);
 	}
 
 	public void removeEffect() {
@@ -93,7 +99,7 @@ public class Source {
 
 	public void setGain(float vol) {
 		this.vol = vol;
-		AL10.alSourcef(sourceId, AL10.AL_GAIN, Globals.volume * vol);
+		AL10.alSourcef(sourceId, AL10.AL_GAIN, AudioHandler.volume * vol);
 	}
 
 	public void setLooping(boolean loop) {
@@ -127,6 +133,6 @@ public class Source {
 	}
 
 	public void update() {
-		AL10.alSourcef(sourceId, AL10.AL_GAIN, Globals.volume * vol);
+		AL10.alSourcef(sourceId, AL10.AL_GAIN, AudioHandler.volume * vol);
 	}
 }

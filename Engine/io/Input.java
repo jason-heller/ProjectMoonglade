@@ -7,8 +7,8 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 
-import core.Globals;
 import gl.Window;
+import ui.UI;
 
 public enum Input {
 
@@ -375,8 +375,8 @@ public enum Input {
 		mouseDX = Mouse.getDX();
 		mouseDY = Mouse.getDY();
 
-		mouseScreenPosX = (int) ((float) Mouse.getX() / Display.getWidth() * Globals.guiWidth);
-		mouseScreenPosY = (int) (Globals.guiHeight - (float) Mouse.getY() / Display.getHeight() * Globals.guiHeight);
+		mouseScreenPosX = (int) ((float) Mouse.getX() / Display.getWidth() * UI.width);
+		mouseScreenPosY = (int) (UI.height - (float) Mouse.getY() / Display.getHeight() * UI.height);
 
 		if (mouseDWheel > 0) {
 			keys[INPUT.MAX_KEYS - 1] = KEY_WHEEL_UP;

@@ -11,16 +11,19 @@ import gl.Window;
 import gl.particle.ParticleHandler;
 import map.Chunk;
 import map.Enviroment;
+import map.building.BuildingTile;
 import procedural.biome.Biome;
 import procedural.biome.BiomeVoronoi;
 import procedural.biome.BiomeVoronoi.BiomeNode;
 import procedural.terrain.GenTerrain;
+import scene.entity.EntityControl;
 import scene.overworld.Overworld;
 import ui.UI;
 
 public class Debug {
-	
+	public static boolean debugMode = true;
 	public static boolean terrainWireframe = false;
+	public static boolean flatTerrain = false;
 	
 	public static void checkVbo(Vbo vbo) {
 		vbo.bind();
@@ -74,8 +77,9 @@ public class Debug {
 				+ "Biome: " + biome.getName() + " \n"
 				+ "weather: "+weather+"\n"
 				+ "climate: "+GenTerrain.getTemperature(cp[0])+"/"+GenTerrain.getMoisture(cp[1])+"\n"
-				+ "prt num: "+ParticleHandler.size() +"\n"
-				+ "num culled chunks: "+culled
+				+ "dt: "+Window.deltaTime +"\n"
+				+ "time: " + Enviroment.time+"\n"
+				+ "facing: " + overworld.getCamFacingByte()
 				, 5, 5, .25f, false);
 	}
 }

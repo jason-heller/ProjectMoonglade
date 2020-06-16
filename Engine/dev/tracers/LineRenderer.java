@@ -8,9 +8,8 @@ import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 
-import core.Globals;
 import core.res.Model;
-import dev.Console;
+import dev.Debug;
 import gl.Camera;
 
 public class LineRenderer {
@@ -78,7 +77,7 @@ public class LineRenderer {
 	}
 
 	public static void render(Camera cam, Vector3f p1, Vector3f p2) {
-		if (!Globals.debugMode) {
+		if (!Debug.debugMode) {
 			return;
 		}
 		GL11.glDisable(GL11.GL_DEPTH_TEST);
@@ -101,7 +100,7 @@ public class LineRenderer {
 	}
 
 	public static void render(Camera cam, Vector3f p1, Vector3f p2, Vector3f color) {
-		if (!Globals.debugMode) {
+		if (!Debug.debugMode) {
 			return;
 		}
 		// GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
@@ -122,7 +121,7 @@ public class LineRenderer {
 	}
 
 	public static void render(Camera camera, Vector4f p1, Vector4f p2) {
-		if (!Globals.debugMode) {
+		if (!Debug.debugMode) {
 			return;
 		}
 		// GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);

@@ -7,15 +7,65 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
+import org.joml.Vector3f;
 
 import dev.Console;
 
 public class ObjToTilConverter {
-	public static void convert(String filename) {
+	public static void tileTileParser(String filename) {
+		List<String> lines;
+		String path = "";
+		float posVar = 0, scaleVar = 0;
+		float width = Float.NaN, height = Float.NaN, length = Float.NaN;
+		try {
+			lines = Files.readAllLines(new File(filename).toPath());
+			
+			for(int i = 0; i < lines.size(); i++) {
+				String line = lines.get(i);
+				
+				if (line.length() == 0 || line.charAt(0) == '#') continue;
+
+				if (line.contains("{")) {
+					String data = line.replaceAll(" ", "").replaceAll("\t", "").replace("{","");
+					path = data;
+					
+				} else if (line.contains("pos_variance")) {
+					String[] data = line.replaceAll(" ", "").replaceAll("\t", "").split("=");
+					posVar = Float.parseFloat(data[1]);
+					
+				} else if (line.contains("scale_variancle")) {
+					String[] data = line.replaceAll(" ", "").replaceAll("\t", "").split("=");
+					scaleVar = Float.parseFloat(data[1]);
+					
+				} else if (line.contains("width")) {
+					String[] data = line.replaceAll(" ", "").replaceAll("\t", "").split("=");
+					width = Float.parseFloat(data[1]);
+					
+				} else if (line.contains("height")) {
+					String[] data = line.replaceAll(" ", "").replaceAll("\t", "").split("=");
+					height = Float.parseFloat(data[1]);
+					
+				} else if (line.contains("length")) {
+					String[] data = line.replaceAll(" ", "").replaceAll("\t", "").split("=");
+					length = Float.parseFloat(data[1]);
+					
+				}
+				else if (line.contains("}")) {
+					convert(path, posVar, scaleVar, width, height, length);
+					posVar = 0;
+					scaleVar = 0;
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void convert(String filename, float posVar, float scaleVar, float width, float height, float length) {
 		BufferedReader reader;
 		
 		List<Vertex> glData = new ArrayList<Vertex>();
@@ -25,6 +75,13 @@ public class ObjToTilConverter {
 		List<float[]> uvs = new ArrayList<float[]>();
 		List<float[]> normals = new ArrayList<float[]>();
 		List<int[]> indices = new ArrayList<int[]>();
+		
+		float w = width;
+		float h = height;
+		float l = length;
+		
+		Vector3f max = new Vector3f(Float.MIN_VALUE, Float.MIN_VALUE, Float.MIN_VALUE);
+		Vector3f min = new Vector3f(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
 		
 		File f = new File(filename);
 		
@@ -36,9 +93,18 @@ public class ObjToTilConverter {
 				final String[] data = line.split(" ");
 				
 				if (data[0].equals("v")) {
+					float[] v = new float[] { Float.parseFloat(data[1]), Float.parseFloat(data[2]),
+							Float.parseFloat(data[3]) };
 					
-					positions.add(new float[] { Float.parseFloat(data[1]), Float.parseFloat(data[2]),
-							Float.parseFloat(data[3]) });
+					positions.add(v);
+					
+					max.x = Math.max(max.x, v[0]);
+					max.y = Math.max(max.y, v[1]);
+					max.z = Math.max(max.z, v[2]);
+					
+					min.x = Math.min(min.x, v[0]);
+					min.y = Math.min(min.y, v[1]);
+					min.z = Math.min(min.z, v[2]);
 				} else if (data[0].equals("vt")) {
 					
 					uvs.add(new float[] { Float.parseFloat(data[1]), Float.parseFloat(data[2]) });
@@ -86,11 +152,25 @@ public class ObjToTilConverter {
 			reader.close();
 			DataOutputStream dos = null;
 			
+			if (Float.isNaN(width))
+				w = (max.x - min.x) / 2f;
+			if (Float.isNaN(height))
+				h = (max.y - min.y) / 2f;
+			if (Float.isNaN(length))
+				l = (max.z - min.z) / 2f;
+			
 			try {
 				dos = new DataOutputStream(new FileOutputStream(f.getPath().substring(0, f.getPath().indexOf(".")) + ".til"));
 				Console.log(f.getPath().substring(0, f.getPath().indexOf(".")) + ".til");
 				dos.writeChars("TIL");
-				dos.writeByte(1);
+				dos.writeByte(2);
+				
+				dos.writeFloat(w);
+				dos.writeFloat(h);
+				dos.writeFloat(l);
+				
+				dos.writeFloat(posVar);
+				dos.writeFloat(scaleVar);
 				
 				dos.writeByte(1);// \ TODO: allow multiple models to be fit into this
 				dos.writeByte(0);// / (model #1 id, 0=always render)

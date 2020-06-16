@@ -5,7 +5,7 @@ import ui.menu.GuiElement;
 public class GuiFlowLayout implements GuiLayout {
 
 	public static final int VERTICAL = 0, HORIZONTAL = 1;
-	private int x, y, w, h;
+	private int x, y, w, h, xo, yo;
 	private int dx, dy;
 
 	private final int dir;
@@ -60,8 +60,18 @@ public class GuiFlowLayout implements GuiLayout {
 		this.h = h;
 		this.dx = x;
 		this.dy = y;
+		this.xo = x;
+		this.yo = y;
 	}
 
+	@Override
+	public void reset() {
+		this.x = xo;
+		this.y = yo;
+		this.dx = xo;
+		this.dy = yo;
+	}
+	
 	@Override
 	public void newElement(GuiElement element) {
 		element.setPosition(dx, dy);

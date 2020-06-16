@@ -2,14 +2,13 @@ package dev;
 
 import static dev.CommandType.GETTER;
 import static dev.CommandType.SETTER;
-import static dev.CommandType.METHOD;
 
-import core.Globals;
+import core.Application;
 import gl.Camera;
 import gl.Window;
 import io.Controls;
 import map.Enviroment;
-import map.weather.Weather;
+import ui.UI;
 
 enum CommandData {
 	// Methods
@@ -25,13 +24,16 @@ enum CommandData {
 	weather(true, "set/add/freeze", "float"),
 	give(true, "id/item", "amount"),
 	fps(false),
+	spawn(true, "entityname"),
 	
 	// Getters
-	version("VERSION", Globals.class, GETTER, false),
+	version("VERSION", Application.class, GETTER, false),
 	
 	// Setters
 	timescale("timeScale", Window.class, SETTER, false),
-	debug("debugMode", Globals.class, SETTER, false),
+	flat_terrain("flatTerrain", Debug.class, SETTER, false),
+	hideui("hideUI", UI.class, SETTER, false),
+	debug("debugMode", Debug.class, SETTER, false),
 	cam_speed("cameraSpeed", Camera.class, SETTER, true),
 	time_speed("timeSpeed", Enviroment.class, SETTER, false),
 	terrain_wireframe("terrainWireframe", Debug.class, SETTER, true);

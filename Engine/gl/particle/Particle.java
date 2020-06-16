@@ -19,7 +19,8 @@ public class Particle {
 	private final Texture texture;
 
 	private int texStart, texEnd;
-	private final Vector2f textureOffset1 = new Vector2f(), textureOffset2 = new Vector2f();
+	private Vector2f textureOffset1 = new Vector2f();
+	private Vector2f textureOffset2 = new Vector2f();
 	private float blend;
 	private float distance;
 
@@ -160,6 +161,11 @@ public class Particle {
 		return true;
 	}
 
+	public void setTextureUvs(float tx1, float ty1, float tx2, float ty2) {
+		this.textureOffset1 = new Vector2f(tx1, ty1);
+		this.textureOffset2 = new Vector2f(tx2, ty2);
+	}
+	
 	private void updateTextureCoordInfo() {
 		final float lifeFactor = elapsedTime / life;
 		final int numStages = texEnd - texStart;

@@ -6,12 +6,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.FloatBuffer;
+import java.nio.file.Paths;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 
 public class FileUtils {
+	public static final String WORKING_DIRECTORY = Paths.get(".").toAbsolutePath().normalize().toString();
+	public static final String SETTINGS_FOLDER = WORKING_DIRECTORY + "/" + "settings";
+	
 	private static int readInd;
 
 	public static boolean[] getFlags(byte b) {

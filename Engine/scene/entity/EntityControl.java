@@ -2,9 +2,11 @@ package scene.entity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
@@ -14,25 +16,32 @@ import core.Application;
 import core.res.Model;
 import core.res.Texture;
 import gl.Camera;
-import scene.entity.render.GenericMeshShader;
+import gl.entity.GenericMeshShader;
+import map.Chunk;
+import map.Terrain;
 
 public class EntityControl {
 
 	private static GenericMeshShader shader;
 	private static Map<Texture, List<Entity>> entities;
+	private static Map<Chunk, List<Entity>> byChunk;
+	private static LinkedList<Entity> removalQueue;
+	public static int entityRadius = 3;
 
-	public static void addEntity(Entity obj) {
-		if (entities.containsKey(obj.getDiffuse())) {
-			entities.get(obj.getDiffuse()).add(obj);
+	public static void addEntity(Entity entity) {
+		if (entities.containsKey(entity.getDiffuse())) {
+			entities.get(entity.getDiffuse()).add(entity);
 		} else {
 			final List<Entity> objs = new ArrayList<Entity>();
-			objs.add(obj);
-			entities.put(obj.getDiffuse(), objs);
+			objs.add(entity);
+			entities.put(entity.getDiffuse(), objs);
 		}
+		
 	}
 
 	public static void cleanUp() {
 		shader.cleanUp();
+		EntityData.data.cleanUp();
 	}
 
 	public static void clearEntities() {
@@ -42,20 +51,21 @@ public class EntityControl {
 	public static void init() {
 		shader = new GenericMeshShader();
 		entities = new HashMap<Texture, List<Entity>>();
+		byChunk = new HashMap<Chunk, List<Entity>>();
+		removalQueue = new LinkedList<Entity>();
+		
+		EntityData.data.initModelsAndTextures();
 	}
 
 	public static void removeEntity(Entity obj) {
-		if (entities.containsKey(obj.getDiffuse())) {
-			entities.get(obj.getDiffuse()).remove(obj);
-		}
-
+		removalQueue.add(obj);
 	}
 
 	public static void render(Camera camera, Vector3f lightDir) {
 		shader.start();
 		shader.projectionViewMatrix.loadMatrix(camera.getProjectionViewMatrix());
 		shader.lightDirection.loadVec3(lightDir);
-		shader.color.loadVec3(1, 1, 1);
+		shader.color.loadVec4(1, 1, 1, 1);
 		GL20.glEnableVertexAttribArray(0);
 		GL20.glEnableVertexAttribArray(1);
 		GL20.glEnableVertexAttribArray(2);
@@ -69,7 +79,7 @@ public class EntityControl {
 			for (final Entity entity : entities.get(texture)) {
 				final Model model = entity.getModel();
 
-				if (model == null) {
+				if (model == null || entity.deactivated) {
 					continue;
 				}
 
@@ -89,6 +99,32 @@ public class EntityControl {
 		shader.stop();
 	}
 
+	public static void renderViewmodel(Camera camera, Vector3f lightDir, Model model, Texture texture, Matrix4f modelMatrix) {
+		shader.start();
+		shader.projectionViewMatrix.loadMatrix(camera.getProjectionMatrix());
+		shader.lightDirection.loadVec3(lightDir);
+		shader.color.loadVec4(1, 1, 1, 1);
+		GL20.glEnableVertexAttribArray(0);
+		GL20.glEnableVertexAttribArray(1);
+		GL20.glEnableVertexAttribArray(2);
+
+		GL11.glDisable(GL11.GL_DEPTH_TEST);
+		model.bind(0, 1, 2);
+		shader.modelMatrix.loadMatrix(modelMatrix);
+		texture.bind(0);
+		GL11.glDrawElements(GL11.GL_TRIANGLES, model.getIndexCount(), GL11.GL_UNSIGNED_INT, 0);
+		model.unbind(0, 1, 2);
+		GL11.glEnable(GL11.GL_DEPTH_TEST);
+		
+		GL20.glDisableVertexAttribArray(0);
+		GL20.glDisableVertexAttribArray(1);
+		GL20.glDisableVertexAttribArray(2);
+		GL30.glBindVertexArray(0);
+		GL11.glDisable(GL30.GL_CLIP_DISTANCE0);
+		shader.stop();
+	}
+
+	
 	public static void render(Camera camera, Vector3f lightDir, Entity object) {
 		shader.start();
 		shader.projectionViewMatrix.loadMatrix(camera.getProjectionViewMatrix());
@@ -109,17 +145,160 @@ public class EntityControl {
 		shader.stop();
 	}
 
-	public static void update() {
+	public static void update(Terrain terrain) {
+		for(Entity e : removalQueue) {
+			if (entities.containsKey(e.getDiffuse())) {
+				entities.get(e.getDiffuse()).remove(e);
+			}
+			
+			if (e.getChunk() != null) {
+				List<Entity> list = byChunk.get(e.getChunk());
+				if (list != null) {
+					list.remove(e);
+				}
+			}
+		}
+		removalQueue.clear();
+		
 		for (final Texture texture : entities.keySet()) {
 			final List<Entity> batch = entities.get(texture);
 			for (int j = 0, m = batch.size(); j < m; j++) {
 				final Entity entity = batch.get(j);
-				entity.update(Application.scene);
+				boolean cont = handleEntityChunkMap(entity, terrain);
+				if (cont || entity.deactivated)
+					continue;
+				
+				entity.tick(Application.scene);
 			}
 		}
 	}
 	
+	public static void onChunkUnload(Chunk chunk) {
+		List<Entity> entities = byChunk.get(chunk);
+		if (entities != null) {
+			for(Entity entity : entities) {
+				removeEntity(entity);
+			}
+		}
+		
+		byChunk.remove(chunk);
+	}
+	
+	private static boolean handleEntityChunkMap(Entity entity, Terrain terrain) {
+		boolean cont = false;
+		Chunk chunk = terrain.getChunkAt(entity.position.x, entity.position.z);
+		
+		if (chunk != null && chunk != entity.getChunk()) {
+			if (entity.getChunk() != null) {
+				removeChunkAssignment(entity);
+			}
+			
+			entity.setChunk(chunk);
+			if (entity.persistency != 3) {
+				assignToChunk(entity);
+			}
+			
+			final int size = Terrain.size;
+			final int halfSize = size / 2;
+			entity.deactivated = true;
+			
+			if (Math.abs(chunk.arrX - halfSize) < entityRadius && Math.abs(chunk.arrZ - halfSize) < entityRadius) {
+				entity.deactivated = false;
+			}
+			
+		} else if (chunk == null) {
+			/*if (entity.getChunk() != null) {
+				removeChunkAssignment(entity);
+			}
+			entity.setChunk(null);*/
+			cont = true;
+		}
+		return cont;
+	}
+	
+	private static void assignToChunk(Entity entity) {
+		if (entity.getPersistency() == 3) return;
+		
+		Chunk chunk = entity.getChunk();
+		if (byChunk.containsKey(chunk)) {
+			byChunk.get(chunk).add(entity);
+		} else {
+			final List<Entity> objs = new ArrayList<Entity>();
+			objs.add(entity);
+			byChunk.put(chunk, objs);
+		}
+		chunk.editFlags |= 0x08;
+	}
+	
+	private static void removeChunkAssignment(Entity entity) {
+		Chunk chunk = entity.getChunk();
+		List<Entity> entities = byChunk.get(chunk);
+		if (entities != null) {
+			entities.remove(entity);
+			
+			if (entities.isEmpty()) {
+				chunk.editFlags = (byte) (chunk.editFlags - (byte)(chunk.editFlags & 0x08));
+			}
+		}
+	}
+
 	public static GenericMeshShader getShader() {
 		return shader;
+	}
+
+	public static List<Entity> getAllEntitiesInChunk(Chunk chunk) {
+		return byChunk.get(chunk);
+	}
+
+	/*public static void shiftX(Terrain t, int dx) {
+		final int halfSize = Globals.chunkRenderDist/2;
+		final int rad = Globals.chunkEntityRadius;
+		final int i1 = dx == 1 ? halfSize - rad : halfSize + rad;
+		final int i2 = dx == 1 ? halfSize + rad : halfSize - rad;
+		
+		for (int j = halfSize-rad; j <= halfSize+rad; j++) {
+			chunkActivation(t.get(i1, j), true);
+			chunkActivation(t.get(i2, j), false);
+		}
+	}
+	
+	public static void shiftY(Terrain t, int dz) {
+		final int halfSize = Globals.chunkRenderDist/2;
+		final int rad = Globals.chunkEntityRadius;
+		final int j1 = dz == 1 ? halfSize - rad : halfSize + rad;
+		final int j2 = dz == 1 ? halfSize + rad : halfSize - rad;
+		
+		for (int i = halfSize-rad; i <= halfSize+rad; i++) {
+			chunkActivation(t.get(i, j1), true);
+			chunkActivation(t.get(i, j2), false);
+		}
+	}*/
+	
+	private static void chunkDeactivation(Chunk chunk, boolean activate) {
+		List<Entity> ents = byChunk.get(chunk);
+		if (ents != null) {
+			for(Entity ent : ents) {
+				ent.deactivated = activate;
+			}
+		}
+	}
+
+	public static void setActivation(Terrain t) {
+		final int size = Terrain.size;
+		final int halfSize = size / 2;
+		
+		for (int i = 0; i < size; i++) {
+			for (int j = 0; j < size; j++) {
+				if (Math.abs(i - halfSize) < entityRadius && Math.abs(j - halfSize) < entityRadius) {
+					chunkDeactivation(t.get(i, j), false);
+				} else {
+					chunkDeactivation(t.get(i, j), true);
+				}
+			}
+		}
+	}
+
+	public static int numEntities() {
+		return entities.size();
 	}
 }

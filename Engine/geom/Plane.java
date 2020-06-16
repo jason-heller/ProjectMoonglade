@@ -64,13 +64,14 @@ public class Plane {
 		return Vector3f.sub(point, Vector3f.mul(normal, (float) signedDistanceTo(point)));
 	}
 
-	public Vector3f rayIntersection(Vector3f rayOrigin, Vector3f rayDirection) {
-		if (normal.dot(rayDirection) == 0.0f) {
-			return null;
+	public float rayIntersection(Vector3f rayOrigin, Vector3f rayDirection) {
+		final float dp = normal.dot(rayDirection);
+		if (dp == 0.0f) {
+			return Float.MAX_VALUE;
 		}
 
-		final float t = (dist - normal.dot(rayOrigin)) / normal.dot(rayDirection);
-		return Vector3f.add(rayOrigin, rayDirection.mul(t));
+		return (dist - normal.dot(rayOrigin)) / dp;
+		//return Vector3f.add(rayOrigin, Vector3f.mul(rayDirection, t));
 	}
 	
 	public void set(float a, float b, float c, float d) {

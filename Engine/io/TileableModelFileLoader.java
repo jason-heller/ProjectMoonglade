@@ -5,16 +5,23 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import org.joml.Vector3f;
+
 import core.res.TileableModel;
 import dev.Console;
 
 public class TileableModelFileLoader {
-	public static byte EXPECTED_VERSION = 1; // Version of .MOD files that this game supports
+	public static byte EXPECTED_VERSION = 2; // Version of .MOD files that this game supports
 
 	private static TileableModel extractModelData(DataInputStream is) throws IOException {
+		Vector3f bounds = new Vector3f(is.readFloat(), is.readFloat(), is.readFloat());
+
+		float posVar = is.readFloat();
+		float scaleVar = is.readFloat();
+		
 		final byte numParts = is.readByte();
 		
-		TileableModel model = new TileableModel(numParts);
+		TileableModel model = new TileableModel(numParts, bounds);
 		
 		for(int p = 0; p < numParts; p++) {
 			final byte flags = is.readByte();
@@ -30,9 +37,9 @@ public class TileableModelFileLoader {
 
 			int i;
 			for (i = 0; i < vertexCount; i++) {
-				vertices[i * 3 + 0] = is.readFloat();
-				vertices[i * 3 + 1] = is.readFloat();
-				vertices[i * 3 + 2] = is.readFloat();
+				vertices[i * 3 + 0] = is.readFloat()*2;
+				vertices[i * 3 + 1] = is.readFloat()*2;
+				vertices[i * 3 + 2] = is.readFloat()*2;
 				uvs[i * 2 + 0] = is.readFloat();
 				uvs[i * 2 + 1] = is.readFloat();
 				normals[i * 3 + 0] = is.readFloat();
@@ -46,7 +53,8 @@ public class TileableModelFileLoader {
 			
 			model.addSubModel(flags, vertices, uvs, normals, indices);
 		}
-		
+		model.setPositionVariance(posVar);
+		model.setScaleVariance(scaleVar);
 		return model;
 	}
 
@@ -70,7 +78,6 @@ public class TileableModelFileLoader {
 			}
 
 			model = extractModelData(is);
-
 		} catch (final IOException e) {
 			e.printStackTrace();
 		} finally {

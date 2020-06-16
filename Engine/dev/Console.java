@@ -8,7 +8,6 @@ import org.joml.Vector3f;
 import org.lwjgl.input.Keyboard;
 
 import core.Application;
-import core.Globals;
 import io.Input;
 import ui.Colors;
 import ui.Font;
@@ -224,7 +223,7 @@ public class Console {
 		// Now check if you typed a command
 		final Command cmd = CommandData.getCommand(command);
 		if (cmd != null) {
-			if (cmd.requiresCheats && Globals.debugMode || !cmd.requiresCheats) {
+			if (cmd.requiresCheats && Debug.debugMode || !cmd.requiresCheats) {
 				cmd.execute(args);
 			} else {
 				log("Cheats must be enabled");

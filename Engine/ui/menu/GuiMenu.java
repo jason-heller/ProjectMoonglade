@@ -87,6 +87,10 @@ public class GuiMenu extends GuiElement {
 			index++;
 		}
 	}
+	
+	public void setOption(int index, String option) {
+		options[index] = option;
+	}
 
 	public void setAlignment(int alignment) {
 		this.alignment = alignment;
@@ -94,5 +98,9 @@ public class GuiMenu extends GuiElement {
 
 	public void setCentered(boolean centered) {
 		this.centered = centered;
+	}
+
+	public String[] getOptions() {
+		return options;
 	}
 }

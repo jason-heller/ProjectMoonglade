@@ -17,7 +17,7 @@ const float lightDiffuse = 0.5;
 const float lightScale = 0.3;
 
 void main(void) {
-	float ambientLight = lightDiffuse + (lightDirection.y*0.2);
+	float ambientLight = lightDiffuse + (lightDirection.y*lightScale);
 
 	float light = (dot(vec3(lightDirection.x, 0, lightDirection.z), pass_normals)*lightScale) + ambientLight;
 	

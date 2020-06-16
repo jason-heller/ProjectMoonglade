@@ -1,6 +1,7 @@
 package ui;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.joml.Vector3f;
@@ -8,9 +9,9 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 
 import audio.Source;
-import core.Globals;
 import core.Resources;
 import core.res.Model;
+import gl.Window;
 import scene.Scene;
 import ui.render.UIShader;
 
@@ -21,7 +22,11 @@ public class UI {
 	private static List<Component> components = new ArrayList<Component>();
 	private static float opacity = 1f;
 	
+	public static final float width = 1280;
+	public static final float height = 720;
+	
 	private static Source source = new Source();
+	public static boolean hideUI;
 
 	public static void addComponent(Component component) {
 		final int depth = component.getDepth();
@@ -115,6 +120,13 @@ public class UI {
 		return drawImage("none", x, y, width, height, color);
 	}
 
+	public static void drawHollowRect(int x, int y, int width, int height, int thickness, Vector3f color) {
+		drawImage("none", x, y, width, thickness, color);
+		drawImage("none", x, y, thickness, height, color);
+		drawImage("none", x, y + (height - thickness), width, thickness, color);
+		drawImage("none", x + (width - thickness), y, thickness, height, color);
+	}
+
 	public static Text drawString(Font font, String text, int x, int y, float fontSize, int lineWidth, boolean centered,
 			int... offsets) {
 		final Text txt = new Text(font, text, x, y, fontSize, lineWidth, centered, offsets);
@@ -133,7 +145,7 @@ public class UI {
 	}
 
 	public static Text drawString(String text, int x, int y, boolean centered) {
-		final Text txt = new Text(Font.defaultFont, text, x, y, Font.defaultSize, Globals.displayWidth / 2 - 40,
+		final Text txt = new Text(Font.defaultFont, text, x, y, Font.defaultSize, Window.displayWidth / 2 - 40,
 				centered);
 		txt.setOpacity(opacity);
 		txt.markAsTemporary();
@@ -142,7 +154,7 @@ public class UI {
 	}
 
 	public static Text drawString(String text, int x, int y, float fontSize, boolean centered) {
-		final Text txt = new Text(Font.defaultFont, text, x, y, fontSize, Globals.displayWidth / 2 - 40, centered);
+		final Text txt = new Text(Font.defaultFont, text, x, y, fontSize, Window.displayWidth / 2 - 40, centered);
 		txt.setOpacity(opacity);
 		txt.markAsTemporary();
 		addComponent(txt);
@@ -174,16 +186,24 @@ public class UI {
 	public static void removeComponent(Component component) {
 		components.remove(component);
 	}
+	
+	public static void update() {
+		Iterator<Component> iter = components.iterator();
+		while(iter.hasNext()) {
+			if (iter.next().isTemporary()) {
+				iter.remove();
+			}
+		}
+	}
 
 	public static void render(Scene scene) {
+		if (hideUI) return;
 		GL11.glEnable(GL11.GL_BLEND);
 		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		GL11.glDisable(GL11.GL_DEPTH_TEST);
 		GL11.glDisable(GL11.GL_CULL_FACE);
 		shader.start();
 		GL13.glActiveTexture(GL13.GL_TEXTURE0);
-
-		final List<Component> temporaryComponents = new ArrayList<Component>();
 
 		quad.bind(0, 1);
 
@@ -214,9 +234,7 @@ public class UI {
 				} // GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 			}
 
-			if (component.isTemporary()) {
-				temporaryComponents.add(component);
-			}
+			
 		}
 
 		quad.unbind(0, 1);
@@ -225,8 +243,6 @@ public class UI {
 		GL11.glDisable(GL11.GL_BLEND);
 		GL11.glEnable(GL11.GL_DEPTH_TEST);
 		GL11.glEnable(GL11.GL_CULL_FACE);
-
-		components.removeAll(temporaryComponents);
 	}
 
 	public static void setOpacity(float newOpacity) {

@@ -4,6 +4,7 @@ import java.util.Random;
 
 import map.Moisture;
 import map.Temperature;
+import procedural.NoiseUtil;
 import procedural.biome.Biome;
 
 public class SnowyPineForestBiome extends Biome {
@@ -16,8 +17,8 @@ public class SnowyPineForestBiome extends Biome {
 		this.terrainHeightFactor = 4f;
 		this.terrainRoughness = 1.0f;
 		
-		this.skyColor = BiomeColors.DEFAULT_SKY;
-		this.groundColor = BiomeColors.CONIFERFOREST_GRASS;
+		this.skyColor = BiomeColors.SNOW_SKY;
+		this.groundColor = BiomeColors.SNOW_COLOR;
 		////////////////////////////////////////////////
 	}
 
@@ -28,6 +29,15 @@ public class SnowyPineForestBiome extends Biome {
 
 	@Override
 	public int getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r) {
+		if (x % 2 == 0 && z % 2 == 0) {
+			final float treeDensity = .08f;
+			
+			float n = r.nextFloat();
+			if (n < treeDensity) {
+				return 9;
+			}
+		}
+		
 		return 0;
 	}
 

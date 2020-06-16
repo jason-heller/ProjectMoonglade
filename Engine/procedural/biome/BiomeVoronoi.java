@@ -3,9 +3,6 @@ package procedural.biome;
 import java.util.ArrayList;
 import java.util.List;
 
-import core.Globals;
-import dev.Console;
-import map.Chunk;
 import map.Enviroment;
 import procedural.NoiseUtil;
 import procedural.terrain.GenTerrain;
@@ -39,7 +36,6 @@ public class BiomeVoronoi {
 	public void buildArray(int camX, int camZ) {
 		x = camX;
 		y = camZ;
-		Console.log(x,y);
 		
 		for(int i = 0; i < arrSize; i++) {
 			for(int j = 0; j < arrSize; j++) {
@@ -48,7 +44,7 @@ public class BiomeVoronoi {
 		}
 	}
 	
-	public void update(float px, float py) {
+	public void tick(float px, float py) {
 		int camX = (int) Math.floor(px/scale);
 		int camZ = (int) Math.floor(py/scale);
 		if (x != camX) {

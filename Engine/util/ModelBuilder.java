@@ -347,14 +347,14 @@ public class ModelBuilder {
 		addRelativeIndices(4, 0, 1, 3, 3, 1, 2);
 	}
 
-	public void addTileableModel(float rx, float ry, float rz, TileableModel tiledModel) {
+	public void addTileableModel(float rx, float ry, float rz, float scale, TileableModel tiledModel) {
 		int len = tiledModel.getVertices(0).length / 3;
 		float[] vertices = tiledModel.getVertices(0);
 		float[] uvs = tiledModel.getUvs(0);
 		float[] normals = tiledModel.getNormals(0);
 		
 		for (int i = 0; i < len; i++) {
-			addVertex(rx + vertices[i * 3], ry + vertices[i * 3 + 1], rz + vertices[i * 3 + 2]);
+			addVertex(rx + vertices[i * 3]*scale, ry + vertices[i * 3 + 1]*scale, rz + vertices[i * 3 + 2]*scale);
 			addTextureCoord(uvs[i * 2], uvs[i * 2 + 1]);
 			addNormal(normals[i * 3], normals[i * 3 + 1], normals[i * 3 + 2]);
 			addColor(1, 1, 1, 0);
@@ -369,7 +369,7 @@ public class ModelBuilder {
 				new Vector3f(rx-1,ry,rz-1), new Vector3f(rx,ry,rz));*/
 	}
 	
-	public void addTileableModel(float rx, float ry, float rz, TileableModel tiledModel, byte flags) {
+	public void addTileableModel(float rx, float ry, float rz, float scale, TileableModel tiledModel, byte flags) {
 		// TODO finish this
 	}
 
