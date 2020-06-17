@@ -5,16 +5,16 @@ import org.joml.Vector3f;
 public class BiomeData {
 	private Biome[] influencingBiomes;
 	private float[] influence;
-	public int mainBiome;
+	public int mainBiomeId;
 	private int subseed;
 	
-	public BiomeData(Biome[] biomeIds, float[] influence, int mainBiome, int subseed) {
+	public BiomeData(Biome[] biomeIds, float[] influence, int mainBiomeId, int subseed) {
 		this.influence = influence;
 		this.influencingBiomes = new Biome[biomeIds.length];
 		for(int i = 0; i < influencingBiomes.length; i++) {
 			this.influencingBiomes[i] = biomeIds[i];
 		}
-		this.mainBiome = mainBiome;
+		this.mainBiomeId = mainBiomeId;
 		this.subseed = subseed;
 	}
 	
@@ -62,5 +62,9 @@ public class BiomeData {
 	
 	public int getSubseed() {
 		return subseed;
+	}
+
+	public Biome getMainBiome() {
+		return influencingBiomes[mainBiomeId];
 	}
 }

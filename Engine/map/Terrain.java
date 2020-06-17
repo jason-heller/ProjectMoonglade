@@ -241,6 +241,7 @@ public class Terrain {
 			Vector3f hit = Vector3f.add(origin, Vector3f.mul(dir, hitDist));
 			
 			if (hit.x < point[0] + 1 && hit.x >= point[0] && hit.z < point[1] + 1 && hit.z >= point[1]) {
+				hit.y += .25f;
 				return new TerrainIntersection(hit, 0, chunk);
 			} else {
 				plane = getChunkAt(point[0], point[1]).getPlane(point[0], point[1], true);
@@ -250,6 +251,7 @@ public class Terrain {
 
 				hit = Vector3f.add(origin, Vector3f.mul(dir, hitDist));
 				if (hit.x < point[0] + 1 && hit.x >= point[0] && hit.z < point[1] + 1 && hit.z >= point[1]) {
+					hit.y += .25f;
 					return new TerrainIntersection(hit, 0, chunk);
 				}
 			}

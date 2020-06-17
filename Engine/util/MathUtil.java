@@ -76,7 +76,7 @@ public class MathUtil {
 	public static Vector3f eulerToVectorRad(float yaw, float pitch) {
 		final float xzLen = (float) Math.cos(pitch);
 		return new Vector3f(
-				-xzLen * (float) Math.sin(yaw),
+				xzLen * (float) Math.sin(yaw),
 				(float) Math.sin(pitch),
 				xzLen * (float) Math.cos(yaw));
 	}

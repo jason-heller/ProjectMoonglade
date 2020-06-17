@@ -15,6 +15,7 @@ import procedural.biome.types.GrasslandBiome;
 import procedural.biome.types.MangroveBiome;
 import procedural.biome.types.PineForestBiome;
 import procedural.biome.types.SnowyPineForestBiome;
+import procedural.biome.types.TropicalForestBiome;
 
 public class BiomeMap {
 	private Map<Temperature, Map<Moisture, List<Biome>>> biomeMap = new HashMap<Temperature, Map<Moisture, List<Biome>>>();
@@ -28,6 +29,7 @@ public class BiomeMap {
 		addBiome(new PineForestBiome());
 		addBiome(new SnowyPineForestBiome());
 		addBiome(new MangroveBiome());
+		addBiome(new TropicalForestBiome());
 	}
 	
 	private void addBiome(Biome biome) {

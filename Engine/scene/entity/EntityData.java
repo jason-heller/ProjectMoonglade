@@ -7,44 +7,50 @@ import org.joml.Vector3f;
 
 import core.Application;
 import core.Resources;
-import scene.overworld.FireflyEntity;
+import scene.entity.friendly.FireflyEntity;
+import scene.entity.object.DoorEntity;
+import scene.entity.utility.ItemEntity;
 import scene.overworld.inventory.Item;
 
-public enum EntityData {
-	data;
+public class EntityData {
+	private static final Map<String, Integer> map = new HashMap<String, Integer>();
 	
-	private final Map<String, Integer> map = new HashMap<String, Integer>();
-	
-	EntityData() {
+	public static void init() {
 		map.put(ItemEntity.class.getSimpleName(), 1);
 		map.put(FireflyEntity.class.getSimpleName(), 2);
+		map.put(DoorEntity.class.getSimpleName(), 3);
+		
+		initModelsAndTextures();
 	}
 
-	public Entity instantiate(int id) {
+	public static Entity instantiate(int id) {
 		switch(id) {
 		case 1: return new ItemEntity(new Vector3f(), Item.AIR, 0);
 		case 2: return new FireflyEntity(Application.scene);
+		case 3: return new DoorEntity(new Vector3f(), 0);
 		}
 	
 		return null;
 	}
 
-	public int getId(Class<? extends Entity> c) {
+	public static int getId(Class<? extends Entity> c) {
 		return map.get(c.getSimpleName());
 	}
 	
-	public int getId(String s) {
+	public static int getId(String s) {
 		return map.containsKey(s) ? map.get(s) : 0;
 	}
 	
-	void initModelsAndTextures() {
+	private static void initModelsAndTextures() {
 		Resources.addModel("firefly", "entity/firefly.mod");
+		Resources.addModel("door", "entity/door.mod");
 		
 		Resources.addTexture("entity_sheet1", "entity/entity_sheet1.png");
 	}
 	
-	void cleanUp() {
+	static void cleanUp() {
 		Resources.getModel("firefly").cleanUp();
+		Resources.getModel("door").cleanUp();
 		Resources.getTexture("entity_sheet1").delete();
 	}
 }

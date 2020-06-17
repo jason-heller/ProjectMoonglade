@@ -49,14 +49,14 @@ public class CommandMethods {
 			Vector3f at = scene.getSelectionPoint();
 			if (at == null) at = scene.getPlayer().position;
 			
-			int id = EntityData.data.getId(name + "Entity");
+			int id = EntityData.getId(name + "Entity");
 			
 			if (id == 0) {
 				Console.log("No such entity exists");
 				return;
 			}
 			
-			Entity entity = EntityData.data.instantiate(id);
+			Entity entity = EntityData.instantiate(id);
 			entity.position.set(at);
 			EntityControl.addEntity(entity);
 		}
@@ -89,7 +89,7 @@ public class CommandMethods {
 		}
 	}
 	
-	public static void time(String action, float value) {
+	public static void time(String action, String value) {
 		if (!(Application.scene instanceof Overworld)) {
 			Console.log("Cannot use this command outside gameplay");
 			return;
@@ -98,11 +98,36 @@ public class CommandMethods {
 		Overworld overworld = (Overworld) Application.scene;
 		Enviroment e = overworld.getEnviroment();
 		
+		if (action.equals("")) {
+			action = "set";
+		}
+		
+		switch(value) {
+		case "morning":
+		case "dawn":
+			value = Integer.toString(Enviroment.DAWN);
+			break;
+		case "day":
+			value = Integer.toString(Enviroment.DAY);
+			break;
+		case "dusk":
+			value = Integer.toString(Enviroment.DUSK);
+			break;
+		case "night":
+			value = Integer.toString(Enviroment.NIGHT);
+			break;
+		}
+		
+		if (value.matches("^[a-zA-Z]*$")) {
+			incorrectParams("time", "set/add/freeze", "value");
+			return;
+		}
+		
 		if (action.equals("set")) {
-			e.setTime((int)value);
+			e.setTime(Integer.parseInt(value));
 		}
 		else if (action.equals("add")) {
-			e.setTime((int)(e.getTime() + value));
+			e.setTime(e.getTime() + Integer.parseInt(value));
 		}
 		else if (action.equals("freeze")) {
 			e.toggleTime();

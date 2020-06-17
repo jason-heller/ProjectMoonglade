@@ -1,9 +1,10 @@
-package scene.overworld;
+package scene.entity;
 
-import core.Resources;
+import geom.AABB;
 import scene.Scene;
-import scene.entity.PhysicsEntity;
-import scene.entity.PlayerControl;
+import scene.entity.utility.PhysicsEntity;
+import util.RunLengthInputStream;
+import util.RunLengthOutputStream;
 
 
 public class PlayerEntity extends PhysicsEntity {
@@ -18,14 +19,10 @@ public class PlayerEntity extends PhysicsEntity {
 	}
 
 	@Override
-	public void tick(Scene scene) {
-		//super.tick(scene);
-	}
-	
 	public void update(Scene scene) {
 		if (this.getChunk() == null) return;
 		PlayerControl.update(scene);
-		super.tick(scene);
+		super.update(scene);
 	}
 	
 	@Override
@@ -36,5 +33,17 @@ public class PlayerEntity extends PhysicsEntity {
 	@Override
 	public void destroy() {
 		super.destroy();
+	}
+	
+	@Override
+	public void save(RunLengthOutputStream data) {
+	}
+
+	@Override
+	public void load(RunLengthInputStream data) {
+	}
+
+	public AABB getAABB() {
+		return aabb;
 	}
 }

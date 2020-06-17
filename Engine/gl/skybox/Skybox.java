@@ -17,7 +17,7 @@ import util.MathUtil;
 public class Skybox {
 	private static final float SIZE = 32;
 
-	private static final float CYCLE_INTEVAL = Enviroment.DAY_LENGTH / 4f;
+	private static final float CYCLE_INTEVAL = Enviroment.CYCLE_LENGTH / 4f;
 	private final SkyboxShader shader;
 	private final Model box;
 	private float alpha;

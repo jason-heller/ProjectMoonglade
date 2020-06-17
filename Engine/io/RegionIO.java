@@ -47,9 +47,9 @@ public class RegionIO {
 		
 		final float[][] heights = chunk.heightmap;
 		if ((flags & 0x04) != 0) {
-			for (int x = 0; x < heights.length; x++) {
-				for (int z = 0; z < heights.length; z++) {
-					data.writeFloat(heights[x][z]);
+			for (int z = 0; z < heights.length; z++) {
+				for (int x = 0; x < heights.length; x++) {
+					data.writeFloat(heights[z][x]);
 				}
 			}
 		}
@@ -104,7 +104,7 @@ public class RegionIO {
 		if (chunkEntities != null) {
 			for(Entity entity : chunkEntities) {
 				if (entity.getPersistency() == 1 || entity.getPersistency() == 2) {
-					data.writeShort(EntityData.data.getId(entity.getClass()));
+					data.writeShort(EntityData.getId(entity.getClass()));
 					data.writeByte(entity.getPersistency());
 					entity.save(data);
 				}
@@ -140,9 +140,9 @@ public class RegionIO {
 		chunk.editFlags = editFlags;
 		
 		if ((editFlags & 0x04) != 0) {
-			for (int x = 0; x < heights.length; x++) {
-				for (int z = 0; z < heights.length; z++) {
-					heights[x][z] = data.readFloat();
+			for (int z = 0; z < heights.length; z++) {
+				for (int x = 0; x < heights.length; x++) {
+					heights[z][x] = data.readFloat();
 				}
 			}
 		}
@@ -189,7 +189,7 @@ public class RegionIO {
 		int id;
 		while((id = data.readShort()) != 0) {
 			byte persistency = data.readByte();
-			Entity e = EntityData.data.instantiate(id);
+			Entity e = EntityData.instantiate(id);
 			e.load(data);
 			
 			if (persistency != 1 || timeDifference < ENTITY_EXPIRATION_TIME) {

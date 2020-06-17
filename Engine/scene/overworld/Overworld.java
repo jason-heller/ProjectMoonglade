@@ -24,8 +24,11 @@ import map.building.BuildingTile;
 import map.tile.EnvTile;
 import scene.MainMenu;
 import scene.Scene;
+import scene.entity.Entity;
 import scene.entity.EntityControl;
-import scene.entity.ItemEntity;
+import scene.entity.EntityData;
+import scene.entity.PlayerEntity;
+import scene.entity.utility.ItemEntity;
 import scene.overworld.inventory.Inventory;
 import scene.overworld.inventory.Item;
 
@@ -84,7 +87,7 @@ public class Overworld implements Scene {
 	@Override
 	public void update() {
 		camera.move();
-		player.update(this);
+		EntityControl.update(enviroment.getTerrain());
 	}
 
 	@Override
@@ -95,7 +98,7 @@ public class Overworld implements Scene {
 		}
 		
 		ui.update();
-		EntityControl.update(enviroment.getTerrain());
+		EntityControl.tick(enviroment.getTerrain());
 		
 		if (ui.isPaused()) {
 			return;
@@ -248,8 +251,11 @@ public class Overworld implements Scene {
 					chunkPtr.damageEnvTile(relX, relZ, (byte)15);
 				}
 				break;
+				
 			default:
 				tile = chunkPtr.getBuilding().get(_x, _y, _z);
+				
+				byte facing = BuildingTile.getFacingByte(camera, Input.isDown("sneak"));
 				if (lmb && tile != null) {
 					if (tile.getMaterial(facingIndex).isTiling()) {
 						final float rx = (_x * TILE_SIZE) + cx;
@@ -261,10 +267,13 @@ public class Overworld implements Scene {
 						if ((cameraFacing & 32) != 0) dx *= -1;
 						Material.removeTilingFlags(tile, enviroment.getTerrain(), rx, ry, rz, dx, dz, facingIndex, 0);
 					}
-					byte facing = BuildingTile.getFacingByte(camera, Input.isDown("sneak"));
+					
+					if ((tile.getWalls() & facing) != 0) {
+						EntityControl.addEntity(new ItemEntity(exactSelectionPt, tile.getMaterial(facingIndex).getDrop(), 1));
+					}
+					
 					chunkPtr.setTile(_x, _y, _z, facing,
 							Material.NONE, (byte) 0);
-					EntityControl.addEntity(new ItemEntity(exactSelectionPt, tile.getMaterial(facing).getDrop(), 1));
 					chunkPtr.rebuildWalls();
 				}
 				
@@ -284,7 +293,7 @@ public class Overworld implements Scene {
 				}
 				
 				final Item selected = inventory.getSelected();
-				if (rmb && selected != Item.AIR && selected.getMaterial() != Material.NONE) {
+				if (rmb && selected != Item.AIR) {
 
 					if (chunkPtr != null) {
 						tile = chunkPtr.getBuilding().get(_x, _y, _z);
@@ -306,6 +315,21 @@ public class Overworld implements Scene {
 						}
 						
 						final Material mat = selected.getMaterial();
+						
+						if (mat == Material.NONE) {
+							if (selected.getEntityId() != -1) {
+								Entity entity = EntityData.instantiate(selected.getEntityId());
+								entity.position.set(selectionPt);
+								EntityControl.addEntity(entity);
+								
+							}
+							
+							return;
+						}
+						
+						if (tile != null && (tile.getWalls() & facing) != 0) {
+							EntityControl.addEntity(new ItemEntity(exactSelectionPt, tile.getMaterial(facingIndex).getDrop(), 1));
+						}
 						
 						byte specialFlags = 0;
 						if (mat.isTiling()) {

@@ -15,17 +15,26 @@ public enum Item {
 	BRICKS("brick", 5, 0, Material.BRICK),
 	GLASS("glass", 6, 0, Material.WINDOW),
 	THATCH("thatch", 7, 0, Material.THATCH),
-	FENCE("fence", 8, 0, Material.FENCE);
-	
+	FENCE("fence", 8, 0, Material.FENCE),
+	DOOR("door", 9, 0, 3);	
 	private final String name;
 	private final int tx, ty;
 	private final Material material;
+	private int entity = -1;
 	
 	Item(String name, int tx, int ty, Material m) {
 		this.tx = tx;
 		this.ty = ty;
 		this.name = name;
 		this.material = m;
+	}
+	
+	Item(String name, int tx, int ty, int entity) {
+		this.tx = tx;
+		this.ty = ty;
+		this.name = name;
+		this.material = Material.NONE;
+		this.entity = entity;
 	}
 	
 	public int getTX() {
@@ -42,5 +51,9 @@ public enum Item {
 	
 	public Material getMaterial() {
 		return material;
+	}
+	
+	public int getEntityId() {
+		return entity;
 	}
 }

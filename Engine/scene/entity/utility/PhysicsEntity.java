@@ -1,4 +1,4 @@
-package scene.entity;
+package scene.entity.utility;
 
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -13,9 +13,10 @@ import map.Chunk;
 import map.Terrain;
 import map.building.BuildingTile;
 import scene.Scene;
+import scene.entity.Entity;
 import scene.overworld.Overworld;
 
-public class PhysicsEntity extends Entity {
+public abstract class PhysicsEntity extends Entity {
 	
 	private static final float DEFAULT_FRICTION = 3f;
 
@@ -30,14 +31,14 @@ public class PhysicsEntity extends Entity {
 	private static float gravity = 14f;
 	private static float maxGravity = -20f;
 	
-	private AABB aabb;
+	protected AABB aabb;
 
 	public float maxSpeed = 25f, maxAirSpeed = 5f, maxWaterSpeed = 1f;
 	public float friction = DEFAULT_FRICTION;
 	public float airFriction = 0f;
 	
-	float width;
-	float height;
+	public float width;
+	public float height;
 
 	public boolean visible = true;
 	
@@ -324,8 +325,7 @@ public class PhysicsEntity extends Entity {
 	}
 
 	@Override
-	public void tick(Scene scene) {
-		
+	public void update(Scene scene) {
 		aabb.set(position.x, position.y + (height/2), position.z);
 		
 		if (!submerged && !climbing) {
@@ -338,7 +338,7 @@ public class PhysicsEntity extends Entity {
 		}
 
 		position.y += velocity.y * Window.deltaTime;
-
+		
 		// Friction
 		if (!sliding && previouslyGrounded || submerged) {
 			final float speed = velocity.length();
@@ -373,9 +373,13 @@ public class PhysicsEntity extends Entity {
 		}
 
 		previouslyGrounded = grounded;
-		
-		collide(((Overworld) Application.scene).getEnviroment().getTerrain());
 
+		collide(((Overworld) Application.scene).getEnviroment().getTerrain());
+		super.update(scene);
+	}
+	
+	@Override
+	public void tick(Scene scene) {
 		super.tick(scene);
 	}
 	

@@ -10,11 +10,13 @@ import core.Resources;
 import core.res.Model;
 import core.res.Texture;
 import map.Chunk;
+import map.Enviroment;
+import map.Terrain;
 import scene.Scene;
 import util.RunLengthInputStream;
 import util.RunLengthOutputStream;
 
-public class Entity {
+public abstract class Entity {
 	public Vector3f position = new Vector3f(), rotation = new Vector3f(), velocity = new Vector3f();
 	protected Model model;
 	protected Texture diffuse;
@@ -31,6 +33,9 @@ public class Entity {
 	protected boolean deactivated = false; // If deactivated, still exists in-game, but does not update or render
 	protected int persistency = 0;	// 0 = despawn as soon as can, 1 = despawn at range or after period of time saved in chunk data(todo)
 									// 2 = never despawn, 3 = never despawn, stays even if current chunk unloads
+	
+	protected int spawnGroupMin = 1;
+	protected int spawnGroupVariation = 1;
 	
 	public Entity() {
 		this(null, null);
@@ -66,11 +71,14 @@ public class Entity {
 		return diffuse;
 	}
 	
-	public void tick(Scene scene) {
+	public void update(Scene scene) {
 		matrix.identity();
 		matrix.translate(position);
 		matrix.rotate(rotation);
 		matrix.scale(scale);
+	}
+	
+	public void tick(Scene scene) {
 	}
 
 	public void destroy() {
@@ -106,7 +114,17 @@ public class Entity {
 		return persistency;
 	}
 	
-	public void save(RunLengthOutputStream data) {}
-	public void load(RunLengthInputStream data) {}
+	public abstract void save(RunLengthOutputStream data);
+	public abstract void load(RunLengthInputStream data);
+	public boolean spawnConditionsMet(Enviroment enviroment, Terrain terrain, Chunk chunk, float x, float z, int dx, int dy, int dz) {
+		return false;
+	}
 
+	public int getSpawnGroupMin() {
+		return this.spawnGroupMin;
+	}
+	
+	public int getSpawnGroupVariation() {
+		return this.spawnGroupVariation;
+	}
 }

@@ -1,12 +1,20 @@
-package scene.overworld;
+package scene.entity.friendly;
 
 import org.joml.Vector3f;
 
 import core.Resources;
+import dev.Console;
 import gl.Window;
 import gl.particle.Particle;
+import map.Chunk;
+import map.Enviroment;
+import map.Temperature;
+import map.Terrain;
+import procedural.biome.Biome;
 import scene.Scene;
 import scene.entity.Entity;
+import util.RunLengthInputStream;
+import util.RunLengthOutputStream;
 
 public class FireflyEntity extends Entity {
 	
@@ -21,14 +29,21 @@ public class FireflyEntity extends Entity {
 		super("firefly", "entity_sheet1");
 		scale = .25f;
 		blinkTimer = 3 + (float)Math.random() * 7;
+		this.spawnGroupMin = 2;
+		this.spawnGroupVariation = 3;
+	}
+	
+	@Override
+	public void update(Scene scene) {
+		super.update(scene);
 	}
 
 	@Override
 	public void tick(Scene scene) {
 		if (this.getChunk() == null) return;
 		
-		thinkTimer += Window.deltaTime;
-		blinkTimer -= Window.deltaTime;
+		thinkTimer += Window.deltaTime*2;
+		blinkTimer -= Window.deltaTime*2;
 		
 		if (blinkTimer < .3f && scale > 0) {
 			this.scale = -scale;
@@ -66,13 +81,37 @@ public class FireflyEntity extends Entity {
 			
 			thinkTimer = 0f;
 		} else {
-			hoverTimer += Window.deltaTime;
+			hoverTimer += Window.deltaTime*2;
 			position.y = y + hoverY;
 		}
 
 		position.x += velocity.x;
 		position.z += velocity.z;
 		y += velocity.y;
-		super.tick(scene);
+		
+		if (Enviroment.time > Enviroment.NIGHT) {
+			destroy();
+		}
+	}
+	
+	@Override
+	public void save(RunLengthOutputStream data) {
+	}
+
+	@Override
+	public void load(RunLengthInputStream data) {
+	}
+
+	@Override
+	public boolean spawnConditionsMet(Enviroment enviroment, Terrain terrain, Chunk chunk, float x, float z, int dx, int dy, int dz) {
+		//final int tileId = chunk.getTileItems().getTileId(dx, dz);
+		//EnvTile envTile = terrain.getTileById(tileId);
+		//BuildingTile buildingTile = chunk.getBuilding().get(dx, dy+2, dz);
+		Biome biome = enviroment.getBiomeVoronoi().getDataAt(x, z).getMainBiome();
+		
+		if (biome.getTemperature() != Temperature.TEMPERATE)
+			return false;
+		
+		return (Enviroment.time > Enviroment.DUSK && Enviroment.time < Enviroment.NIGHT);
 	}
 }

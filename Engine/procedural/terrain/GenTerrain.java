@@ -45,8 +45,10 @@ public class GenTerrain {
 		boolean needsTileItems = (chunk.editFlags & 0x02) == 0;
 		boolean needsHeights = (chunk.editFlags & 0x04) == 0;
 		
-		Random r = new Random();
-		r.setSeed(chunk.getSeed());
+		Random r1 = new Random();
+		r1.setSeed(chunk.getSeed());
+		Random r2 = new Random();
+		r2.setSeed(-chunk.getSeed());
 		
 		for(int j = 0; j < vertexStripeSize; j++) {
 			for(int i = 0; i < vertexStripeSize; i++) {
@@ -56,7 +58,7 @@ public class GenTerrain {
 				boolean t = (j*2) >= 0;
 				
 				if (needsHeights) {
-					terrainHeight = getTerrainNoise(x+i, z+j, biomeData, r);
+					terrainHeight = getTerrainNoise(x+i, z+j, biomeData, r1);
 					
 					float height = y + terrainHeight;//(float) (Math.floor(y + terrainHeight/.5f)*.5f);
 					
@@ -76,7 +78,7 @@ public class GenTerrain {
 				}
 				
 				if (needsTileItems && i != vertexStripeSize-1 && j != vertexStripeSize-1) {
-					terrainTile = getTerrainTileItems(x+i,z+j, heights[(i*2)+1][(j*2)+1], biomeData, r);
+					terrainTile = getTerrainTileItems(x+i,z+j, heights[(i*2)+1][(j*2)+1], biomeData, r2);
 					tileItems[i][j] = terrainTile;
 				}
 
@@ -84,11 +86,13 @@ public class GenTerrain {
 			}
 		}
 		
-		// Fill in edge data
-		heights[0][0] = heights[1][1];
-		for(int i = 1; i < heights.length; i++) {
-			heights[i][0] = heights[i][1];
-			heights[0][i] = heights[1][i];
+		if (needsHeights) {
+			// Fill in edge data
+			heights[0][0] = heights[1][1];
+			for(int i = 1; i < heights.length; i++) {
+				heights[i][0] = heights[i][1];
+				heights[0][i] = heights[1][i];
+			}
 		}
 		
 		chunk.getMax().y += 10;
@@ -122,21 +126,21 @@ public class GenTerrain {
 	}
 
 	private static int getTerrainTileItems(int x, int z, float currentHeight, BiomeData biomeData, Random r) {
-		Biome biome = biomeData.getInfluencingBiomes()[biomeData.mainBiome];
+		Biome biome = biomeData.getInfluencingBiomes()[biomeData.mainBiomeId];
 		return biome.getTerrainTileItems(x, z, currentHeight, biomeData.getSubseed(), r);
 	}
 	
 	private static float getTerrainWaterTable(int x, int z, float height, BiomeData biomeData) {
-		Biome biome = biomeData.getInfluencingBiomes()[biomeData.mainBiome];
+		Biome biome = biomeData.getInfluencingBiomes()[biomeData.mainBiomeId];
 		return biome.getWaterTable(x, z, height, biomeData.getSubseed());
 	}
 
 	private static float getTerrainNoise(int x, int z, BiomeData biomeData, Random r) {
 		final float roughness = biomeData.getRoughness();
-		Biome biome = biomeData.getInfluencingBiomes()[biomeData.mainBiome];
+		Biome biome = biomeData.getInfluencingBiomes()[biomeData.mainBiomeId];
 		float height = (float) heightNoise.fbm(x, z, octaves, roughness, scale);
 		height *= biomeData.getTerrainFactor();
-		height = (biome.augmentTerrainHeight(x, z, height, biomeData.getSubseed(), r)*biomeData.getInfluence()[biomeData.mainBiome]);
+		height = (biome.augmentTerrainHeight(x, z, height, biomeData.getSubseed(), r)*biomeData.getInfluence()[biomeData.mainBiomeId]);
 		
 		return height;
 	}

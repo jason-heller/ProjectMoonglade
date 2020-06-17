@@ -301,6 +301,31 @@ public enum Input {
 
 		return INPUT.NOT_PRESSED;
 	}
+	
+	public static void endPoll() {
+		int i = 0;
+
+		final int[] keys = INPUT.keys;
+		final int[] states = INPUT.states;
+		// int[] mouse = INPUT.mouse;
+		
+		if (Window.deltaTime > KEY_TIMEOUT) {
+			for (; i < INPUT.MAX_KEYS; i++) {
+				keys[i] = 0;
+				states[i] = INPUT.NOT_PRESSED;
+			}
+		} else {
+
+			for (; i < INPUT.MAX_KEYS; i++) {
+				if (states[i] == INPUT.RELEASED) {
+					keys[i] = 0;
+				}
+				if (states[i] == INPUT.PRESSED) {
+					states[i] = INPUT.HELD_DOWN;
+				}
+			}
+		}
+	}
 
 	/*
 	 * public static boolean isMouseDown(int key) { return INPUT.mouse[key] == 2; }

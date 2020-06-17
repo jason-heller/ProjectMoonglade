@@ -19,7 +19,7 @@ import procedural.terrain.GenTerrain;
 import procedural.terrain.TerrainMeshBuilder;
 import procedural.terrain.WaterMeshBuilder;
 import scene.entity.EntityControl;
-import scene.entity.FallingTreeEntity;
+import scene.entity.utility.FallingTreeEntity;
 import scene.overworld.Overworld;
 import util.ModelBuilder;
 

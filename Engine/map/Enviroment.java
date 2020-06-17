@@ -20,13 +20,19 @@ import util.MathUtil;
 public class Enviroment {
 	public static int chunkArrSize = Terrain.size; // Keep odd
 
-	public static final int DAY_LENGTH = 100000;
+	public static final int CYCLE_LENGTH = (Application.TICKS_PER_SECOND*60)*20;
 	private static final int DAY_START = 0;
-	private static final int DAY_SECTION_LENGTH  = DAY_LENGTH / 4; 
+	private static final int DAY_SECTION_LENGTH  = CYCLE_LENGTH / 4;
+
+	public static final int DAWN = 0; 
+	public static final int DAY = DAY_SECTION_LENGTH; 
+	public static final int DUSK = DAY_SECTION_LENGTH*2; 
+	public static final int NIGHT = DAY_SECTION_LENGTH*3 ; 
 
 	public static int biomeScale = 8*Chunk.CHUNK_SIZE;
 	public static int timeSpeed = 1;
 	public static int time = 0;
+	private static float exactTime = 0f;
 	private static boolean toggleTime = true;
 	
 	private BiomeMap biomeMap;
@@ -48,7 +54,7 @@ public class Enviroment {
 	public Enviroment(Scene scene) {
 		
 		seed = Overworld.worldSeed.hashCode();
-		GenTerrain.init((int)(seed & 0xff), (int)(seed & 0xff00), 11 & 0xff0000, 13 & 0xff000000);
+		GenTerrain.init((int)(seed & 0xff), (int)(seed & 0xff00), (int)(seed & 0xff0000), (int)(seed & 0xff000000));
 		
 		//skyboxRenderer = new SkyboxRenderer();
 		terrainRender = new TerrainRender();
@@ -74,7 +80,7 @@ public class Enviroment {
 		Resources.addSound("swing", "swing.ogg", 2, false);
 		Resources.addSound("collect", "collect03.wav", true);
 		
-		spawner = new EntitySpawnHandler(terrain);
+		spawner = new EntitySpawnHandler(this, terrain);
 	}
 	
 	public void cleanUp() {
@@ -156,9 +162,15 @@ public class Enviroment {
 		terrain.update(camera);
 
 		// DAY/NIGHT time
-		time = (int) ((time + (timeSpeed*(Window.deltaTime*125f))) % DAY_LENGTH);
-		lightDirection.z = (float) Math.cos((DAY_START + time) * MathUtil.TAU / DAY_LENGTH);
-		lightDirection.y = (float) Math.sin((DAY_START + time) * MathUtil.TAU / DAY_LENGTH);
+		if (Math.abs(time - DAY) < 30) {
+			exactTime = ((exactTime + (timeSpeed/5f)) % CYCLE_LENGTH);
+		} else {
+			exactTime = ((exactTime + timeSpeed) % CYCLE_LENGTH);
+		}
+		time = (int)exactTime;
+		
+		lightDirection.z = (float) Math.cos((DAY_START + time) * MathUtil.TAU / CYCLE_LENGTH);
+		lightDirection.y = (float) Math.sin((DAY_START + time) * MathUtil.TAU / CYCLE_LENGTH);
 		
 		lightDirection.mul(weather.getLightingDim());
 
@@ -185,7 +197,7 @@ public class Enviroment {
 	}
 	
 	public void setTime(int t) {
-		time = t;
+		exactTime = t;
 	}
 	
 	public int getTime() {

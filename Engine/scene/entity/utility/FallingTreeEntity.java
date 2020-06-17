@@ -1,14 +1,20 @@
-package scene.entity;
+package scene.entity.utility;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 import core.Resources;
 import gl.Window;
+import map.Chunk;
+import map.Terrain;
 import map.tile.EnvTile;
 import scene.Scene;
+import scene.entity.Entity;
+import scene.entity.EntityControl;
 import scene.overworld.Overworld;
 import scene.overworld.inventory.Item;
+import util.RunLengthInputStream;
+import util.RunLengthOutputStream;
 
 public class FallingTreeEntity extends Entity {
 	private float fallX = 0, fallZ = 0, fallSpeed = 0, animTime = 0;
@@ -36,6 +42,11 @@ public class FallingTreeEntity extends Entity {
 		source.play(Resources.getSound("tree_fall"));
 
 		EntityControl.addEntity(this);
+	}
+	
+	@Override
+	public void update(Scene scene) {
+		super.update(scene);
 	}
 
 	@Override
@@ -85,7 +96,13 @@ public class FallingTreeEntity extends Entity {
 
 		this.rotation.x = fallX;
 		this.rotation.z = fallZ;
+	}
 
-		super.tick(scene);
+	@Override
+	public void save(RunLengthOutputStream data) {
+	}
+
+	@Override
+	public void load(RunLengthInputStream data) {
 	}
 }

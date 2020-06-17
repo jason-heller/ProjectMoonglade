@@ -1,9 +1,11 @@
-package scene.entity;
+package scene.entity.utility;
 
 import org.joml.Vector3f;
 
 import core.Resources;
 import gl.Window;
+import map.Chunk;
+import map.Terrain;
 import scene.Scene;
 import scene.overworld.Overworld;
 import scene.overworld.inventory.Item;
@@ -32,8 +34,12 @@ public class ItemEntity extends PhysicsEntity {
 	}
 	
 	@Override
+	public void update(Scene scene) {
+		super.update(scene);
+	}
+	
+	@Override
 	public void tick(Scene scene) {
-		super.tick(scene);
 		
 		this.rotation.y += Window.deltaTime*15f;
 		

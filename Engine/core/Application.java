@@ -77,6 +77,8 @@ public class Application {
 			
 			Window.update();
 			
+			scene.update();
+			
 			if (nextScene != null) {
 				try {
 					scene = (Scene) nextScene.newInstance();
@@ -99,8 +101,6 @@ public class Application {
 					AudioHandler.update(scene.getCamera());
 					
 				}
-				
-				scene.update();
 				
 				Render.render(scene);
 

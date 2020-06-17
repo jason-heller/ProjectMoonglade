@@ -34,6 +34,7 @@ public class TileData {
 		
 		add("pine", STICKS, Item.PLANKS, 0, DEF_STRENGTH, false, Item.AXE);
 		add("mangrove", STICKS, Item.BUNDLE_OF_STICKS, 0, STRONG, false, Item.AXE);
+		add("palm", STICKS, Item.THATCH, 0, STRONG, false, Item.AXE);
 	}
 	
 	private void add(String res, Material material, Item drop, int dropNum, byte strength, boolean alwaysDrop, Item tool) {

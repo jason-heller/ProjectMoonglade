@@ -41,7 +41,7 @@ public class EntityControl {
 
 	public static void cleanUp() {
 		shader.cleanUp();
-		EntityData.data.cleanUp();
+		EntityData.cleanUp();
 	}
 
 	public static void clearEntities() {
@@ -54,7 +54,7 @@ public class EntityControl {
 		byChunk = new HashMap<Chunk, List<Entity>>();
 		removalQueue = new LinkedList<Entity>();
 		
-		EntityData.data.initModelsAndTextures();
+		EntityData.init();
 	}
 
 	public static void removeEntity(Entity obj) {
@@ -144,7 +144,7 @@ public class EntityControl {
 		GL30.glBindVertexArray(0);
 		shader.stop();
 	}
-
+	
 	public static void update(Terrain terrain) {
 		for(Entity e : removalQueue) {
 			if (entities.containsKey(e.getDiffuse())) {
@@ -160,6 +160,21 @@ public class EntityControl {
 		}
 		removalQueue.clear();
 		
+		
+		
+		for (final Texture texture : entities.keySet()) {
+			final List<Entity> batch = entities.get(texture);
+			for (int j = 0, m = batch.size(); j < m; j++) {
+				final Entity entity = batch.get(j);
+				if (entity.deactivated)
+					continue;
+				
+				entity.update(Application.scene);
+			}
+		}
+	}
+
+	public static void tick(Terrain terrain) {
 		for (final Texture texture : entities.keySet()) {
 			final List<Entity> batch = entities.get(texture);
 			for (int j = 0, m = batch.size(); j < m; j++) {
@@ -296,9 +311,5 @@ public class EntityControl {
 				}
 			}
 		}
-	}
-
-	public static int numEntities() {
-		return entities.size();
 	}
 }

@@ -7,17 +7,17 @@ import map.Temperature;
 import procedural.NoiseUtil;
 import procedural.biome.Biome;
 
-public class DesertBiome extends Biome {
-	public DesertBiome() {
+public class TropicalForestBiome extends Biome {
+	public TropicalForestBiome() {
 		////////////////////////////////////////////////
 		this.name = "Desert";
 		this.temp = Temperature.HOT;
-		this.moisture = Moisture.DRY;
+		this.moisture = Moisture.AVERAGE;
 		this.terrainHeightFactor = 2f;
-		this.terrainRoughness = 8f;
+		this.terrainRoughness = 11f;
 		
-		this.skyColor = BiomeColors.DESERT_SKY;
-		this.groundColor = BiomeColors.SAND_COLOR;
+		this.skyColor = BiomeColors.TROPIC_SKY;
+		this.groundColor = BiomeColors.TROPIC_GRASS_COLOR;
 		////////////////////////////////////////////////
 	}
 
@@ -28,12 +28,22 @@ public class DesertBiome extends Biome {
 	
 	@Override
 	public int getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r) {
-		int tile = r.nextInt(520);
-		switch(tile) { 
-		case 0: return 4;
-		case 1: return 7;
-		case 2: return 8;
+		if (x % 8 == 0 && z % 8 == 0) {
+			double treeDensity = .1f + NoiseUtil.interpNoise2d(x/24f, z/24f, subseed) * .2f;
+			
+			float n = r.nextFloat();
+			if (n < treeDensity) {
+				switch(r.nextInt() & 0x15) {
+				case 0:
+					return 7;
+				case 1:
+					return 4;
+				default:
+					return 11;
+				}
+			}
 		}
+		
 		return 0;
 	}
 	
