@@ -12,8 +12,8 @@ import static map.building.BuildingTile.TOP;
 
 import org.joml.Vector3f;
 
-import core.res.Model;
 import dev.Console;
+import gl.res.Model;
 import map.Chunk;
 import map.Material;
 import util.ModelBuilder;
@@ -33,7 +33,6 @@ public class Building {
 	}
 	
 	private void modifyArr(int x, int y, int z, byte wall, Material material, byte specialFlags) {
-		Console.log(x,y,z,"addM");
 		BuildingTile tile = buildingTiles[x][y-MIN_BUILD_HEIGHT][z];
 		if (material == Material.NONE) {
 			if (tile != null) {
@@ -75,6 +74,15 @@ public class Building {
 		modifyArrOuterwall(_x, _y, _z, wall, material, specialFlags);
 		
 		buildModel();
+	}
+	
+	public void setTile(int x, int y, int z, byte wall, Material[] material, byte specialFlags) {
+		BuildingTile tile = buildingTiles[x][y-MIN_BUILD_HEIGHT][z];
+		if (tile == null) {
+			buildingTiles[x][y-MIN_BUILD_HEIGHT][z] = new BuildingTile(chunk, material, wall, specialFlags);
+		} else {
+			tile.append(wall, material, specialFlags);
+		}
 	}
 	
 	public void setTile(int x, int y, int z, byte wall, Material material, byte specialFlags) {
@@ -222,6 +230,10 @@ public class Building {
 		if (model != null) {
 			model.cleanUp();
 		}
+		
+		model = null;
+		this.buildingTiles = null;
+		this.chunk = null;
 	}
 
 	public Model getModel() {

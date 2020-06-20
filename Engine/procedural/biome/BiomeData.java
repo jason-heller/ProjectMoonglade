@@ -5,10 +5,11 @@ import org.joml.Vector3f;
 public class BiomeData {
 	private Biome[] influencingBiomes;
 	private float[] influence;
+	private float terrainTransitionFactor;
 	public int mainBiomeId;
 	private int subseed;
 	
-	public BiomeData(Biome[] biomeIds, float[] influence, int mainBiomeId, int subseed) {
+	public BiomeData(Biome[] biomeIds, float[] influence, float terrainTransitionFactor, int mainBiomeId, int subseed) {
 		this.influence = influence;
 		this.influencingBiomes = new Biome[biomeIds.length];
 		for(int i = 0; i < influencingBiomes.length; i++) {
@@ -16,6 +17,7 @@ public class BiomeData {
 		}
 		this.mainBiomeId = mainBiomeId;
 		this.subseed = subseed;
+		this.terrainTransitionFactor = terrainTransitionFactor;
 	}
 	
 	public Biome[] getInfluencingBiomes() {
@@ -38,7 +40,7 @@ public class BiomeData {
 		return outColor;
 	}
 
-	public float getRoughness() {
+	/*public float getRoughness() {
 		float outRoughness = 0;
 		for(int i = 0; i < influencingBiomes.length; i++) {
 			if (influencingBiomes[i] == null) continue;
@@ -47,17 +49,18 @@ public class BiomeData {
 		}
 		
 		return outRoughness;
-	}
+	}*/
 	
 	public float getTerrainFactor() {
-		float outTerrainFactor = 0;
+		/*float outTerrainFactor = 0;
 		for(int i = 0; i < influencingBiomes.length; i++) {
 			if (influencingBiomes[i] == null) continue;
 			float terrainFactor = influencingBiomes[i].terrainHeightFactor;
 			outTerrainFactor += (terrainFactor * influence[i]);
 		}
 		
-		return outTerrainFactor;
+		return outTerrainFactor;*/
+		return terrainTransitionFactor;
 	}
 	
 	public int getSubseed() {

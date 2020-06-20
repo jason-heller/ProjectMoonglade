@@ -1,6 +1,6 @@
 package gl.skybox;
 
-import core.res.Model;
+import gl.res.Model;
 
 class CubeGenerator {
 

@@ -8,9 +8,9 @@ import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 
-import core.res.Model;
 import dev.Debug;
 import gl.Camera;
+import gl.res.Model;
 
 public class LineRenderer {
 	private static LineShader shader;

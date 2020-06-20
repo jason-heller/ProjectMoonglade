@@ -2,21 +2,21 @@ package map;
 
 import static map.building.BuildingTile.TILE_SIZE;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import org.joml.Vector3f;
 
-import core.Application;
-import core.Resources;
-import core.res.TileableModel;
-import core.res.Vbo;
 import dev.Console;
 import geom.Plane;
 import gl.Camera;
+import gl.res.TileableModel;
+import gl.res.Vbo;
 import io.ChunkStreamer;
 import map.building.BuildingTile;
 import map.tile.EnvTile;
 import map.tile.TileData;
+import procedural.terrain.GenTerrain;
 import scene.overworld.Overworld;
 import util.MathUtil;
 
@@ -92,12 +92,15 @@ public class Terrain {
 	}
 	
 	public void update(Camera camera) {
+		List<Chunk> structPass = new LinkedList<Chunk>();
+		
 		for (int i = 0; i < size; i++) {
 			for (int j = 0; j < size; j++) {
 				final Chunk chunk = data[i][j];
 				switch(chunk.getState()) {
 				case Chunk.GENERATING:
 					chunk.generate(this, enviroment.getBiomeVoronoi(), i, j);
+					structPass.add(chunk);
 					break;
 				case Chunk.BUILDING:
 					chunk.build(enviroment.getBiomeVoronoi());
@@ -111,6 +114,11 @@ public class Terrain {
 					break;
 				}
 			}
+		}
+		
+		for(Chunk chunk : structPass) {
+			GenTerrain.buildStructures(chunk);
+			chunk.finishGenerationPass(enviroment.getBiomeVoronoi());
 		}
 		
 		streamer.update();

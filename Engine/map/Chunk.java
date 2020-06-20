@@ -3,12 +3,12 @@ package map;
 import org.joml.Vector3f;
 
 import core.Application;
-import core.res.Model;
 import dev.Debug;
 import geom.Frustum;
 import geom.Plane;
 import geom.Polygon;
 import gl.particle.ParticleHandler;
+import gl.res.Model;
 import map.building.Building;
 import map.tile.ChunkTiles;
 import map.tile.EnvTile;
@@ -18,7 +18,7 @@ import procedural.biome.BiomeVoronoi;
 import procedural.terrain.GenTerrain;
 import procedural.terrain.TerrainMeshBuilder;
 import procedural.terrain.WaterMeshBuilder;
-import scene.entity.EntityControl;
+import scene.entity.EntityHandler;
 import scene.entity.utility.FallingTreeEntity;
 import scene.overworld.Overworld;
 import util.ModelBuilder;
@@ -41,7 +41,8 @@ public class Chunk {
 	
 	public int arrX, arrZ;
 
-	private final Vector3f min, max;
+	private Vector3f min;
+	private Vector3f max;
 
 	private byte state = UNLOADED;
 	private Model groundModel, wallModel, waterModel;
@@ -70,7 +71,7 @@ public class Chunk {
 		building = new Building(this);
 		this.terrain = terrain;
 		
-		seed = NoiseUtil.szudzik(x*VERTEX_COUNT, z*VERTEX_COUNT) * Enviroment.seed;
+		seed = NoiseUtil.szudzik(x*VERTEX_COUNT, z*VERTEX_COUNT) * (Enviroment.seed + 2113);
 	}
 	
 	void generate(Terrain terrain, BiomeVoronoi biomeVoronoi, int arrX, int arrZ) {
@@ -81,15 +82,16 @@ public class Chunk {
 		} else {
 			GenTerrain.buildTerrain(this, dataX*wid, 0, dataZ*wid, VERTEX_COUNT, POLYGON_SIZE, biomeVoronoi);
 		}
-		
+		setState(LOADED);
+	}
+	
+	void finishGenerationPass(BiomeVoronoi biomeVoronoi) {
 		Model[] models = TerrainMeshBuilder.buildMeshes(this, biomeVoronoi);
 		items.buildModel();
 		
 		groundModel = models[0];
 		wallModel = models[1];
 		waterModel = WaterMeshBuilder.buildChunkMesh(this);
-		
-		setState(LOADED);
 	}
 	
 	public void setState(byte state) {
@@ -118,8 +120,7 @@ public class Chunk {
 	}
 
 	public void cleanUp() {
-		
-		EntityControl.onChunkUnload(this);
+		EntityHandler.onChunkUnload(this);
 		
 		if (groundModel != null) {
 			groundModel.cleanUp();
@@ -140,6 +141,9 @@ public class Chunk {
 		this.heightmap = null;
 		this.waterTable = null;
 		this.items = null;
+		this.max = null;
+		this.min = null;
+		this.terrain = null;
 	}
 
 	public byte getState() {
@@ -174,6 +178,10 @@ public class Chunk {
 		setHeight(x, z, lowest);
 	}
 	
+	public TileProperties getEnvTileProperties(int relX, int relZ) {
+		return items.getTileProperties(relX, relZ);
+	}
+	
 	public void damageEnvTile(int relX, int relZ, byte damage) {
 		editFlags |= 0x02;
 		int id = items.getTileId(relX, relZ);
@@ -186,7 +194,7 @@ public class Chunk {
 				float dx = ((relX+realX)*Chunk.POLYGON_SIZE)+.5f;
 				float dz = ((relZ+realZ)*Chunk.POLYGON_SIZE)+.5f;
 				float dy = this.getTerrain().getHeightAt(dx, dz);
-				EntityControl.addEntity(new FallingTreeEntity(tile, dx, dy, dz, props.scale));
+				EntityHandler.addEntity(new FallingTreeEntity(tile, dx, dy, dz, props.scale));
 				breakEnvTile(relX, relZ);
 			}
 		}
@@ -252,7 +260,6 @@ public class Chunk {
 		
 		rebuildModel(x, z);
 
-		// TODO: FIX
 		if (x == 0) {
 			terrain.get(arrX-1, arrZ).rebuildWalls();
 		} else if (x == Chunk.VERTEX_COUNT-2) {

@@ -3,11 +3,22 @@ package procedural.biome;
 import java.util.ArrayList;
 import java.util.List;
 
+import dev.Console;
 import map.Enviroment;
 import procedural.NoiseUtil;
+import procedural.biome.types.BlankEditorBiome;
 import procedural.terrain.GenTerrain;
 
 public class BiomeVoronoi {
+	
+	private static final int TRANSITON_SIZE = 8;
+	private static final int TRANSITION_SQR = TRANSITON_SIZE * TRANSITON_SIZE;
+	
+	private static final float TERRAIN_TRANSITION_SIZE = 2.5f;
+	private static final float BIOME_HEIGHT_INTENSITY_FACTOR = 1f;
+	
+	public static BiomeData DEFAULT_DATA = new BiomeData(new Biome[] {new BlankEditorBiome()}, new float[] {1}, 0f, 0, 0);
+
 	private int arrSize;
 	
 	private int x, y;
@@ -91,7 +102,7 @@ public class BiomeVoronoi {
 	}
 	
 	public BiomeData getDataAt(float px, float py) {
-		float closestDist = Float.MAX_VALUE;
+		float closestDist = Float.MAX_VALUE, secondClosestDist = Float.MAX_VALUE;
 		
 		Biome[] influencingBiomes = new Biome[(arrSize*arrSize)];
 		BiomeNode[] fullBiomeData = new BiomeNode[influencingBiomes.length];
@@ -99,6 +110,8 @@ public class BiomeVoronoi {
 		float[] influence = new float[influencingBiomes.length];
 		int infIndex = 0;
 		int mainBiome = 0;
+		//int secondInfluencingBiome = -1;
+		float terrainDistanceFactor = 1f;
 		
 		px /= scale;
 		py /= scale;
@@ -121,21 +134,32 @@ public class BiomeVoronoi {
 				infIndex++;
 			}
 		}
-		influence[mainBiome] = 1f;
 		
+		for(int i = 0; i < influencingBiomes.length; i++) {
+			if (distances[i] != closestDist && distances[i] < secondClosestDist) {
+				secondClosestDist = distances[i];
+			}
+		}
+		
+		influence[mainBiome] = 1f;
+
+		terrainDistanceFactor = (secondClosestDist - distances[mainBiome]) * TERRAIN_TRANSITION_SIZE;
+		terrainDistanceFactor -= .1f * TERRAIN_TRANSITION_SIZE;
+		terrainDistanceFactor = Math.min(Math.max(terrainDistanceFactor, 0f), BIOME_HEIGHT_INTENSITY_FACTOR);
+
 		List<Integer> b = new ArrayList<Integer>();
 		
 		int numIntersectingBiomes = 1;
 		for(int i = 0; i < influencingBiomes.length; i++) {
 			if (i == mainBiome)
 				continue;
-			if (distances[i] - distances[mainBiome] > 64) {
+			if (distances[i] - distances[mainBiome] > TRANSITION_SQR) {
 				influencingBiomes[i] = null;
 				continue;
 			}
 			
 			
-			influence[i] = (distances[i] - distances[mainBiome])*8;
+			influence[i] = (distances[i] - distances[mainBiome]) * TRANSITON_SIZE;
 			influence[i] = Math.max(0f, Math.min(influence[i], 1f));
 			influence[i] = 1f - influence[i];
 			
@@ -157,7 +181,7 @@ public class BiomeVoronoi {
 			influence[mainBiome] -= add;//*= (p3[2]);
 		}
 		
-		return new BiomeData(influencingBiomes, influence, mainBiome, fullBiomeData[mainBiome].subseed);
+		return new BiomeData(influencingBiomes, influence, terrainDistanceFactor, mainBiome, fullBiomeData[mainBiome].subseed);
 	}
 	
 	public void shiftX(int dx) {

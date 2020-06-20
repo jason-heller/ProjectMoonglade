@@ -8,14 +8,15 @@ import java.util.Map;
 import map.Moisture;
 import map.Temperature;
 import procedural.NoiseUtil;
-import procedural.biome.types.DeciduousForestBiome;
-import procedural.biome.types.DesertBiome;
-import procedural.biome.types.FenBiome;
-import procedural.biome.types.GrasslandBiome;
-import procedural.biome.types.MangroveBiome;
-import procedural.biome.types.PineForestBiome;
-import procedural.biome.types.SnowyPineForestBiome;
-import procedural.biome.types.TropicalForestBiome;
+import procedural.biome.types.average.DeciduousForestBiome;
+import procedural.biome.types.average.PineForestBiome;
+import procedural.biome.types.average.SnowyPineForestBiome;
+import procedural.biome.types.average.TropicalForestBiome;
+import procedural.biome.types.dry.DesertBiome;
+import procedural.biome.types.dry.GrasslandBiome;
+import procedural.biome.types.wet.FenBiome;
+import procedural.biome.types.wet.MangroveBiome;
+import procedural.biome.types.wet.TaigaBiome;
 
 public class BiomeMap {
 	private Map<Temperature, Map<Moisture, List<Biome>>> biomeMap = new HashMap<Temperature, Map<Moisture, List<Biome>>>();
@@ -30,6 +31,8 @@ public class BiomeMap {
 		addBiome(new SnowyPineForestBiome());
 		addBiome(new MangroveBiome());
 		addBiome(new TropicalForestBiome());
+		
+		addBiome(new TaigaBiome());
 	}
 	
 	private void addBiome(Biome biome) {

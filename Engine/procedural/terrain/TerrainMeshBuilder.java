@@ -5,9 +5,10 @@ import static map.Chunk.VERTEX_COUNT;
 
 import org.joml.Vector3f;
 
-import core.res.Model;
-import core.res.Vbo;
 import dev.Console;
+import dev.Debug;
+import gl.res.Model;
+import gl.res.Vbo;
 import map.Chunk;
 import map.building.Building;
 import map.building.BuildingTile;
@@ -21,6 +22,8 @@ public class TerrainMeshBuilder {
 	private static ModelBuilder groundBuilder;
 	private static ModelBuilder wallBuilder;
 	
+	private static int groundIndices = 0, wallIndices = 0;
+	
 	private static Vbo[][] buildChunkMesh(Chunk chunk, BiomeVoronoi biomeVoronoi) {
 		final int x = chunk.dataX * (VERTEX_COUNT-1);
 		final int z = chunk.dataZ * (VERTEX_COUNT-1);
@@ -28,6 +31,8 @@ public class TerrainMeshBuilder {
 		
 		groundBuilder = new ModelBuilder();
 		wallBuilder = new ModelBuilder();
+		groundIndices = 0;
+		wallIndices = 0;
 		
 		if ((chunk.editFlags & 0x04) != 0) {
 			for(int j = 0; j < VERTEX_COUNT; j++) {
@@ -44,15 +49,29 @@ public class TerrainMeshBuilder {
 				}
 			}
 		} else {
-			for(int j = 0; j < VERTEX_COUNT; j++) {
-				for(int i = 0; i < VERTEX_COUNT; i++) {
-					BiomeData biomeCellData = biomeVoronoi.getDataAt((x+i)*POLYGON_SIZE, (z+j)*POLYGON_SIZE);
-					if (j != 0 && i != 0) {
-						addTile((x+i-1)*POLYGON_SIZE, (z+j-1)*POLYGON_SIZE,
-								heights[i*2-2][j*2-2], heights[i*2][j*2-2],
-								heights[i*2-2][j*2], heights[i*2][j*2], biomeCellData);
+			if (!Debug.structureMode) {
+				for(int j = 0; j < VERTEX_COUNT; j++) {
+					for(int i = 0; i < VERTEX_COUNT; i++) {
+						BiomeData biomeCellData = biomeVoronoi.getDataAt((x+i)*POLYGON_SIZE, (z+j)*POLYGON_SIZE);
+						if (j != 0 && i != 0) {
+							addTile((x+i-1)*POLYGON_SIZE, (z+j-1)*POLYGON_SIZE,
+									heights[i*2-2][j*2-2], heights[i*2][j*2-2],
+									heights[i*2-2][j*2], heights[i*2][j*2], biomeCellData);
+						}
+						
 					}
-					
+				}
+			} else {
+				for(int j = 0; j < VERTEX_COUNT; j++) {
+					for(int i = 0; i < VERTEX_COUNT; i++) {
+						BiomeData biomeCellData = BiomeVoronoi.DEFAULT_DATA;
+						if (j != 0 && i != 0) {
+							addTile((x+i-1)*POLYGON_SIZE, (z+j-1)*POLYGON_SIZE,
+									heights[i*2-2][j*2-2], heights[i*2][j*2-2],
+									heights[i*2-2][j*2], heights[i*2][j*2], biomeCellData);
+						}
+						
+					}
 				}
 			}
 		}
@@ -88,6 +107,7 @@ public class TerrainMeshBuilder {
 		groundBuilder.addColor(color);
 		
 		groundBuilder.addRelativeIndices(4, 0, 1, 3, 3, 1, 2);
+		groundIndices += 6;
 	}
 
 	public Vbo[][] finish() {
@@ -104,7 +124,7 @@ public class TerrainMeshBuilder {
 		ground.createAttribute(1, vbos[0][1], 2);
 		ground.createAttribute(2, vbos[0][2], 3);
 		ground.createAttribute(3, vbos[0][3], 4);
-		ground.setIndexBuffer(vbos[0][4], (Chunk.VERTEX_COUNT*Chunk.VERTEX_COUNT*6));
+		ground.setIndexBuffer(vbos[0][4], groundIndices);
 		ground.unbind();
 		
 		Model wall = Model.create();
@@ -113,7 +133,7 @@ public class TerrainMeshBuilder {
 		wall.createAttribute(1, vbos[1][1], 2);
 		wall.createAttribute(2, vbos[1][2], 3);
 		wall.createAttribute(3, vbos[1][3], 4);
-		wall.setIndexBuffer(vbos[1][4], (Chunk.VERTEX_COUNT*Chunk.VERTEX_COUNT*6));
+		wall.setIndexBuffer(vbos[1][4], wallIndices);
 		wall.unbind();
 		
 		return new Model[] {ground, wall};
@@ -203,5 +223,6 @@ public class TerrainMeshBuilder {
 		builder.addColor(dirtColor.x*colFactor2, dirtColor.y*colFactor2, dirtColor.z*colFactor2);
 		
 		builder.addRelativeIndices(4, 0, 1, 3, 3, 1, 2);
+		wallIndices += 6;
 	}
 }

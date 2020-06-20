@@ -7,8 +7,8 @@ import java.io.IOException;
 
 import org.joml.Vector3f;
 
-import core.res.TileableModel;
 import dev.Console;
+import gl.res.TileableModel;
 
 public class TileableModelFileLoader {
 	public static byte EXPECTED_VERSION = 2; // Version of .MOD files that this game supports

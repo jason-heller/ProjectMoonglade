@@ -12,20 +12,23 @@ import scene.overworld.inventory.Item;
  */
 public enum Material {
 	NONE("", 0, 0, 0, false, false), 	// Effectively not a material
-	STICKS("sticks", 3, 0, 5, false, false),
+	STICK("stick", 6, 0, 5, false, false, false),
+	STICK_BUNDLE("stick bundle", 3, 0, 6, false, false),
 	PLANKS("planks", 0, 0, 6, false, false),
 	DRYWALL("drywall", 1, 0, 7, false, false),
 	STONE_BRICK("stone bricks", 2, 0, 4, false, false),
 	BRICK("bricks", 4, 0, 8, false, false),
 	WINDOW("window", 0, 13, 9, true, true),
 	THATCH("thatch", 5, 0, 10, false, false),
-	FENCE("fence", 0, 16, 22, true, true);
+	FENCE("fence", 0, 16, 22, true, true),
+	VINE("vine", 0, 16, 23, false, true);
 	
 	private String name;
 	private int tx, ty;
 	private boolean isTiling;
 	private boolean transparent;
 	private int drop;
+	private boolean solid = true;
 	
 	Material(String name, int tx, int ty, int drop, boolean isTiling, boolean transparent) {
 		this.name = name;
@@ -34,6 +37,16 @@ public enum Material {
 		this.drop = drop;
 		this.isTiling = isTiling;
 		this.transparent = transparent;
+	}
+	
+	Material(String name, int tx, int ty, int drop, boolean isTiling, boolean transparent, boolean solid) {
+		this.name = name;
+		this.tx = tx;
+		this.ty = ty;
+		this.drop = drop;
+		this.isTiling = isTiling;
+		this.transparent = transparent;
+		this.solid = solid;
 	}
 	
 	public String getName() {
@@ -70,6 +83,10 @@ public enum Material {
 
 	public boolean isTiling() {
 		return isTiling;
+	}
+	
+	public boolean isSolid() {
+		return solid;
 	}
 
 	

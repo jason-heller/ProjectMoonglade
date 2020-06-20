@@ -5,6 +5,7 @@ import org.lwjgl.opengl.Display;
 
 import audio.AudioHandler;
 import dev.Console;
+import dev.io.ObjToTilConverter;
 import gl.Render;
 import gl.Window;
 import io.Controls;
@@ -13,7 +14,6 @@ import io.Settings;
 import scene.MainMenu;
 import scene.Scene;
 import ui.UI;
-import util.ObjToTilConverter;
 
 public class Application {
 	

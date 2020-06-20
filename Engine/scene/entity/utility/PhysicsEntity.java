@@ -7,6 +7,7 @@ import org.joml.Vector3f;
 import audio.Source;
 import core.Application;
 import core.Resources;
+import dev.Console;
 import geom.AABB;
 import gl.Window;
 import map.Chunk;
@@ -152,32 +153,46 @@ public abstract class PhysicsEntity extends Entity {
 		float px = position.x;
 		float py = position.y;
 		float pz = position.z;
-		AABB collider = new AABB(0, 0, 0, 1f, 1f, 1f);
 		aabb.set(position.x, position.y + (height/2), position.z);
 
-		for (float x = px - width; x <= px + width; x += 0.5f) {
-			for (float y = py - 1f; y <= py + 1f; y += 0.5f) {
-				for (float z = pz - width; z <= pz + width; z += 0.5f) {
+		//for (float x = px - width; x <= px + width; x += 0.5f) {
+			//for (float y = py - 1f; y <= py + 1f; y += 0.5f) {
+				//for (float z = pz - width; z <= pz + width; z += 0.5f) {
 					//Chunk chunk = t.getChunkAt(x, z);
 					//Building building = chunk.getBuilding();
 					
-					float tx = (float)Math.round(x);
-					float ty = (float)Math.round(y);
-					float tz = (float)Math.round(z);
-					BuildingTile tile = t.getTileAt(x, y, z);
+					px = position.x;
+					py = position.y;
+					pz = position.z;
+					float tx = (float)Math.floor(px);
+					float ty = (float)Math.floor(py+.1f);
+					float tz = (float)Math.floor(pz);
 					
+					Chunk chunkPtr = t.getChunkAt(px, pz);
 					
+					BuildingTile tile = chunkPtr.getBuilding().getTileAt(
+							tx - chunkPtr.realX,
+							ty+1.1f,
+							tz - chunkPtr.realZ);
 					
 					if (tile != null) {
 						byte walls = tile.getWalls();
 
-						if ((walls & 4) != 0 && py-1f < ty) {
-							//collider.set(tx+.25f, ty+.75f, tz+.25f);
-							//testBlock(collider);
+						if (tile.isSolid(2) && (walls & 4) != 0 && py > ty+2-height) {
 							velocity.y = 0;
+							position.y = ty+2-height;
 						}
-						
-						if ((walls & 8) != 0 && py <= ty) {
+					}
+					
+					tile = chunkPtr.getBuilding().getTileAt(
+							tx - chunkPtr.realX,
+							ty,
+							tz - chunkPtr.realZ);
+					
+					if (tile != null) {
+						byte walls = tile.getWalls();
+
+						if (tile.isSolid(3) && (walls & 8) != 0 && py <= ty) {
 							//collider.set(tx+.25f, ty-.25f, tz+.25f);
 							//testBlock(collider);
 							velocity.y = 0;
@@ -185,28 +200,36 @@ public abstract class PhysicsEntity extends Entity {
 							position.y = ty;
 						}
 						
-						if ((walls & 1) != 0 && px > tx) {
-							collider.set(tx-.5f, ty+.5f, tz+.5f);
-							testBlock(collider);
+						if (tile.isSolid(0) && (walls & 1) != 0 && px < tx+width) {
+							//collider.set(tx-.5f, ty+.5f, tz+.5f);
+							//testBlock(collider);
+							velocity.x = 0;
+							position.x = tx+width;
 						}
 						
-						if ((walls & 2) != 0 && px < tx + 1f) {
-							collider.set(tx+1.5f, ty+.5f, tz+.5f);
-							testBlock(collider);
+						if (tile.isSolid(1) && (walls & 2) != 0 && px > (tx + 1f) - width) {
+							//collider.set(tx+1.5f, ty+.5f, tz+.5f);
+							//testBlock(collider);
+							velocity.x = 0;
+							position.x = tx+1-width;
 						}
 						
-						if ((walls & 16) != 0 && pz > tz) {
-							collider.set(tx+.5f, ty+.5f, tz-.5f);
-							testBlock(collider);
+						if (tile.isSolid(4) && (walls & 16) != 0 && pz < tz+width) {
+							//collider.set(tx+.5f, ty+.5f, tz-.5f);
+							//testBlock(collider);
+							velocity.z = 0;
+							position.z = tz+width;
 						}
 						
-						if ((walls & 32) != 0 && pz < tz + 1f) {
-							collider.set(tx+.5f, ty+.5f, tz+1.5f);
-							testBlock(collider);
+						if (tile.isSolid(5) && (walls & 32) != 0 && pz > (tz + 1f) - width) {
+							//collider.set(tx+.5f, ty+.5f, tz+1.5f);
+							//testBlock(collider);
+							velocity.z = 0;
+							position.z = tz+1-width;
 						}
-					}
-				}
-			}
+					//}
+				//}
+			//}
 		}
 		
 		//position.set(aabb.getCenter().x, aabb.getCenter().y - (height/2f), aabb.getCenter().z);

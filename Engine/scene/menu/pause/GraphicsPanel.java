@@ -7,7 +7,7 @@ import gl.Camera;
 import gl.Window;
 import gl.particle.ParticleHandler;
 import map.Terrain;
-import scene.entity.EntityControl;
+import scene.entity.EntityHandler;
 import ui.menu.GuiDropdown;
 import ui.menu.GuiPanel;
 import ui.menu.GuiSlider;
@@ -145,7 +145,7 @@ public class GraphicsPanel extends GuiPanel {
 		});
 		add(chunkRender);
 		
-		entityRender = new GuiSlider(x, y, "Entity Range", 3, 17, EntityControl.entityRadius, 2);
+		entityRender = new GuiSlider(x, y, "Entity Range", 3, 17, EntityHandler.entityRadius, 2);
 		entityRender.addListener(new SliderListener() {
 
 			@Override
@@ -154,7 +154,7 @@ public class GraphicsPanel extends GuiPanel {
 
 			@Override
 			public void onRelease(float value) {
-				EntityControl.entityRadius = (int) value / 2;
+				EntityHandler.entityRadius = (int) value / 2;
 
 				/*if (Application.scene instanceof GameScene) {
 					((GameScene) Application.scene).getWorld().resize(Globals.chunkRenderDist);

@@ -7,6 +7,7 @@ import org.joml.Vector3f;
 import map.Moisture;
 import map.Temperature;
 import procedural.biome.types.BiomeColors;
+import procedural.structures.Structure;
 
 public abstract class Biome {
 	
@@ -29,11 +30,17 @@ public abstract class Biome {
 	public float terrainHeightFactor = 1f;
 	public float terrainRoughness = 1;
 	
+	public float rarity = 1f;
+	public int distance = 0;		// How far out should this biome spawn
+	
+	public float soilQuality = 1f;
+	
 	public Vector3f skyColor = BiomeColors.DEFAULT_SKY;
 	public Vector3f groundColor = BiomeColors.DEFAULT_GRASS;
 	
 	public abstract float augmentTerrainHeight(int x, int z, float currentHeight, int subseed, Random r);
-	public abstract int getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r);
+	public abstract int getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r, int[][] tileItems);
+	public abstract Structure getTerrainStructures(int x, int z, float currentHeight, int subseed, Random r);
 	public abstract float getWaterTable(int x, int z, float height, int subseed);
 	
 	public Moisture getMoisture() {

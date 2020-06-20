@@ -8,7 +8,7 @@ import java.util.Map;
 import org.lwjgl.opengl.GL11;
 
 import core.Resources;
-import core.res.Texture;
+import gl.res.Texture;
 import io.FileUtils;
 
 public class Font {

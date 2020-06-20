@@ -7,13 +7,13 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
 import core.Resources;
-import core.res.Model;
-import core.res.Texture;
 import gl.Camera;
 import gl.entity.GenericMeshShader;
+import gl.res.Model;
+import gl.res.Texture;
 import map.Chunk;
 import map.Terrain;
-import scene.entity.EntityControl;
+import scene.entity.EntityHandler;
 import util.ModelBuilder;
 
 public class BuildingRender {
@@ -52,7 +52,7 @@ public class BuildingRender {
 	}
 	
 	public static void render(Camera camera, Vector3f lightDir, Vector3f selectionPoint, byte facing, Terrain terrain) {
-		GenericMeshShader shader = EntityControl.getShader();
+		GenericMeshShader shader = EntityHandler.getShader();
 
 		shader.start();
 		shader.projectionViewMatrix.loadMatrix(camera.getProjectionViewMatrix());

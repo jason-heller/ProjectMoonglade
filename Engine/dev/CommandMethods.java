@@ -9,14 +9,15 @@ import org.joml.Vector3f;
 
 import audio.AudioHandler;
 import core.Application;
+import dev.io.StructureExporter;
 import gl.Camera;
 import gl.Window;
 import map.Enviroment;
 import map.Terrain;
 import map.weather.Weather;
 import scene.entity.Entity;
-import scene.entity.EntityControl;
 import scene.entity.EntityData;
+import scene.entity.EntityHandler;
 import scene.overworld.Overworld;
 import scene.overworld.inventory.Inventory;
 import scene.overworld.inventory.Item;
@@ -43,6 +44,24 @@ public class CommandMethods {
 		}
 	}
 	
+	public static void structure_edit() {
+		Debug.structureMode = !Debug.structureMode;
+		if (Debug.structureMode) {
+			Debug.flatTerrain = true;
+			Camera.cameraSpeed = .075f;
+			Enviroment.timeSpeed = 0;
+		} else {
+			Debug.flatTerrain = false;
+			Enviroment.timeSpeed = 1;
+		}
+	}
+	
+	public static void structure_export(int includeHeights, int includeBuildings, int includeEnvTiles) {
+		if (Application.scene instanceof Overworld && Debug.structureMode) {
+			StructureExporter.export(includeHeights != 0, includeBuildings != 0, includeEnvTiles != 0);
+		}
+	}
+	
 	public static void spawn(String name) {
 		if (Application.scene instanceof Overworld) {
 			Overworld scene = ((Overworld)Application.scene);
@@ -58,7 +77,7 @@ public class CommandMethods {
 			
 			Entity entity = EntityData.instantiate(id);
 			entity.position.set(at);
-			EntityControl.addEntity(entity);
+			EntityHandler.addEntity(entity);
 		}
 	}
 	

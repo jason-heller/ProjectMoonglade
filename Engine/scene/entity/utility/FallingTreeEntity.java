@@ -10,7 +10,7 @@ import map.Terrain;
 import map.tile.EnvTile;
 import scene.Scene;
 import scene.entity.Entity;
-import scene.entity.EntityControl;
+import scene.entity.EntityHandler;
 import scene.overworld.Overworld;
 import scene.overworld.inventory.Item;
 import util.RunLengthInputStream;
@@ -41,7 +41,7 @@ public class FallingTreeEntity extends Entity {
 		
 		source.play(Resources.getSound("tree_fall"));
 
-		EntityControl.addEntity(this);
+		EntityHandler.addEntity(this);
 	}
 	
 	@Override
@@ -55,7 +55,7 @@ public class FallingTreeEntity extends Entity {
 		//Terrain t = ow.getEnviroment().getTerrain();
 		if (Math.abs(fallX) < 90 && Math.abs(fallZ) < 90) {
 			
-			animTime += (Window.deltaTime * .00009f);
+			animTime += (Window.deltaTime * .009f);
 			fallSpeed += animTime*9;
 			if (fallDirZ) {
 				fallZ = 90 * fallSpeed * fallDirPos;
@@ -89,7 +89,7 @@ public class FallingTreeEntity extends Entity {
 				Vector3f dir = new Vector3f(-up.m02, -up.m12, -up.m22);
 				for (float i = 0; i <= bounds.y*scale; i += 0.34f) {
 					Vector3f pos = Vector3f.add(position, Vector3f.mul(dir, i*3f));
-					EntityControl.addEntity(new ItemEntity(pos, drop, 1));
+					EntityHandler.addEntity(new ItemEntity(pos, drop, 1));
 				}
 			}
 		}

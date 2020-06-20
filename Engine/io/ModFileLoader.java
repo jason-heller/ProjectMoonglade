@@ -11,7 +11,7 @@ import org.joml.Vector3f;
 
 import anim.component.Joint;
 import anim.component.Skeleton;
-import core.res.Model;
+import gl.res.Model;
 
 public class ModFileLoader {
 	public static byte EXPECTED_VERSION = 1; // Version of .MOD files that this game supports

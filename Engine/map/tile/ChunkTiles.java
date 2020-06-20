@@ -4,9 +4,9 @@ import java.util.Random;
 
 import org.joml.Vector3f;
 
-import core.res.Model;
-import core.res.TileableModel;
 import geom.AABB;
+import gl.res.Model;
+import gl.res.TileableModel;
 import map.Chunk;
 import map.Terrain;
 import map.TerrainIntersection;
@@ -97,6 +97,9 @@ public class ChunkTiles {
 			model.cleanUp();
 		}
 		tilemap = null;
+		tileProperties = null;
+		chunk = null;
+		model = null;
 	}
 	
 	public TileProperties getTileProperties(int x, int z) {

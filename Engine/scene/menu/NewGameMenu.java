@@ -20,7 +20,7 @@ public class NewGameMenu extends GuiPanel {
 		setLayout(new GuiFlowLayout(GuiFlowLayout.VERTICAL), x, y, 582 / 2, 392);
 
 		worldName = new GuiTextbox(x,y, "World Name", "New World");
-		worldSeed = new GuiTextbox(x,y+26, "World Seed", ""+System.currentTimeMillis());
+		worldSeed = new GuiTextbox(x,y+26, "World Seed", "");
 		add(worldName);
 		add(worldSeed);
 		
@@ -45,8 +45,10 @@ public class NewGameMenu extends GuiPanel {
 				
 				Overworld.worldName = worldName.getValue() + append;
 				Overworld.worldFileName = Overworld.worldName.replaceAll("\\W+", "");
-				Overworld.worldSeed = worldSeed.getValue();
-				new File("saves/"+Overworld.worldFileName).mkdir();
+				// Hire me google
+				Overworld.worldSeed = worldSeed.getValue().equals("") ? System.currentTimeMillis() + ""
+						: worldSeed.getValue();
+				new File("saves/" + Overworld.worldFileName).mkdir();
 				Application.changeScene(Overworld.class);
 			}
 

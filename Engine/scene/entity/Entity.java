@@ -7,8 +7,8 @@ import anim.Animator;
 import audio.AudioHandler;
 import audio.Source;
 import core.Resources;
-import core.res.Model;
-import core.res.Texture;
+import gl.res.Model;
+import gl.res.Texture;
 import map.Chunk;
 import map.Enviroment;
 import map.Terrain;
@@ -82,7 +82,7 @@ public abstract class Entity {
 	}
 
 	public void destroy() {
-		EntityControl.removeEntity(this);
+		EntityHandler.removeEntity(this);
 		AudioHandler.deleteSource(source);
 	}
 

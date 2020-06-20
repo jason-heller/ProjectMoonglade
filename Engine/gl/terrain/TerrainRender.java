@@ -6,11 +6,11 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
 import core.Resources;
-import core.res.Model;
-import core.res.Texture;
 import dev.Debug;
 import gl.Camera;
 import gl.building.BuildingRender;
+import gl.res.Model;
+import gl.res.Texture;
 import map.Chunk;
 import map.Terrain;
 import procedural.terrain.GenTerrain;
@@ -79,7 +79,6 @@ public class TerrainRender {
 				if (model == null) continue;
 				model.bind(0, 1, 2, 3);
 				model.getIndexVbo().bind();
-				// GL11.glDrawElements(GL11.GL_TRIANGLES, model.getIndexCount(), GL11.GL_UNSIGNED_INT, 0);
 				GL11.glDrawElements(GL11.GL_TRIANGLES, model.getIndexCount(), GL11.GL_UNSIGNED_INT, 0);
 				model.unbind(0, 1, 2, 3);
 				

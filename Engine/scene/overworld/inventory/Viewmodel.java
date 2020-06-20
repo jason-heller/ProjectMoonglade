@@ -4,12 +4,12 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 import core.Resources;
-import core.res.Model;
-import core.res.Texture;
 import gl.Camera;
 import gl.Window;
+import gl.res.Model;
+import gl.res.Texture;
 import io.Input;
-import scene.entity.EntityControl;
+import scene.entity.EntityHandler;
 import util.MathUtil;
 
 public class Viewmodel {
@@ -98,7 +98,7 @@ public class Viewmodel {
 
 	public void render(Camera camera, Vector3f lightDir) {
 		if (model != null) {
-			EntityControl.renderViewmodel(camera, lightDir, model, texture, matrix);
+			EntityHandler.renderViewmodel(camera, lightDir, model, texture, matrix);
 		}
 	}
 }

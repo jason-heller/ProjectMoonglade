@@ -2,7 +2,7 @@ package map.tile;
 
 import org.joml.Vector3f;
 
-import core.res.TileableModel;
+import gl.res.TileableModel;
 import map.Material;
 import scene.overworld.inventory.Item;
 

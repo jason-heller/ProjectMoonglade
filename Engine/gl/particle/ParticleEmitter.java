@@ -7,9 +7,9 @@ import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 import core.Resources;
-import core.res.Texture;
 import gl.Camera;
 import gl.Window;
+import gl.res.Texture;
 
 public class ParticleEmitter {
 

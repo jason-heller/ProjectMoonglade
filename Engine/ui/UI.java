@@ -10,8 +10,8 @@ import org.lwjgl.opengl.GL13;
 
 import audio.Source;
 import core.Resources;
-import core.res.Model;
 import gl.Window;
+import gl.res.Model;
 import scene.Scene;
 import ui.render.UIShader;
 

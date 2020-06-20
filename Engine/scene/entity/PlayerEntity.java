@@ -15,13 +15,13 @@ public class PlayerEntity extends PhysicsEntity {
 		super(null, null);
 		position.set(scene.getCamera().getPosition());
 		visible = false;
-		PlayerControl.setEntity(this);
+		PlayerHandler.setEntity(this);
 	}
 
 	@Override
 	public void update(Scene scene) {
 		if (this.getChunk() == null) return;
-		PlayerControl.update(scene);
+		PlayerHandler.update(scene);
 		super.update(scene);
 	}
 	

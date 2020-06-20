@@ -6,9 +6,9 @@ import java.util.List;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL15;
 
-import core.res.Model;
-import core.res.TileableModel;
-import core.res.Vbo;
+import gl.res.Model;
+import gl.res.TileableModel;
+import gl.res.Vbo;
 
 public class ModelBuilder {
 

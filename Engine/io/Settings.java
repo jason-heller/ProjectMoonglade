@@ -15,7 +15,7 @@ import gl.Camera;
 import gl.Window;
 import gl.particle.ParticleHandler;
 import map.Terrain;
-import scene.entity.EntityControl;
+import scene.entity.EntityHandler;
 
 public class Settings {
 	public static File configFile = new File(FileUtils.SETTINGS_FOLDER + "/config.ini");
@@ -49,7 +49,7 @@ public class Settings {
 		Camera.mouseSensitivity = getFloat("mouse_sensitivity");
 		ParticleHandler.maxParticles = getInt("max_particles");
 		Terrain.size = getInt("chunk_dist");
-		EntityControl.entityRadius = getInt("entity_dist");
+		EntityHandler.entityRadius = getInt("entity_dist");
 
 		AudioHandler.changeMasterVolume();
 		// Window.setDisplayMode(Window.getWidth(), Window.getHeight(),
@@ -83,7 +83,7 @@ public class Settings {
 		addEntry("mouse_sensitivity", Camera.mouseSensitivity);
 		addEntry("max_particles", ParticleHandler.maxParticles);
 		addEntry("chunk_dist", Terrain.size);
-		addEntry("entity_dist", EntityControl.entityRadius);
+		addEntry("entity_dist", EntityHandler.entityRadius);
 	}
 
 	public static void init() {

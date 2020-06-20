@@ -15,9 +15,9 @@ import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL31;
 import org.lwjgl.opengl.GL33;
 
-import core.res.Model;
-import core.res.Texture;
 import gl.Camera;
+import gl.res.Model;
+import gl.res.Texture;
 
 class ParticleRenderer {
 	

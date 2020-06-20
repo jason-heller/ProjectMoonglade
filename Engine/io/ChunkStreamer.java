@@ -40,6 +40,13 @@ public class ChunkStreamer extends Thread {
 		
 		if (!saveList.isEmpty()) {
 			save(Application.scene.getCamera().getPosition());
+			
+			for (String filename : saveList.keySet()) {
+				for (Chunk c : saveList.get(filename).values()) {
+					c.cleanUp();
+				}
+			}
+			
 			saveList.clear();
 		}
 	}
@@ -91,11 +98,6 @@ public class ChunkStreamer extends Thread {
 				
 			}*/
 			RegionIO.save(filename, saveList.get(filename));
-			
-			//TEMP
-			for(Chunk c : saveList.get(filename).values()) {
-				c.cleanUp();
-			}
 		}
 		
 	}
@@ -119,6 +121,7 @@ public class ChunkStreamer extends Thread {
 	
 	public synchronized void queueForSaving(Chunk chunk) {
 		if (chunk.editFlags == 0x0) {
+			chunk.cleanUp();
 			return;
 		}
 		

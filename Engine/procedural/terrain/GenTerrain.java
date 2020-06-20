@@ -6,17 +6,22 @@ import map.Chunk;
 import map.Enviroment;
 import map.Moisture;
 import map.Temperature;
+import map.Terrain;
 import procedural.Noise;
 import procedural.SimplexNoise;
 import procedural.biome.Biome;
 import procedural.biome.BiomeData;
 import procedural.biome.BiomeVoronoi;
+import procedural.structures.Structure;
+import procedural.structures.StructureHandler;
 
 public class GenTerrain {
 	private static Noise biomeNoise;
 	private static Noise temperatureNoise;
 	private static Noise aridnessNoise;
 	private static Noise heightNoise;
+	
+	private static StructureHandler structureHandler;
 	
 	public static int heightmapIndexCount;
 	
@@ -27,17 +32,20 @@ public class GenTerrain {
 	
 	public static int seed;
 	
-	public static void init(int s1, int s2, int s3, int s4) {
-		biomeNoise = new SimplexNoise(s1);
-		temperatureNoise = new SimplexNoise(s2);
-		aridnessNoise = new SimplexNoise(-s2 - 1);
-		heightNoise = new SimplexNoise(s3);
-		seed = s4;
+	public static void init(Terrain t, int s1, int s2, int s3, int s4) {
+		biomeNoise = new SimplexNoise(s1 + 30539);
+		temperatureNoise = new SimplexNoise(s2 + 614333);
+		aridnessNoise = new SimplexNoise(s2 + 2677);
+		heightNoise = new SimplexNoise(s3 + 218611);
+		seed = s4 + 20743;
+		
+		structureHandler = new StructureHandler(t);
 	}
 	
 	public static float[][] buildTerrain(Chunk chunk, int x, int y, int z, int vertexStripeSize, int polygonSize, BiomeVoronoi biomeVoronoi) {
 		float terrainHeight;
 		int terrainTile;
+		Structure structure;
 		float[][] heights = chunk.heightmap;
 		int[][] tileItems = chunk.items.getTilemap();
 		float[][] waterTable = chunk.waterTable;
@@ -78,8 +86,13 @@ public class GenTerrain {
 				}
 				
 				if (needsTileItems && i != vertexStripeSize-1 && j != vertexStripeSize-1) {
-					terrainTile = getTerrainTileItems(x+i,z+j, heights[(i*2)+1][(j*2)+1], biomeData, r2);
+					terrainTile = getTerrainTileItems(x+i,z+j, heights[(i*2)+1][(j*2)+1], biomeData, r2, tileItems);
 					tileItems[i][j] = terrainTile;
+					
+					structure = getTerrainStructure(x+i,z+j, heights[(i*2)+1][(j*2)+1], biomeData, r2);
+					if (structure != null) {
+						structureHandler.addStructure(chunk, x+i, 0, z+j, structure);
+					}
 				}
 
 				waterTable[i][j] = getTerrainWaterTable(x+i,z+j, heights[(i*2)+1][(j*2)+1], biomeData);
@@ -99,35 +112,32 @@ public class GenTerrain {
 		return heights;
 	}
 	
+	public static void buildStructures(Chunk chunk) {
+		structureHandler.checkForStructure(chunk);
+	}
+	
 	public static float[][] buildFlatTerrain(Chunk chunk, int x, int y, int z, int vertexStripeSize, int polygonSize, BiomeVoronoi biomeVoronoi) {
-		int terrainTile;
 		float[][] heights = chunk.heightmap;
-		int[][] tileItems = chunk.items.getTilemap();
 		float[][] waterTable = chunk.waterTable;
-		
-		Random r = new Random();
-		r.setSeed(chunk.getSeed());
 		
 		for(int j = 0; j < vertexStripeSize; j++) {
 			for(int i = 0; i < vertexStripeSize; i++) {
-				BiomeData biomeData = biomeVoronoi.getDataAt((x+i)*polygonSize, (z+j)*polygonSize);
-
-				if (i != vertexStripeSize-1 && j != vertexStripeSize-1) {
-					terrainTile = getTerrainTileItems(x+i,z+j, 0, biomeData, r);
-					tileItems[i][j] = terrainTile;
-				}
-
-				waterTable[i][j] = getTerrainWaterTable(x+i,z+j, 0, biomeData);
+				waterTable[i][j] = Float.MIN_VALUE;
 			}
 		}
 	
 		chunk.getMax().y += 10;
 		return heights;
 	}
-
-	private static int getTerrainTileItems(int x, int z, float currentHeight, BiomeData biomeData, Random r) {
+	
+	private static Structure getTerrainStructure(int x, int z, float currentHeight, BiomeData biomeData, Random r) {
 		Biome biome = biomeData.getInfluencingBiomes()[biomeData.mainBiomeId];
-		return biome.getTerrainTileItems(x, z, currentHeight, biomeData.getSubseed(), r);
+		return biome.getTerrainStructures(x, z, currentHeight, biomeData.getSubseed(), r);
+	}
+
+	private static int getTerrainTileItems(int x, int z, float currentHeight, BiomeData biomeData, Random r, int[][] tileItems) {
+		Biome biome = biomeData.getInfluencingBiomes()[biomeData.mainBiomeId];
+		return biome.getTerrainTileItems(x, z, currentHeight, biomeData.getSubseed(), r, tileItems);
 	}
 	
 	private static float getTerrainWaterTable(int x, int z, float height, BiomeData biomeData) {
@@ -136,11 +146,13 @@ public class GenTerrain {
 	}
 
 	private static float getTerrainNoise(int x, int z, BiomeData biomeData, Random r) {
-		final float roughness = biomeData.getRoughness();
 		Biome biome = biomeData.getInfluencingBiomes()[biomeData.mainBiomeId];
-		float height = (float) heightNoise.fbm(x, z, octaves, roughness, scale);
+		final float roughness = biome.terrainRoughness * biomeData.getTerrainFactor();
+		
+		float height = (float) heightNoise.fbm(x, z, octaves, roughness, scale) * (biome.terrainHeightFactor * biomeData.getTerrainFactor());
 		height *= biomeData.getTerrainFactor();
-		height = (biome.augmentTerrainHeight(x, z, height, biomeData.getSubseed(), r)*biomeData.getInfluence()[biomeData.mainBiomeId]);
+		height = (biome.augmentTerrainHeight(x, z, height, biomeData.getSubseed(), r)) * biomeData.getTerrainFactor();
+		//*biomeData.getInfluence()[biomeData.mainBiomeId]
 		
 		return height;
 	}

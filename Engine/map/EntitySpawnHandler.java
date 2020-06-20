@@ -4,7 +4,7 @@ import java.util.Random;
 
 import dev.Console;
 import scene.entity.Entity;
-import scene.entity.EntityControl;
+import scene.entity.EntityHandler;
 import scene.entity.EntityData;
 
 public class EntitySpawnHandler {
@@ -53,18 +53,20 @@ public class EntitySpawnHandler {
 		final int focusZ = chunk.realZ + (Chunk.CHUNK_SIZE/2);
 		
 		final float direction = (spawnRng.nextInt() & 0xB40) / 2f;
-		final float distance = MIN_SPAWN_RAD + (spawnRng.nextInt() & SPAWN_RANGE);
-		
+		float distance = MIN_SPAWN_RAD + (spawnRng.nextInt() & SPAWN_RANGE);
+
+		distance = Math.min(distance, ((Chunk.CHUNK_SIZE * Terrain.size) / 2f) - 1f);
+
 		float x = focusX + (float) (Math.sin(direction)) * distance;
 		float z = focusZ + (float) (Math.cos(direction)) * distance;
+		
+		chunk = terrain.getChunkAt(x, z);
 		
 		int dx = (int)x - chunk.realX;
 		int dz = (int)z - chunk.realZ;
 		
-		chunk = terrain.getChunkAt(x, z);
-		
-		if (chunk == null) return;
-		
+		//if (chunk == null) return;
+		// TODO: Ensure dx, dz are not on edge of chunk
 		float terrainHeight = chunk.heightLookup(dx, dz);
 		
 		// Pick an entity to spawn
@@ -83,7 +85,7 @@ public class EntitySpawnHandler {
 
 	private void spawn(float x, float y, float z, int id, Entity entity) {
 		entity.position.set(x, y, z);
-		EntityControl.addEntity(entity);
+		EntityHandler.addEntity(entity);
 		int numSpawned = 1;
 		int numToSpawn = entity.getSpawnGroupMin() + (spawnRng.nextInt() & entity.getSpawnGroupVariation());
 
@@ -102,7 +104,7 @@ public class EntitySpawnHandler {
 			if (entity.spawnConditionsMet(enviroment, terrain, chunk, nx, nz, dx, (int)ny, dz)) {
 				entity = EntityData.instantiate(id);
 				entity.position.set(nx, ny, nz);
-				EntityControl.addEntity(entity);
+				EntityHandler.addEntity(entity);
 			}
 		}
 	}

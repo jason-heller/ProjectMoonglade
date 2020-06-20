@@ -6,10 +6,10 @@ import java.util.Map;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 
-import core.res.Model;
-import core.res.ModelUtils;
 import gl.Render;
 import gl.Window;
+import gl.res.Model;
+import gl.res.ModelUtils;
 
 public class PostProcessing {
 

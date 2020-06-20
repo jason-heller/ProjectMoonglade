@@ -5,11 +5,11 @@ import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 
 import core.Resources;
-import core.res.Model;
 import dev.Console;
 import gl.Camera;
 import gl.Render;
 import gl.Window;
+import gl.res.Model;
 import map.Chunk;
 import map.Enviroment;
 

@@ -4,11 +4,11 @@ import org.joml.Vector3f;
 import org.lwjgl.opengl.GL15;
 
 import core.Application;
-import core.res.Model;
-import core.res.Vbo;
 import gl.Camera;
 import gl.Window;
 import gl.particle.ParticleHandler;
+import gl.res.Model;
+import gl.res.Vbo;
 import map.Chunk;
 import map.Enviroment;
 import map.building.BuildingTile;
@@ -16,7 +16,7 @@ import procedural.biome.Biome;
 import procedural.biome.BiomeVoronoi;
 import procedural.biome.BiomeVoronoi.BiomeNode;
 import procedural.terrain.GenTerrain;
-import scene.entity.EntityControl;
+import scene.entity.EntityHandler;
 import scene.overworld.Overworld;
 import ui.UI;
 
@@ -24,6 +24,7 @@ public class Debug {
 	public static boolean debugMode = true;
 	public static boolean terrainWireframe = false;
 	public static boolean flatTerrain = false;
+	public static boolean structureMode = false;
 	
 	public static void checkVbo(Vbo vbo) {
 		vbo.bind();

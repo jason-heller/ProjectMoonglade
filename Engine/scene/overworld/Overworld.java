@@ -10,6 +10,7 @@ import core.Resources;
 import dev.Debug;
 import gl.Camera;
 import gl.Window;
+import gl.particle.Particle;
 import gl.particle.ParticleHandler;
 import gl.skybox.Skybox;
 import io.Input;
@@ -22,15 +23,20 @@ import map.TerrainIntersection;
 import map.building.Building;
 import map.building.BuildingTile;
 import map.tile.EnvTile;
+import map.tile.TileProperties;
 import scene.MainMenu;
 import scene.Scene;
 import scene.entity.Entity;
-import scene.entity.EntityControl;
 import scene.entity.EntityData;
+import scene.entity.EntityHandler;
 import scene.entity.PlayerEntity;
 import scene.entity.utility.ItemEntity;
 import scene.overworld.inventory.Inventory;
 import scene.overworld.inventory.Item;
+import scene.overworld.inventory.tool.Axe;
+import scene.overworld.inventory.tool.EditorBoundsTool;
+import scene.overworld.inventory.tool.Spade;
+import scene.overworld.inventory.tool.Trowel;
 
 public class Overworld implements Scene {
 	
@@ -56,7 +62,7 @@ public class Overworld implements Scene {
 	
 	public Overworld() {
 		Enviroment.time = 0;
-		EntityControl.init();
+		EntityHandler.init();
 		
 		camera = new Camera();
 		camera.setControlStyle(Camera.FIRST_PERSON);
@@ -75,7 +81,7 @@ public class Overworld implements Scene {
 		player = new PlayerEntity(this);
 		camera.focusOn(player);
 		player.position.set(camera.getPosition());
-		EntityControl.addEntity(player);
+		EntityHandler.addEntity(player);
 		
 		load();
 	}
@@ -87,7 +93,7 @@ public class Overworld implements Scene {
 	@Override
 	public void update() {
 		camera.move();
-		EntityControl.update(enviroment.getTerrain());
+		EntityHandler.update(enviroment.getTerrain());
 	}
 
 	@Override
@@ -98,7 +104,7 @@ public class Overworld implements Scene {
 		}
 		
 		ui.update();
-		EntityControl.tick(enviroment.getTerrain());
+		EntityHandler.tick(enviroment.getTerrain());
 		
 		if (ui.isPaused()) {
 			return;
@@ -116,20 +122,23 @@ public class Overworld implements Scene {
 		exactSelectionPt = null;
 		boolean facingTile = false;
 		
-		TerrainIntersection terrainIntersection = enviroment.getTerrain().terrainRaycast(camera.getPosition(),
-				camera.getDirectionVector(), PLAYER_REACH);
-		if (terrainIntersection != null) {
-			selectionPt = terrainIntersection.getPoint();
-		}
-			
-		if (inventory.getSelected().getMaterial() != Material.NONE) {
-			Vector3f pt = enviroment.getTerrain().buildingRaycast(this, camera.getPosition(), camera.getDirectionVector(), PLAYER_REACH, cameraFacing, Input.isDown("sneak"));
+		TerrainIntersection terrainIntersection = null;
+		if (!inventory.isOpen()) {
+			terrainIntersection = enviroment.getTerrain().terrainRaycast(camera.getPosition(),
+					camera.getDirectionVector(), PLAYER_REACH);
+			if (terrainIntersection != null) {
+				selectionPt = terrainIntersection.getPoint();
+			}
+				
+			if (inventory.getSelected().getMaterial() != Material.NONE) {
+				Vector3f pt = enviroment.getTerrain().buildingRaycast(this, camera.getPosition(), camera.getDirectionVector(), PLAYER_REACH, cameraFacing, Input.isDown("sneak"));
 
-			
-			if (pt != null && (selectionPt == null || Vector3f.distanceSquared(camera.getPosition(), pt) <
-			Vector3f.distanceSquared(camera.getPosition(), selectionPt))) {
-				selectionPt = pt;
-				facingTile = true;
+				
+				if (pt != null && (selectionPt == null || Vector3f.distanceSquared(camera.getPosition(), pt) <
+				Vector3f.distanceSquared(camera.getPosition(), selectionPt))) {
+					selectionPt = pt;
+					facingTile = true;
+				}
 			}
 		}
 		
@@ -164,91 +173,16 @@ public class Overworld implements Scene {
 			
 			switch(inventory.getSelected()) {
 			case SPADE:
-				if (facingTile || chunkPtr == null) break;
-				
-				if (lmb && withinRange) {
-					
-					EnvTile envTile = terrain.getTileById(terrainIntersection.getTile());
-					if (envTile != null && envTile.isDestroyableBy(Item.SPADE)) {
-						break;
-					}
-					
-					int relX = (int)(selectionPt.x - cx)/Chunk.POLYGON_SIZE;
-					int relZ = (int)(selectionPt.z - cz)/Chunk.POLYGON_SIZE;
-					if (!chunkPtr.breakEnvTile(relX, relZ)) {
-						if (Input.isDown("sneak")) {
-							chunkPtr.smoothHeight(relX, relZ);
-						} else {
-							chunkPtr.addHeight(relX, relZ, -Chunk.DIG_SIZE);
-						}
-					}
-				}
-				
-				if (rmb && withinRange) {
-					int relX = (int)(selectionPt.x - cx)/Chunk.POLYGON_SIZE;
-					int relZ = (int)(selectionPt.z - cz)/Chunk.POLYGON_SIZE;
-					
-					if (Input.isDown("sneak")) {
-						chunkPtr.setHeight(relX, relZ, (int)selectionPt.y/Chunk.POLYGON_SIZE);
-					} else {
-						chunkPtr.addHeight(relX, relZ, Chunk.DIG_SIZE);
-					}
-					
-					chunkPtr.breakEnvTile(relX, relZ);
-				}
+				Spade.interact(chunkPtr, terrain, terrainIntersection, exactSelectionPt, cx, cz, facingTile, withinRange, lmb, rmb);
 				break;
 			case TROWEL:
-				if (facingTile || chunkPtr == null) break;
-				
-				if (lmb && withinRange) {
-					
-					EnvTile envTile = terrain.getTileById(terrainIntersection.getTile());
-					if (envTile != null && envTile.isDestroyableBy(Item.TROWEL)) {
-						break;
-					}
-					
-					int relX = Math.round(selectionPt.x - cx);
-					int relZ = Math.round(selectionPt.z - cz);
-					if (!chunkPtr.breakEnvTile(relX, relZ)) {
-						//chunkPtr.raiseHeight(relX, relZ, -Chunk.DIG_SIZE/2f);
-					}
-				}
-				
-				if (rmb && withinRange) {
-					int relX = (int)(selectionPt.x - cx)/Chunk.POLYGON_SIZE;
-					int relZ = (int)(selectionPt.z - cz)/Chunk.POLYGON_SIZE;
-					
-					/*if (Input.isDown("sneak")) {
-						chunkPtr.setHeight(relX, relZ, (int)selectionPt.y/Chunk.POLYGON_SIZE);
-					} else {
-						chunkPtr.addHeight(relX, relZ, Chunk.DIG_SIZE);
-					}*/
-					
-					chunkPtr.damageEnvTile(relX, relZ, (byte)5);
-				}
+				Trowel.interact(chunkPtr, terrain, terrainIntersection, exactSelectionPt, cx, cz, facingTile, withinRange, lmb, rmb);
 				break;
 			case AXE:
-				if (facingTile || chunkPtr == null) {
-					player.getSource().play(Resources.getSound("swing"));
-					break;
-				}
-				
-				if (lmb) {
-					EnvTile envTile = terrain.getTileById(terrainIntersection.getTile());
-					if (envTile == null || !envTile.isDestroyableBy(Item.AXE)) {
-						player.getSource().play(Resources.getSound("swing"));
-						break;
-					} else {
-						player.getSource().play(Resources.getSound("chop_bark"));
-					}
-					
-					Vector3f splashDir = new Vector3f(camera.getDirectionVector()).negate().normalize();
-					ParticleHandler.addSplash(envTile.getMaterial(), exactSelectionPt, splashDir);
-					//ParticleHandler.addBurst(Resources.getTexture("materials"), 0, 0, selectionPt);
-					
-					int relX = (int)(selectionPt.x - cx)/Chunk.POLYGON_SIZE;
-					int relZ = (int)(selectionPt.z - cz)/Chunk.POLYGON_SIZE;
-					chunkPtr.damageEnvTile(relX, relZ, (byte)15);
+				if (Debug.structureMode) {
+					EditorBoundsTool.interact(selectionPt, lmb, rmb);
+				} else {
+					Axe.interact(chunkPtr, terrain, terrainIntersection, player, camera, selectionPt, exactSelectionPt, cx, cz, facingTile, withinRange, lmb, rmb);
 				}
 				break;
 				
@@ -269,7 +203,7 @@ public class Overworld implements Scene {
 					}
 					
 					if ((tile.getWalls() & facing) != 0) {
-						EntityControl.addEntity(new ItemEntity(exactSelectionPt, tile.getMaterial(facingIndex).getDrop(), 1));
+						EntityHandler.addEntity(new ItemEntity(exactSelectionPt, tile.getMaterial(facingIndex).getDrop(), 1));
 					}
 					
 					chunkPtr.setTile(_x, _y, _z, facing,
@@ -288,6 +222,30 @@ public class Overworld implements Scene {
 						if (tool == Item.AIR) {
 							ParticleHandler.addBurst("materials", 0, 0, exactSelectionPt);
 							chunkPtr.breakEnvTile(relX, relZ);
+						}
+						
+						if (envTile.getMaterial() == Material.PLANKS) {
+							
+							TileProperties props = chunkPtr.getEnvTileProperties(relX, relZ);
+							if (props.damage % 5 != 2) {
+								props.damage--;
+								
+								for (int i = 0; i < 12; i++) {
+									Vector3f pos = new Vector3f(exactSelectionPt);
+									pos.y += envTile.getBounds().y;
+									pos.x += -2f + (Math.random() * 4f);
+									pos.z += -2f + (Math.random() * 4f);
+									
+									
+
+									if (Math.random() < .1) {
+										EntityHandler.addEntity(new ItemEntity(pos, Item.STICKS, 1));
+									} else {
+										new Particle(Resources.getTexture("particles"), pos, new Vector3f(), .005f, 100,
+												(float) Math.random() * 360f, 1f, .5f + (float) (Math.random() * .5f), 3, 3);
+									}
+								}
+							}
 						}
 					}
 				}
@@ -320,7 +278,7 @@ public class Overworld implements Scene {
 							if (selected.getEntityId() != -1) {
 								Entity entity = EntityData.instantiate(selected.getEntityId());
 								entity.position.set(selectionPt);
-								EntityControl.addEntity(entity);
+								EntityHandler.addEntity(entity);
 								
 							}
 							
@@ -328,7 +286,7 @@ public class Overworld implements Scene {
 						}
 						
 						if (tile != null && (tile.getWalls() & facing) != 0) {
-							EntityControl.addEntity(new ItemEntity(exactSelectionPt, tile.getMaterial(facingIndex).getDrop(), 1));
+							EntityHandler.addEntity(new ItemEntity(exactSelectionPt, tile.getMaterial(facingIndex).getDrop(), 1));
 						}
 						
 						byte specialFlags = 0;
@@ -368,7 +326,7 @@ public class Overworld implements Scene {
 	@Override
 	public void cleanUp() {
 		ui.cleanUp();
-		EntityControl.clearEntities();
+		EntityHandler.clearEntities();
 		enviroment.cleanUp();
 		
 		skybox.cleanUp();
@@ -395,7 +353,7 @@ public class Overworld implements Scene {
 		
 		skybox.render(camera, Enviroment.time, enviroment.getClosestBiome().getSkyColor(), weatherColor);
 		enviroment.render(camera, selectionPt, cameraFacing, px, py, pz, pw);
-		EntityControl.render(camera, enviroment.getLightDirection());	
+		EntityHandler.render(camera, enviroment.getLightDirection());	
 	}
 
 	public Enviroment getEnviroment() {

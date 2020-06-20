@@ -10,18 +10,19 @@ public class BiomeColors {
 	
 	// SKY
 	public static final Vector3f DEFAULT_SKY = new Vector3f(1,1,1);
-	static final Vector3f DESERT_SKY = new Vector3f(1, 1, .5f);
-	static final Vector3f TROPIC_SKY = new Vector3f(1, 1, 1.2f);
-	static final Vector3f SNOW_SKY = new Vector3f(.8f, .8f, .8f);
+	public static final Vector3f DESERT_SKY = new Vector3f(1, 1, .5f);
+	public static final Vector3f TROPIC_SKY = new Vector3f(1, 1, 1.2f);
+	public static final Vector3f SNOW_SKY = new Vector3f(.8f, 1f, .8f);
 	
 	// GROUND
 	public static final Vector3f DEFAULT_GRASS = rgb(77, 178, 21);
-	static final Vector3f SAND_COLOR = rgb(239, 156, 112);//rgb(255, 224, 67);
-	static final Vector3f SNOW_COLOR = rgb(237, 254, 255);
-	static final Vector3f DECIDUOUSFOREST_GRASS = rgb(94, 137, 21);
-	static final Vector3f FEN_GRASS = rgb(118, 145, 42);
-	static final Vector3f CONIFERFOREST_GRASS = rgb(56, 168, 118);
-	static final Vector3f TROPIC_GRASS_COLOR = rgb(56, 173, 9);
+	public static final Vector3f SAND_COLOR = rgb(239, 156, 112);//rgb(255, 224, 67);
+	public static final Vector3f SNOW_COLOR = rgb(237, 254, 255);
+	public static final Vector3f DECIDUOUSFOREST_GRASS = rgb(94, 137, 21);
+	public static final Vector3f FEN_GRASS = rgb(118, 145, 42);
+	public static final Vector3f CONIFERFOREST_GRASS = rgb(56, 168, 118);
+	public static final Vector3f TROPIC_GRASS_COLOR = rgb(56, 173, 9);
+	public static final Vector3f TAIGA_GRASS = rgb(151, 170, 97);
 	
 	private static Vector3f rgb(float r, float g, float b) {
 		return new Vector3f(r/255f, g/255f, b/255f);

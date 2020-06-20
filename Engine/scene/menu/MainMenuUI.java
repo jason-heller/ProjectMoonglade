@@ -1,8 +1,9 @@
 package scene.menu;
 
+import core.Application;
 import core.Resources;
-import core.res.Texture;
 import dev.Console;
+import gl.res.Texture;
 import scene.Scene;
 import scene.menu.pause.OptionsPanel;
 import ui.Image;
@@ -27,7 +28,7 @@ public class MainMenuUI {
 	
 	public MainMenuUI(Scene scene) {
 		this.scene = scene;
-		mainMenuBg = Resources.addTexture("main_menu_bg", "gui/menu"+(1+(int)(Math.random()*2.0))+".png");
+		mainMenuBg = Resources.addTexture("main_menu_bg", "gui/menu"+(1+(int)(Math.random()*1.0))+".png");
 
 		mainMenu = new GuiMenu(50, 300, "new game", "load game", "options", "quit");
 		mainMenu.setFocus(true);
@@ -37,7 +38,8 @@ public class MainMenuUI {
 		newGame = new NewGameMenu(null, 300, 300);
 		loadGame = new LoadGameMenu(null, 300, 300);
 
-		title = new Text("Title", 50, 125, .75f, false);
+		title = new Text("Landscape Game", 50, 125, .75f, false);
+		
 		background = new Image(mainMenuBg, 0, 0, (int) UI.width, (int) UI.height);
 
 		UI.addComponent(background);
@@ -79,6 +81,8 @@ public class MainMenuUI {
 	}
 	
 	public void update() {
+		UI.drawString("Dev version "+Application.VERSION, 50, 200);
+		
 		if (scene.isLoading()) {
 			UI.drawString("Loading", 720, 360);
 			return;

@@ -6,10 +6,10 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 
 import core.Resources;
-import core.res.Model;
-import core.res.Texture;
 import gl.Camera;
 import gl.Window;
+import gl.res.Model;
+import gl.res.Texture;
 import map.Enviroment;
 import util.MathUtil;
 

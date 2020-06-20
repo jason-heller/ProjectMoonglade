@@ -8,8 +8,8 @@ import java.util.List;
 
 import org.lwjgl.opengl.GL15;
 
-import core.res.Model;
-import core.res.Vbo;
+import gl.res.Model;
+import gl.res.Vbo;
 import map.Chunk;
 
 public class WaterMeshBuilder {

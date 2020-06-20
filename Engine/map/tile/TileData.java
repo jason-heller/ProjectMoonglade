@@ -3,7 +3,7 @@ package map.tile;
 import java.util.ArrayList;
 import java.util.List;
 
-import core.res.TileableModel;
+import gl.res.TileableModel;
 import io.TileableModelFileLoader;
 import map.Material;
 import scene.overworld.inventory.Item;
@@ -22,19 +22,21 @@ public class TileData {
 		tiles = new ArrayList<EnvTile>();
 		// Load resources
 		tiles.add(null);
-		add("bush", STICKS, Item.BUNDLE_OF_STICKS, 1, DEF_STRENGTH, false, Item.AIR);
-		add("thin_tree", STICKS, Item.PLANKS, 8, DEF_STRENGTH, true, Item.AXE);
-		add("dead_tree", STICKS, Item.PLANKS, 4, DEF_STRENGTH, true, Item.AXE);
-		add("rock", STONE_BRICK, Item.COBBLE, 1, STRONG, true, Item.AIR);
+		add("bush", STICK, Item.STICKS, 1, DEF_STRENGTH, false, Item.AIR);
+		add("thin_tree", PLANKS, Item.PLANKS, 8, DEF_STRENGTH, true, Item.AXE);
+		add("dead_tree", PLANKS, Item.PLANKS, 4, DEF_STRENGTH, true, Item.AXE);
+		add("rock", STONE_BRICK, Item.STONE, 1, STRONG, true, Item.AIR);
 		add("reed", THATCH, Item.THATCH, 12, DEF_STRENGTH, false, Item.SPADE);
-		add("oak", THATCH, Item.PLANKS, 12, DEF_STRENGTH, false, Item.AXE);
+		add("oak", PLANKS, Item.PLANKS, 12, DEF_STRENGTH, false, Item.AXE);
 		
 		add("agave", THATCH, Item.AIR, 0, DEF_STRENGTH, false, Item.AIR);
 		add("cactus", THATCH, Item.AIR, 0, DEF_STRENGTH, false, Item.SPADE);
 		
-		add("pine", STICKS, Item.PLANKS, 0, DEF_STRENGTH, false, Item.AXE);
-		add("mangrove", STICKS, Item.BUNDLE_OF_STICKS, 0, STRONG, false, Item.AXE);
-		add("palm", STICKS, Item.THATCH, 0, STRONG, false, Item.AXE);
+		add("pine", PLANKS, Item.PLANKS, 0, DEF_STRENGTH, false, Item.AXE);
+		add("mangrove", STICK, Item.STICKS, 0, STRONG, false, Item.AXE);
+		add("palm", STICK, Item.THATCH, 0, STRONG, false, Item.AXE);
+		
+		add("vine", THATCH, Item.VINE, 8, WEAK, true, Item.AIR);
 	}
 	
 	private void add(String res, Material material, Item drop, int dropNum, byte strength, boolean alwaysDrop, Item tool) {

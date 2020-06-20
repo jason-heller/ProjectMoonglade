@@ -20,7 +20,7 @@ import map.building.Building;
 import map.building.BuildingTile;
 import map.tile.TileProperties;
 import scene.entity.Entity;
-import scene.entity.EntityControl;
+import scene.entity.EntityHandler;
 import scene.entity.EntityData;
 import scene.overworld.Overworld;
 import util.RunLengthInputStream;
@@ -100,7 +100,7 @@ public class RegionIO {
 			}
 		}
 		
-		List<Entity> chunkEntities = EntityControl.getAllEntitiesInChunk(chunk);
+		List<Entity> chunkEntities = EntityHandler.getAllEntitiesInChunk(chunk);
 		if (chunkEntities != null) {
 			for(Entity entity : chunkEntities) {
 				if (entity.getPersistency() == 1 || entity.getPersistency() == 2) {
@@ -193,7 +193,7 @@ public class RegionIO {
 			e.load(data);
 			
 			if (persistency != 1 || timeDifference < ENTITY_EXPIRATION_TIME) {
-				EntityControl.addEntity(e);
+				EntityHandler.addEntity(e);
 			}
 			
 			

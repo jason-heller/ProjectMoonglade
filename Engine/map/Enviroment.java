@@ -13,7 +13,7 @@ import procedural.biome.BiomeMap;
 import procedural.biome.BiomeVoronoi;
 import procedural.terrain.GenTerrain;
 import scene.Scene;
-import scene.entity.EntityControl;
+import scene.entity.EntityHandler;
 import scene.overworld.Overworld;
 import util.MathUtil;
 
@@ -29,7 +29,7 @@ public class Enviroment {
 	public static final int DUSK = DAY_SECTION_LENGTH*2; 
 	public static final int NIGHT = DAY_SECTION_LENGTH*3 ; 
 
-	public static int biomeScale = 8*Chunk.CHUNK_SIZE;
+	public static int biomeScale = 16*Chunk.CHUNK_SIZE;//8 for smaller
 	public static int timeSpeed = 1;
 	public static int time = 0;
 	private static float exactTime = 0f;
@@ -49,12 +49,12 @@ public class Enviroment {
 	public static Terrain terrain;
 	private EntitySpawnHandler spawner;
 
-	public static long seed;
+	static long seed;
 
 	public Enviroment(Scene scene) {
 		
 		seed = Overworld.worldSeed.hashCode();
-		GenTerrain.init((int)(seed & 0xff), (int)(seed & 0xff00), (int)(seed & 0xff0000), (int)(seed & 0xff000000));
+		GenTerrain.init(terrain, (int)(seed & 0xff), (int)(seed & 0xff00), (int)(seed & 0xff0000), (int)(seed & 0xff000000));
 		
 		//skyboxRenderer = new SkyboxRenderer();
 		terrainRender = new TerrainRender();
@@ -64,7 +64,7 @@ public class Enviroment {
 		Vector3f c = scene.getCamera().getPosition();
 		
 		biomeMap = new BiomeMap();
-		biomeVoronoi = new BiomeVoronoi(this, chunkArrSize, biomeScale, c.x, c.z, (int)seed);
+		biomeVoronoi = new BiomeVoronoi(this, chunkArrSize, biomeScale, c.x, c.z, (int)seed + 94823);
 		
 		weather = new Weather(seed, 3);
 		terrain = new Terrain(this, chunkArrSize);
@@ -115,7 +115,7 @@ public class Enviroment {
 		z = camZ;
 		
 		terrain.populate(x, z);
-		EntityControl.setActivation(terrain);
+		EntityHandler.setActivation(terrain);
 	}
 
 	public void resize(int chunkArrSize) {
@@ -141,7 +141,7 @@ public class Enviroment {
 				reposition(camX, camZ);
 			} else {
 				terrain.shiftX(dx);
-				EntityControl.setActivation(terrain);
+				EntityHandler.setActivation(terrain);
 				//EntityControl.shiftX(terrain, dx);
 			}
 			x = camX;
@@ -153,7 +153,7 @@ public class Enviroment {
 				reposition(camX, camZ);
 			} else {
 				terrain.shiftY(dz);
-				EntityControl.setActivation(terrain);
+				EntityHandler.setActivation(terrain);
 				//EntityControl.shiftY(terrain, dz);
 			}
 			z = camZ;

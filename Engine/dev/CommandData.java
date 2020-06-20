@@ -25,6 +25,8 @@ enum CommandData {
 	give(true, "id/item", "amount"),
 	fps(false),
 	spawn(true, "entityname"),
+	structure_edit(true),
+	structure_export(true, "include_heights", "include_buildings", "include_envtiles"),
 	
 	// Getters
 	version("VERSION", Application.class, GETTER, false),

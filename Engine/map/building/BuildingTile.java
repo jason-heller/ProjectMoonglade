@@ -85,20 +85,26 @@ public class BuildingTile {
 		return FRONT;
 	}
 
-	void append(byte wall, Material mat, byte specialFlags) {
+	void append(byte wall, Material mat, byte flags) {
 		if (mat == Material.NONE) {
 			walls = (byte) (walls - (walls & wall));
 		} else {
 			walls |= wall;
 		}
 		
-		this.flags = specialFlags;
+		this.flags = flags;
 		int val = 1;
 		for(int i = 0; i < 6; i++) {
 			this.materials[i] = (wall & val) != 0 ? mat : this.materials[i];
 			
 			val *= 2;
 		}
+	}
+	
+	void append(byte wall, Material[] mat, byte flags) {
+		this.walls = wall;
+		this.materials = mat;
+		this.flags = flags;
 	}
 	
 	public static byte getFacingByte(Vector3f v) {
@@ -194,5 +200,9 @@ public class BuildingTile {
 	public Item getDrop() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	public boolean isSolid(int facingIndex) {
+		return this.materials[facingIndex].isSolid();
 	}
 }

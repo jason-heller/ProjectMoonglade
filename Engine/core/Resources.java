@@ -12,12 +12,12 @@ import org.lwjgl.opengl.GL11;
 
 import anim.Animation;
 import audio.AudioHandler;
-import core.res.Model;
-import core.res.ModelUtils;
-import core.res.Texture;
-import core.res.TextureUtils;
 import dev.Console;
 import gl.fbo.FrameBuffer;
+import gl.res.Model;
+import gl.res.ModelUtils;
+import gl.res.Texture;
+import gl.res.TextureUtils;
 import gr.zdimensions.jsquish.Squish;
 import io.AniFileLoader;
 import io.ModFileLoader;

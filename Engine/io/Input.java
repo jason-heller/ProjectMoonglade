@@ -30,7 +30,7 @@ public enum Input {
 	public final static int KEY_LMB = 11001;
 	public final static int KEY_RMB = 11002;
 	public final static int KEY_MMB = 11003;
-	public static final long DEFAULT_POLL_RATE = 1000 / 20;
+	public static final long DEFAULT_POLL_RATE = 1000 / 60;
 
 	private static long pollRate = DEFAULT_POLL_RATE; // Poll 20 times per second
 	private static long lastPoll = System.currentTimeMillis();

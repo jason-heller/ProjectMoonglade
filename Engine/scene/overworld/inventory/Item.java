@@ -1,6 +1,5 @@
 package scene.overworld.inventory;
 
-import dev.Console;
 import map.Material;
 
 public enum Item {
@@ -8,14 +7,17 @@ public enum Item {
 	SPADE("spade", 1, 1, Material.NONE),
 	TROWEL("trowel", 2, 1, Material.NONE),
 	AXE("axe", 0, 1, Material.NONE),
-	COBBLE("stone", 1, 0, Material.STONE_BRICK),
-	BUNDLE_OF_STICKS("sticks", 2, 0, Material.STICKS),
+	STONE("stone", 1, 0, Material.STONE_BRICK),
+	STICKS("sticks", 9, 0, Material.STICK),
+	STICK_BUNDLE("sticks", 2, 0, Material.STICK_BUNDLE),
 	PLANKS("planks", 3, 0, Material.PLANKS),
 	DRYWALL("plaster", 4, 0, Material.DRYWALL),
 	BRICKS("brick", 5, 0, Material.BRICK),
 	GLASS("glass", 6, 0, Material.WINDOW),
 	THATCH("thatch", 7, 0, Material.THATCH),
 	FENCE("fence", 8, 0, Material.FENCE),
+	VINE("vine", 8, 0, Material.VINE),
+	
 	DOOR("door", 9, 0, 3);	
 	private final String name;
 	private final int tx, ty;

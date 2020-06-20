@@ -15,8 +15,8 @@ import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
 
 import core.Resources;
-import core.res.Texture;
 import gl.Camera;
+import gl.res.Texture;
 import map.Material;
 
 public class ParticleHandler {
