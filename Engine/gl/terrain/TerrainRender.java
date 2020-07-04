@@ -24,7 +24,8 @@ public class TerrainRender {
 		shader = new TerrainShader();
 		//, boolean nearest, boolean isTransparent,
 		//boolean clampEdges, boolean mipmap, float offset
-		grass = Resources.addTexture("grass", "terrain/ground_grass.png", true, false, false, true, 0f, 8);
+		grass = Resources.addTexture("grass", "terrain/ground_grass.png", true, false, false, true, 0f);
+		//grass = Resources.addTexture("grass", "terrain/ground_grass.png", true, false, false, false, 0f);
 		fauna = Resources.addTexture("fauna", "terrain/fauna.png", true, true, false, true, 0f);
 	}
 
@@ -44,7 +45,7 @@ public class TerrainRender {
 		BuildingRender.render(camera, lightDir, selectionPt, facing, chunks);
 		
 		shader.start();
-		shader.terrainTexture.loadTexUnit(0);
+		shader.diffuse.loadTexUnit(0);
 		GL11.glEnable(GL30.GL_CLIP_DISTANCE0);
 		shader.projectionViewMatrix.loadMatrix(camera.getProjectionViewMatrix());
 		shader.lightDirection.loadVec3(lightDir);

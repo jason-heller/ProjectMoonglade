@@ -2,10 +2,10 @@ package gl.res;
 
 import org.joml.Vector3f;
 
-import dev.Console;
-import map.tile.BuildData;
-import map.tile.BuildingTile;
-import util.ModelBuilderOld;
+import map.Material;
+import procedural.biome.types.BiomeColors;
+import util.Colors;
+import util.ModelBuilder;
 
 public class TileModel {
 	private MeshData[] models;
@@ -40,11 +40,15 @@ public class TileModel {
 		return models[i].indices;
 	}
 
-	public void pass(float dx, float dy, float dz, ModelBuilderOld builder, Vector3f tex, byte walls, byte flags, byte slant) {
+	public void pass(float dx, float dy, float dz, ModelBuilder builder, Vector3f tex, byte walls, byte flags, byte slant, boolean isColorable) {
 		int id  = getId(walls, slant);	
+		
+		
 		
 		MeshData mesh = models[id];
 		float[] vertices = mesh.vertices;
+		final int len = vertices.length / 3;
+		
 		float[] uvs = mesh.uvs;
 		float[] normals = mesh.normals;
 		int[] indices = mesh.indices;
@@ -66,19 +70,43 @@ public class TileModel {
 		int flipDx = flipX ? 1 : 0;
 		int flipDz = flipZ ? 1 : 0;
 		
-		for(int i = 0; i < vertices.length; i+=3) {
-			builder.addVertex(dx + flipDx + vertices[i] * flipSx, dy + vertices[i + 1], dz + flipDz + vertices[i + 2] * flipSz);
-		}
+		Vector3f color = isColorable ? getTileColor(flags) : Colors.WHITE;
 		
-		for(int i = 0; i < uvs.length; i+=2) {
-			builder.addTextureCoord(uvs[i] * (tex.z) + tex.x, uvs[i + 1] * (tex.z) + tex.y);
-		}
-		
-		for(int i = 0; i < normals.length; i+=3) {
-			builder.addNormal(normals[i], normals[i + 1], normals[i + 2]);
+		for(int i = 0; i < len; i++) {
+			int i3 = i*3;
+			int i2 = i*2;
+			
+			builder.addVertex(dx + flipDx + vertices[i3] * flipSx, dy + vertices[i3 + 1], dz + flipDz + vertices[i3 + 2] * flipSz);
+			builder.addUv(uvs[i2] * (tex.z) + tex.x, uvs[i2 + 1] * (tex.z) + tex.y);
+			builder.addNormal(normals[i3], normals[i3 + 1], normals[i3 + 2]);
+			builder.add(3, color.x, color.y, color.z);
 		}
 		
 		builder.addRelativeIndices(vertices.length/3, indices);
+	}
+
+	private Vector3f getTileColor(byte colorId) {
+		
+		switch(colorId) {
+		case 1: return Colors.RED;
+		case 2: return Colors.ORANGE;
+		case 3: return Colors.YELLOW;
+		case 4: return Colors.GREEN;
+		case 5: return Colors.CYAN;
+		case 6: return Colors.BLUE;
+		case 7: return Colors.INDIGO;
+		case 8: return Colors.VIOLET;
+		case 9: return Colors.DK_GREY;
+		case 10: return Colors.SILVER;
+		case 11: return Colors.LT_SILVER;
+		
+		case 12: return BiomeColors.TAIGA_GRASS;
+		
+		case 13: return Colors.OAK;
+		case 14: return Colors.CLAY;
+		
+		default: return Colors.WHITE;
+		}
 	}
 
 	// left, right, top, bottom, front, back, slopeLR, slopeFB, gradLR1, gradLR2, gradFB1, grabFB2

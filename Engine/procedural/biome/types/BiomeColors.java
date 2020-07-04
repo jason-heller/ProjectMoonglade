@@ -2,6 +2,8 @@ package procedural.biome.types;
 
 import org.joml.Vector3f;
 
+import util.MathUtil;
+
 public class BiomeColors {
 	// DIRT
 	public static final Vector3f DIRT_COLOR = rgb(169, 100, 55);
@@ -28,6 +30,6 @@ public class BiomeColors {
 	public static final Vector3f DEFAULT_WATER = rgb(12, 92, 247);
 	
 	private static Vector3f rgb(float r, float g, float b) {
-		return new Vector3f(r/255f, g/255f, b/255f);
+		return MathUtil.rgb(r,g,b);
 	}
 }

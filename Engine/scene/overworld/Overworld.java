@@ -125,7 +125,7 @@ public class Overworld implements Scene {
 				selectionPt = terrainIntersection.getPoint();
 			}
 				
-			if (inventory.getSelected().getMaterial() != Material.NONE) {
+			if (inventory.getSelected() != Item.AIR) {
 				byte snapFlags = (byte) ((wallSetting == 1) ? 1 : 0);
 				snapFlags = (byte) ((slopeSetting == 1) ? 2 : snapFlags);
 				Vector3f pt = enviroment.getTerrain().buildingRaycast(this, camera.getPosition(), camera.getDirectionVector(), PLAYER_REACH, cameraFacing, snapFlags);
@@ -173,6 +173,7 @@ public class Overworld implements Scene {
 				actionDelay = .05f;
 			}
 			
+			//TODO: Refactor this
 			switch(inventory.getSelected()) {
 			case SPADE:
 				Spade.interact(chunkPtr, terrain, terrainIntersection, exactSelectionPt, cx, cz, facingTile, withinRange, lmb, rmb);
@@ -285,6 +286,12 @@ public class Overworld implements Scene {
 								entity.position.set(selectionPt);
 								EntityHandler.addEntity(entity);
 								
+							} else {
+								if (tile != null/* && (tile.getWalls() & facing) != 0*/) {
+									selected.doAction(tile, facingIndex, chunkPtr);
+								} else {
+									selected.doAction(null, facingIndex, chunkPtr);
+								}
 							}
 							
 							return;
@@ -303,7 +310,7 @@ public class Overworld implements Scene {
 							// TODO: This
 						}
 						
-						byte specialFlags = 0;
+						byte specialFlags = mat.getInitialFlags();
 						if (mat.isTiling()) {
 							final float rx = (_x * TILE_SIZE) + cx;
 							final float ry = (_y * TILE_SIZE);

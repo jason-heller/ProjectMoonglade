@@ -13,11 +13,11 @@ public class TerrainShader extends ShaderProgram {
 
 	public UniformMatrix projectionViewMatrix = new UniformMatrix("projectionViewMatrix");
 	public UniformVec3 lightDirection = new UniformVec3("lightDirection");
-	protected UniformSampler terrainTexture = new UniformSampler("terrainTexture");
+	protected UniformSampler diffuse = new UniformSampler("terrainTexture");
 
 	public TerrainShader() {
-		super(VERTEX_SHADER, FRAGMENT_SHADER, "in_vertices", "in_uvs", "in_normals");
-		super.storeAllUniformLocations(projectionViewMatrix, lightDirection, terrainTexture);
+		super(VERTEX_SHADER, FRAGMENT_SHADER, "in_vertices", "in_uvs", "in_normals", "in_colors");
+		super.storeAllUniformLocations(projectionViewMatrix, lightDirection, diffuse);
 		
 		/*grass.loadTexUnit(0);
 		bush.loadTexUnit(1);

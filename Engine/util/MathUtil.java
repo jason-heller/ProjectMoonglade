@@ -316,4 +316,8 @@ public class MathUtil {
 		
 		return originalDistance;
 	}*/
+
+	public static Vector3f rgb(float r, float g, float b) {
+		return new Vector3f(r/255f, g/255f, b/255f);
+	}
 }

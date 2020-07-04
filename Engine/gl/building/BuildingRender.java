@@ -26,12 +26,16 @@ public class BuildingRender {
 	private static Model selectorModel;
 	private static Matrix4f selectorMatrix;
 	
+	private static BuildingShader shader;
+	
 	public static void loadAssets() {
 		if (materialTexture != null) {
 			materialTexture.delete();
 		}
 		materialTexture = Resources.addTexture("materials", "material/materials.png", GL11.GL_TEXTURE_2D, true, 32);
 		materialAtlasSize = 1f / (materialTexture.size / materialTextureScale);
+		
+		shader = new BuildingShader();
 		
 		ModelBuilderOld builder = new ModelBuilderOld();
 		builder.addVertex(0, 0, 0);
@@ -52,16 +56,13 @@ public class BuildingRender {
 	}
 	
 	public static void render(Camera camera, Vector3f lightDir, Vector3f selectionPoint, byte facing, Terrain terrain) {
-		GenericMeshShader shader = EntityHandler.getShader();
-
 		shader.start();
 		shader.projectionViewMatrix.loadMatrix(camera.getProjectionViewMatrix());
 		shader.lightDirection.loadVec3(lightDir);
-		shader.modelMatrix.loadMatrix(ZERO_MATRIX);
+
 		GL20.glEnableVertexAttribArray(0);
 		GL20.glEnableVertexAttribArray(1);
 		GL20.glEnableVertexAttribArray(2);
-		//shader.color.loadVec4(1, 1, 1, 1);
 		materialTexture.bind(0);
 		for (int i = 0; i < Terrain.size; i++) {
 			for (int j = 0; j < Terrain.size; j++) {
@@ -69,18 +70,27 @@ public class BuildingRender {
 				if (chunk.getBuilding() == null) continue;
 				final Model m = chunk.getBuilding().getModel();
 				if (m != null) {
-					m.bind(0, 1, 2);
+					m.bind(0, 1, 2, 3);
 					m.getIndexVbo().bind();
 					GL11.glDrawElements(GL11.GL_TRIANGLES, m.getIndexCount(), GL11.GL_UNSIGNED_INT, 0);
-					m.unbind(0, 1, 2);
+					m.unbind(0, 1, 2, 3);
 				}
 			}
 		}
 		
+		shader.stop();
+		
 		if (selectionPoint != null) {
+			GenericMeshShader meshShader = EntityHandler.getShader();
+			meshShader.start();
+			meshShader.projectionViewMatrix.loadMatrix(camera.getProjectionViewMatrix());
+			meshShader.lightDirection.loadVec3(lightDir);
+
+			GL20.glEnableVertexAttribArray(0);
+			GL20.glEnableVertexAttribArray(1);
+			GL20.glEnableVertexAttribArray(2);
 			selectorMatrix.identity();
 			selectorMatrix.translate(selectionPoint);
-			shader.color.loadVec4(0, 0, 1, 1);
 			
 			if ((facing & 3) != 0) {
 				
@@ -102,9 +112,10 @@ public class BuildingRender {
 				selectorMatrix.translate(0f, 0f, 1f);
 			}
 			
+			meshShader.modelMatrix.loadMatrix(selectorMatrix);
+			
 			GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
 		    GL11.glDisable(GL11.GL_TEXTURE_2D);
-			shader.modelMatrix.loadMatrix(selectorMatrix);
 			final Model m = selectorModel;
 			if (m != null) {
 				m.bind(0, 1, 2);
@@ -114,16 +125,18 @@ public class BuildingRender {
 			}
 			GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
 			GL11.glEnable(GL11.GL_TEXTURE_2D);
-		}
-		GL20.glDisableVertexAttribArray(0);
-		GL20.glDisableVertexAttribArray(1);
-		GL20.glDisableVertexAttribArray(2);
-		GL30.glBindVertexArray(0);
+			GL20.glDisableVertexAttribArray(0);
+			GL20.glDisableVertexAttribArray(1);
+			GL20.glDisableVertexAttribArray(2);
+			GL30.glBindVertexArray(0);
 
-		shader.stop();
+			meshShader.stop();
+		}
+		
 	}
 	
 	public static void cleanUp() {
 		selectorModel.cleanUp();
+		shader.cleanUp();
 	}
 }

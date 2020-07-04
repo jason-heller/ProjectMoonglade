@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.joml.Vector3f;
 
+import util.Colors;
+
 public class Text implements Component {
 	public static final byte ALIGN_LEFT = 0;
 	public static final byte ALIGN_RIGHT = 1;

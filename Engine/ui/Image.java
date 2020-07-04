@@ -6,6 +6,7 @@ import org.joml.Vector4f;
 import core.Resources;
 import gl.Window;
 import gl.res.Texture;
+import util.Colors;
 
 public class Image implements Component {
 

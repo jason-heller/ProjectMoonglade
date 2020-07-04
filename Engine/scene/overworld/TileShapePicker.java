@@ -3,8 +3,8 @@ package scene.overworld;
 import core.Resources;
 import gl.Window;
 import io.Input;
-import ui.Colors;
 import ui.UI;
+import util.Colors;
 
 public class TileShapePicker {
 	private boolean open = false;

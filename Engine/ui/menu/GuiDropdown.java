@@ -1,11 +1,11 @@
 package ui.menu;
 
 import io.Input;
-import ui.Colors;
 import ui.Font;
 import ui.Image;
 import ui.UI;
 import ui.menu.listener.MenuListener;
+import util.Colors;
 
 public class GuiDropdown extends GuiElement {
 	private final int lineHeight;

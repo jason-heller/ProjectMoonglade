@@ -1,10 +1,10 @@
 package ui.menu;
 
 import io.Input;
-import ui.Colors;
 import ui.Font;
 import ui.UI;
 import ui.menu.listener.SliderListener;
+import util.Colors;
 
 public class GuiSlider extends GuiElement {
 	private final int txtWidth;

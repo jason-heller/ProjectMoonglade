@@ -13,54 +13,53 @@ import scene.overworld.inventory.Item;
  *
  */
 public enum Material {
+	
 	NONE("", 0, 0, 0, false, false), 	// Effectively not a material
-	STICK("stick", 6, 0, 5, TileModels.DEFAULT, false, false, false),
-	STICK_BUNDLE("stick bundle", 3, 0, 6, TileModels.FILLED, false, false, true),
-	PLANKS("planks", 0, 0, 6, TileModels.FILLED, false),
-	DRYWALL("drywall", 1, 0, 7, false, false),
+	STICK("stick", 6, 0, 5, TileModels.DEFAULT, false, false, false, false),
+	STICK_BUNDLE("stick bundle", 3, 0, 6, TileModels.FILLED, false, false, true, false),
+	PLANKS("planks", 0, 1, 6, TileModels.FILLED, false, false, true, true, (byte)13),
+	DRYWALL("drywall", 1, 0, 7, TileModels.DEFAULT, false, false, true, true),
 	STONE_BRICK("stone bricks", 2, 0, 4, TileModels.FILLED, false),
 	BRICK("bricks", 4, 0, 8, TileModels.FILLED, false),
 	WINDOW("window", 0, 13, 9, true, true),
-	THATCH("thatch", 5, 0, 10,  TileModels.FILLED, false, false, true),
+	THATCH("thatch", 5, 0, 10,  TileModels.FILLED, false, false, true, false),
 	FENCE("fence", 0, 16, 5, true, true),
-	VINE("vine", 0, 16, 23, false, true);
+	VINE("vine", 0, 16, 23, false, true),
+	SHINGLES("shingles", 1, 1, 23, TileModels.FILLED, false, false, true, true, (byte)14);
 	
 	private String name;
 	private int tx, ty;
-	private boolean isTiling;
+	private boolean tiling;
 	private boolean transparent = false;
+	private boolean colorable = false;
 	private int drop;
 	private boolean solid = true;
+	private byte initialFlags = 0;
 	private TileModels tileModel;
 	
-	Material(String name, int tx, int ty, int drop, boolean isTiling, boolean transparent) {
-		this.name = name;
-		this.tx = tx;
-		this.ty = ty;
-		this.drop = drop;
-		this.isTiling = isTiling;
-		this.transparent = transparent;
-		this.tileModel = TileModels.DEFAULT;
+	Material(String name, int tx, int ty, int drop, boolean tiling, boolean transparent) {
+		this(name, tx, ty, drop, TileModels.DEFAULT, tiling, transparent, false, true);
 	}
 	
-	Material(String name, int tx, int ty, int drop, TileModels tileModel, boolean isTiling) {
-		this.name = name;
-		this.tx = tx;
-		this.ty = ty;
-		this.drop = drop;
-		this.isTiling = isTiling;
-		this.tileModel = tileModel;
+	Material(String name, int tx, int ty, int drop, TileModels tileModel, boolean tiling) {
+		this(name, tx, ty, drop, tileModel, tiling, false, true, false);
 	}
 	
-	Material(String name, int tx, int ty, int drop, TileModels tileModel, boolean isTiling, boolean transparent, boolean solid) {
+	Material(String name, int tx, int ty, int drop, TileModels tileModel, boolean tiling, boolean transparent, boolean solid, boolean colorable) {
+		this(name, tx, ty, drop, tileModel, tiling, transparent, solid, colorable, (byte)0);
+	}
+	
+	Material(String name, int tx, int ty, int drop, TileModels tileModel, boolean tiling, boolean transparent, boolean solid, boolean colorable, byte initialFlags) {
 		this.name = name;
 		this.tx = tx;
 		this.ty = ty;
 		this.drop = drop;
-		this.isTiling = isTiling;
+		this.tiling = tiling;
 		this.transparent = transparent;
 		this.solid = solid;
+		this.colorable = colorable;
 		this.tileModel = tileModel;
+		this.initialFlags = initialFlags;
 	}
 	
 	public String getName() {
@@ -77,6 +76,10 @@ public enum Material {
 	
 	public Item getDrop() {
 		return Item.values()[drop]; // Have to use ids due to weird java jank 
+	}
+	
+	public byte getInitialFlags() {
+		return initialFlags;
 	}
 
 	public static Vector3f getTexCoordData(Vector3f v, Material id, byte flags) {
@@ -96,7 +99,7 @@ public enum Material {
 	}
 
 	public boolean isTiling() {
-		return isTiling;
+		return tiling;
 	}
 	
 	public boolean isSolid() {
@@ -249,6 +252,10 @@ public enum Material {
 
 	public boolean isTransparent() {
 		return transparent;
+	}
+
+	public boolean isColorable() {
+		return colorable;
 	}
 }
  

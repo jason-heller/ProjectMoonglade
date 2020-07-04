@@ -3,9 +3,9 @@ package ui.menu;
 
 import io.Controls;
 import io.Input;
-import ui.Colors;
 import ui.UI;
 import ui.menu.listener.MenuListener;
+import util.Colors;
 
 public class GuiKeybind extends GuiElement {
 	private String value;

@@ -2,11 +2,11 @@ package ui.menu;
 
 import dev.Console;
 import io.Input;
-import ui.Colors;
 import ui.Font;
 import ui.Image;
 import ui.UI;
 import ui.menu.listener.MenuListener;
+import util.Colors;
 
 public class GuiTextbox extends GuiElement {
 	private String value;

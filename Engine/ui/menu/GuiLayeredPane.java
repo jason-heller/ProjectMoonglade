@@ -1,10 +1,10 @@
 package ui.menu;
 
-import ui.Colors;
 import ui.Image;
 import ui.Text;
 import ui.UI;
 import ui.menu.listener.MenuListener;
+import util.Colors;
 
 public class GuiLayeredPane extends GuiPanel {
 	private final Image pane;

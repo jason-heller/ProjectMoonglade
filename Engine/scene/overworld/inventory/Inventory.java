@@ -10,9 +10,9 @@ import io.Input;
 import scene.entity.EntityHandler;
 import scene.overworld.inventory.crafting.ItemStack;
 import scene.overworld.inventory.crafting.RecipeHandler;
-import ui.Colors;
 import ui.Image;
 import ui.UI;
+import util.Colors;
 
 public class Inventory {
 	private Item[] items;

@@ -12,10 +12,10 @@ import core.Application;
 import io.Input;
 import scene.entity.EntityData;
 import scene.overworld.inventory.Item;
-import ui.Colors;
 import ui.Font;
 import ui.Image;
 import ui.UI;
+import util.Colors;
 
 public class Console {
 	private static final int VISIBLE_LINES = 32, MAX_LINES = 200;

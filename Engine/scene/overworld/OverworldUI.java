@@ -8,10 +8,10 @@ import io.Controls;
 import io.Input;
 import scene.entity.PlayerHandler;
 import scene.menu.pause.OptionsPanel;
-import ui.Colors;
 import ui.UI;
 import ui.menu.GuiMenu;
 import ui.menu.listener.MenuListener;
+import util.Colors;
 
 public class OverworldUI {
 

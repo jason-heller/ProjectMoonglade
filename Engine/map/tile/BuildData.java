@@ -1,22 +1,15 @@
 package map.tile;
 
 import static map.Chunk.VERTEX_COUNT;
-import static map.tile.BuildingTile.BACK;
-import static map.tile.BuildingTile.BOTTOM;
-import static map.tile.BuildingTile.FRONT;
-import static map.tile.BuildingTile.LEFT;
-import static map.tile.BuildingTile.RIGHT;
 import static map.tile.BuildingTile.TILE_SIZE;
-import static map.tile.BuildingTile.TOP;
 
 import org.joml.Vector3f;
 
-import dev.Console;
 import gl.res.Model;
 import gl.res.TileModel;
 import map.Chunk;
 import map.Material;
-import util.ModelBuilderOld;
+import util.ModelBuilder;
 
 public class BuildData {
 	private BuildingTile[][][] buildingTiles;
@@ -181,7 +174,8 @@ public class BuildData {
 			model.cleanUp();
 		}
 		
-		ModelBuilderOld builder = new ModelBuilderOld();
+		ModelBuilder builder = new ModelBuilder(true, true, false);
+		builder.addAttrib(3, 3);
 		//Vector3f p1 = new Vector3f(), p2 = new Vector3f(), p3 = new Vector3f(), p4 = new Vector3f();
 		//float s = TILE_SIZE;
 		
@@ -208,9 +202,10 @@ public class BuildData {
 					byte b = 1;
 					for(int f = 0; f < 6; f++ ) {
 						if ((walls & b) != 0) {
-							TileModel model = tile.getMaterial(f).getTileModel();
+							Material mat = tile.getMaterial(f);
+							TileModel model = mat.getTileModel();
 							tex = Material.getTexCoordData(tex, tile.materials[f], flags);
-							model.pass(dx,dy,dz, builder, tex, b, flags, (byte)-1);
+							model.pass(dx,dy,dz, builder, tex, b, flags, (byte)-1, true);
 						}
 						
 						b *= 2;
@@ -223,7 +218,7 @@ public class BuildData {
 							if ((slope & b) != 0) {
 								TileModel model = tile.getMaterial(6).getTileModel();
 								tex = Material.getTexCoordData(tex, tile.materials[6], flags);
-								model.pass(dx,dy,dz, builder, tex, b, flags, (byte)slantFactor);
+								model.pass(dx,dy,dz, builder, tex, b, flags, (byte)slantFactor, tile.materials[6].isColorable());
 							}
 							
 							b *= 2;
@@ -233,7 +228,7 @@ public class BuildData {
 							if ((slope & b) != 0) {
 								TileModel model = tile.getMaterial(6).getTileModel();
 								tex = Material.getTexCoordData(tex, tile.materials[6], flags);
-								model.pass(dx,dy,dz, builder, tex, b, flags, (byte)slantFactor);
+								model.pass(dx,dy,dz, builder, tex, b, flags, (byte)slantFactor, tile.materials[6].isColorable());
 							}
 							
 							b *= 2;

@@ -6,7 +6,7 @@ import map.Moisture;
 import map.Temperature;
 import procedural.biome.Biome;
 import procedural.structures.Structure;
-import ui.Colors;
+import util.Colors;
 
 public class BlankEditorBiome extends Biome {
 	public BlankEditorBiome() {
