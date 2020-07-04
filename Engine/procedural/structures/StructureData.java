@@ -1,7 +1,7 @@
 package procedural.structures;
 
 import map.Material;
-import map.building.BuildingTile;
+import map.tile.BuildingTile;
 
 public class StructureData {
 	
@@ -74,8 +74,8 @@ public class StructureData {
 		this.envTiles[i][j] = id;
 	}
 
-	public void setBuildingTile(int i, int j, int k, int[] mats, int tileWalls, int tileFlags) {
-		this.buildingTiles[i][j][k] = new CompTileData(mats, tileWalls, tileFlags);
+	public void setBuildingTile(int i, int j, int k, int[] mats, int tileWalls, int tileSlope, int tileFlags) {
+		this.buildingTiles[i][j][k] = new CompTileData(mats, tileWalls, tileSlope, tileFlags);
 	}
 }
 
@@ -117,12 +117,13 @@ class CompTileData {
 		return (byte) ((l2 >> 40) & 0xff);
 	}*/
 	
-	private byte walls, flags;
+	private byte walls, slope, flags;
 	private int[] materials;
 	
-	public CompTileData(int[] materials, int walls, int flags) {
+	public CompTileData(int[] materials, int walls, int slope, int flags) {
 		this.materials = materials;
 		this.walls = (byte) walls;
+		this.slope = (byte) slope;
 		this.flags = (byte) flags;
 	}
 	
@@ -145,5 +146,9 @@ class CompTileData {
 	
 	public byte getFlags() {
 		return flags;
+	}
+
+	public byte getSlope() {
+		return slope;
 	}
 }

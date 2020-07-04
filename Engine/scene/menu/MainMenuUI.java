@@ -1,10 +1,13 @@
 package scene.menu;
 
+import audio.AudioHandler;
 import core.Application;
 import core.Resources;
 import dev.Console;
 import gl.res.Texture;
+import io.Input;
 import scene.Scene;
+import scene.entity.PlayerHandler;
 import scene.menu.pause.OptionsPanel;
 import ui.Image;
 import ui.Text;
@@ -81,11 +84,17 @@ public class MainMenuUI {
 	}
 	
 	public void update() {
-		UI.drawString("Dev version "+Application.VERSION, 50, 200);
+		UI.drawString(Application.VERSION+"\nNot representative of final version.", 50, 200);
 		
 		if (scene.isLoading()) {
 			UI.drawString("Loading", 720, 360);
 			return;
+		}
+
+		if (Input.isPressed("pause")) {
+			options.setFocus(false);
+			loadGame.setFocus(false);
+			newGame.setFocus(false);
 		}
 
 		if (newGame.isFocused()) {

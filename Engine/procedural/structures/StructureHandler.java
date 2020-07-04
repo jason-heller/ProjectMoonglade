@@ -10,7 +10,7 @@ import dev.Console;
 import io.StructureLoader;
 import map.Chunk;
 import map.Terrain;
-import map.building.Building;
+import map.tile.BuildData;
 
 public class StructureHandler {
 	//Have a list of all possible structures
@@ -108,8 +108,8 @@ public class StructureHandler {
 		boolean hasBuildingTiles = data.hasBuildingTiles();
 		boolean hasEnvTiles = data.hasEnvTiles();
 		
-		Building building = chunk.getBuilding();
-		int[][] envTiles = chunk.items.getTilemap();
+		BuildData building = chunk.getBuilding();
+		int[][] envTiles = chunk.chunkProps.getTilemap();
 		
 		for(int i = dx; i < width; i++) {
 			for(int j = dz; j < length; j++) {
@@ -124,7 +124,7 @@ public class StructureHandler {
 					for(int k = 0; k < data.getHeight(); k++) {
 						CompTileData tile = data.getBuildingTile(i, k, j);
 						if (tile != null)
-							building.setTile(i, k, j, tile.getWalls(), tile.getMaterials(), tile.getFlags());
+							building.setTile(i, k, j, tile.getWalls(), tile.getSlope(), tile.getMaterials(), tile.getFlags());
 					}
 				}
 				

@@ -14,7 +14,7 @@ import gl.res.Texture;
 import map.Chunk;
 import map.Terrain;
 import scene.entity.EntityHandler;
-import util.ModelBuilder;
+import util.ModelBuilderOld;
 
 public class BuildingRender {
 	private static Texture materialTexture = null;
@@ -33,7 +33,7 @@ public class BuildingRender {
 		materialTexture = Resources.addTexture("materials", "material/materials.png", GL11.GL_TEXTURE_2D, true, 32);
 		materialAtlasSize = 1f / (materialTexture.size / materialTextureScale);
 		
-		ModelBuilder builder = new ModelBuilder();
+		ModelBuilderOld builder = new ModelBuilderOld();
 		builder.addVertex(0, 0, 0);
 		builder.addVertex(1f, 0, 0);
 		builder.addVertex(1f, 1f, 0);

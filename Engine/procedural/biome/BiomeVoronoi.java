@@ -14,10 +14,10 @@ public class BiomeVoronoi {
 	private static final int TRANSITON_SIZE = 8;
 	private static final int TRANSITION_SQR = TRANSITON_SIZE * TRANSITON_SIZE;
 	
-	private static final float TERRAIN_TRANSITION_SIZE = 2.5f;
+	private static final float TERRAIN_TRANSITION_SIZE = 1.5f;
 	private static final float BIOME_HEIGHT_INTENSITY_FACTOR = 1f;
 	
-	public static BiomeData DEFAULT_DATA = new BiomeData(new Biome[] {new BlankEditorBiome()}, new float[] {1}, 0f, 0, 0);
+	public static BiomeData DEFAULT_DATA = new BiomeData(new Biome[] {new BlankEditorBiome()}, new float[] {1}, 0f, 0, 0, 0);
 
 	private int arrSize;
 	
@@ -30,6 +30,7 @@ public class BiomeVoronoi {
 	
 	private BiomeNode closest;
 	private float scale;
+	private final float spread = .5f;
 	
 	public BiomeVoronoi(Enviroment enviroment, int terrainArrSize, float scale, float px, float py, int seed) {
 		this.enviroment = enviroment;
@@ -110,7 +111,7 @@ public class BiomeVoronoi {
 		float[] influence = new float[influencingBiomes.length];
 		int infIndex = 0;
 		int mainBiome = 0;
-		//int secondInfluencingBiome = -1;
+		int secondInfluencingBiome = -1;
 		float terrainDistanceFactor = 1f;
 		
 		px /= scale;
@@ -137,15 +138,25 @@ public class BiomeVoronoi {
 		
 		for(int i = 0; i < influencingBiomes.length; i++) {
 			if (distances[i] != closestDist && distances[i] < secondClosestDist) {
-				secondClosestDist = distances[i];
+				if (influencingBiomes[i] != influencingBiomes[mainBiome]) {
+					secondClosestDist = distances[i];
+					secondInfluencingBiome = i;
+				}
 			}
 		}
 		
 		influence[mainBiome] = 1f;
 
-		terrainDistanceFactor = (secondClosestDist - distances[mainBiome]) * TERRAIN_TRANSITION_SIZE;
-		terrainDistanceFactor -= .1f * TERRAIN_TRANSITION_SIZE;
-		terrainDistanceFactor = Math.min(Math.max(terrainDistanceFactor, 0f), BIOME_HEIGHT_INTENSITY_FACTOR);
+		terrainDistanceFactor = (secondClosestDist - distances[mainBiome]) * influencingBiomes[mainBiome].terrainTransitionScale;
+		terrainDistanceFactor = Math.min(terrainDistanceFactor, BIOME_HEIGHT_INTENSITY_FACTOR);
+		//terrainDistanceFactor = ((float)Math.sqrt(secondClosestDist) - (float)Math.sqrt(distances[mainBiome])) * TERRAIN_TRANSITION_SIZE;
+		terrainDistanceFactor -= influencingBiomes[mainBiome].shoreSize;
+
+		//terrainDistanceFactor += NoiseUtil.interpNoise2d((px*scale), (py*scale)/24f, 420)*.1f;
+		
+		terrainDistanceFactor = Math.max(terrainDistanceFactor, 0f);
+		terrainDistanceFactor = (float) ((-2*Math.pow(terrainDistanceFactor,3)) + 3*(terrainDistanceFactor*terrainDistanceFactor));
+		terrainDistanceFactor = Math.min(terrainDistanceFactor, BIOME_HEIGHT_INTENSITY_FACTOR);
 
 		List<Integer> b = new ArrayList<Integer>();
 		
@@ -181,7 +192,7 @@ public class BiomeVoronoi {
 			influence[mainBiome] -= add;//*= (p3[2]);
 		}
 		
-		return new BiomeData(influencingBiomes, influence, terrainDistanceFactor, mainBiome, fullBiomeData[mainBiome].subseed);
+		return new BiomeData(influencingBiomes, influence, terrainDistanceFactor, mainBiome, secondInfluencingBiome, fullBiomeData[mainBiome].subseed);
 	}
 	
 	public void shiftX(int dx) {
@@ -226,8 +237,9 @@ public class BiomeVoronoi {
 		BiomeNode node = new BiomeNode();
 		node.arrX = nx;
 		node.arrZ = ny;
-		node.x = (nx + NoiseUtil.valueNoise2d(nx, ny, seed))*1;
-		node.z = (ny + NoiseUtil.valueNoise2d(nx, ny, -seed))*1;
+		final float speadHalf = spread  / 2f;
+		node.x = (nx + speadHalf + NoiseUtil.valueNoise2d(nx, ny, seed)*spread);
+		node.z = (ny + speadHalf + NoiseUtil.valueNoise2d(nx, ny, -seed)*spread);
 
 		node.subseed = (int) (NoiseUtil.valueNoise2d(nx, ny, NoiseUtil.szudzik(seed, -seed))*65535);// Wtf am i doin
 				

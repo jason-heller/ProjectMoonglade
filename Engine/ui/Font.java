@@ -41,8 +41,7 @@ public class Font {
 
 	public Font(String pathNoExtension) {
 		load("res/" + pathNoExtension + ".fnt");
-		fontTexture = Resources.addTexture("verdana", pathNoExtension + ".png", GL11.GL_TEXTURE_2D, true, false, 1f,
-				false, false, 0);
+		fontTexture = Resources.addTexture("verdana", pathNoExtension + ".png", false, true, false, false, 1f);
 	}
 
 	public Character getCharacter(int ascii) {

@@ -17,31 +17,25 @@ import procedural.terrain.GenTerrain;
 
 public class TerrainRender {
 	private final TerrainShader shader;
-	private final Texture grass, snow, bush, sand, fauna;
+	private final Texture grass, fauna;
 
 	public TerrainRender() {
 		BuildingRender.loadAssets();
 		shader = new TerrainShader();
 		//, boolean nearest, boolean isTransparent,
 		//boolean clampEdges, boolean mipmap, float offset
-		grass = Resources.addTexture("grass", "terrain/ground_grass.png", true, false, false, true, 0f);
-		bush = Resources.addTexture("bush", "terrain/ground_bush.png", true, false, false, true, 0f);
-		snow = Resources.addTexture("snow", "terrain/ground_snow.png", true, false, false, true, 0f);
-		sand = Resources.addTexture("sand", "terrain/ground_sand.png", true, false, false, true, 0f);
+		grass = Resources.addTexture("grass", "terrain/ground_grass.png", true, false, false, true, 0f, 8);
 		fauna = Resources.addTexture("fauna", "terrain/fauna.png", true, true, false, true, 0f);
 	}
 
 	public void cleanUp() {
 		Resources.removeTextureReference("grass");
-		Resources.removeTextureReference("bush");
-		Resources.removeTextureReference("snow");
-		Resources.removeTextureReference("sand");
 		Resources.removeTextureReference("fauna");
 		shader.cleanUp();
 		BuildingRender.cleanUp();
 	}
 
-	public void render(Camera camera, Vector3f lightDir, Vector3f selectionPt, byte facing, Terrain chunks, float px, float py, float pz, float pw) {
+	public void render(Camera camera, Vector3f lightDir, Vector3f selectionPt, byte facing, Terrain chunks) {
 		if (Debug.terrainWireframe) {
 			GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
 			GL11.glDisable(GL11.GL_TEXTURE_2D);
@@ -50,23 +44,16 @@ public class TerrainRender {
 		BuildingRender.render(camera, lightDir, selectionPt, facing, chunks);
 		
 		shader.start();
-		shader.sampler1.loadTexUnit(0);
-		shader.sampler2.loadTexUnit(1);
-		shader.sampler3.loadTexUnit(2);
-		shader.sampler4.loadTexUnit(3);
+		shader.terrainTexture.loadTexUnit(0);
 		GL11.glEnable(GL30.GL_CLIP_DISTANCE0);
 		shader.projectionViewMatrix.loadMatrix(camera.getProjectionViewMatrix());
 		shader.lightDirection.loadVec3(lightDir);
-		shader.clipPlane.loadVec4(px,py,pz,pw);
 		GL20.glEnableVertexAttribArray(0);
 		GL20.glEnableVertexAttribArray(1);
 		GL20.glEnableVertexAttribArray(2);
 		GL20.glEnableVertexAttribArray(3);
 		
 		grass.bind(0);
-		snow.bind(1);
-		bush.bind(2);
-		sand.bind(3);
 		//Resources.getTexture("default").bind(1);
 		for (final Chunk[] chunkBatch : chunks.get()) {
 			for (final Chunk chunk : chunkBatch) {
@@ -100,7 +87,7 @@ public class TerrainRender {
 					continue;
 				}
 				
-				final Model model = chunk.getTileItems().getModel();
+				final Model model = chunk.getChunkEntities().getModel();
 				if (model != null) {
 					model.bind(0, 1, 2, 3);
 					model.getIndexVbo().bind();

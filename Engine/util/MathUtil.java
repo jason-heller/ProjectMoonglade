@@ -7,6 +7,8 @@ import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
+import dev.Console;
+
 public class MathUtil {
 	public static final double TAU = Math.PI * 2.0;
 
@@ -255,6 +257,7 @@ public class MathUtil {
 		shortest = testAgainst(outputNormal, shortest, boxNormals[2], btmRight, origin, dir);
 		shortest = testAgainst(outputNormal, shortest, boxNormals[1], topLeft, origin, dir);
 		shortest = testAgainst(outputNormal, shortest, boxNormals[0], btmRight, origin, dir);
+		
 		return outputNormal;
 	}
 	

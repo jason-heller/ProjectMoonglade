@@ -6,7 +6,7 @@ import io.Input;
 import map.Chunk;
 import map.Terrain;
 import map.TerrainIntersection;
-import map.tile.EnvTile;
+import map.prop.StaticProp;
 import scene.overworld.inventory.Item;
 
 public class Spade {
@@ -17,14 +17,14 @@ public class Spade {
 
 		if (lmb && withinRange) {
 
-			EnvTile envTile = terrain.getTileById(terrainIntersection.getTile());
+			StaticProp envTile = terrain.getPropById(terrainIntersection.getTile());
 			if (envTile != null && envTile.isDestroyableBy(Item.SPADE)) {
 				return;
 			}
 
 			int relX = (int) (selectionPt.x - cx) / Chunk.POLYGON_SIZE;
 			int relZ = (int) (selectionPt.z - cz) / Chunk.POLYGON_SIZE;
-			if (!chunkPtr.breakEnvTile(relX, relZ)) {
+			if (!chunkPtr.destroyProp(relX, relZ)) {
 				if (Input.isDown("sneak")) {
 					chunkPtr.smoothHeight(relX, relZ);
 				} else {
@@ -43,7 +43,7 @@ public class Spade {
 				chunkPtr.addHeight(relX, relZ, Chunk.DIG_SIZE);
 			}
 
-			chunkPtr.breakEnvTile(relX, relZ);
+			chunkPtr.destroyProp(relX, relZ);
 		}
 	}
 }

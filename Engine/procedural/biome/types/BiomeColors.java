@@ -24,6 +24,9 @@ public class BiomeColors {
 	public static final Vector3f TROPIC_GRASS_COLOR = rgb(56, 173, 9);
 	public static final Vector3f TAIGA_GRASS = rgb(151, 170, 97);
 	
+	// WATER
+	public static final Vector3f DEFAULT_WATER = rgb(12, 92, 247);
+	
 	private static Vector3f rgb(float r, float g, float b) {
 		return new Vector3f(r/255f, g/255f, b/255f);
 	}

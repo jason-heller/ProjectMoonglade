@@ -13,7 +13,7 @@ import gl.res.Texture;
 
 public class ParticleEmitter {
 
-	private static final float MAX_RANGE = 1000;
+	private static final float MAX_RANGE = 24;
 
 	private static Vector3f generateRandomUnitVectorWithinCone(Vector3f coneDirection, float angle) {
 		final float cosAngle = (float) Math.cos(angle);

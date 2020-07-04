@@ -9,7 +9,7 @@ out vec4 out_color;
 
 vec2 Wave(vec2 p) {
 	float pi = 3.1415;
-	float amplitude = 0.003;
+	float amplitude = 0.002;
 	float freq = 40.0 * pi;
 	float y = sin(freq*p.x + (timer*4.0)) * amplitude;
 	float x = cos(freq*p.y + (timer*4.0)) * amplitude;

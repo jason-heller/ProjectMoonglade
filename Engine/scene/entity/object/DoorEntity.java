@@ -39,17 +39,21 @@ public class DoorEntity extends Entity {
 		Overworld ow = (Overworld)scene;
 		PlayerEntity player = ow.getPlayer();
 		
-		aabb.set(position.x, position.y+1, position.z);
+		aabb.setCenter(position.x, position.y+1, position.z);
 		
 		if (player.getAABB().intersects(aabb)) {
 			Vector3f playerPos = player.position;
 			Plane plane = new Plane(position, MathUtil.eulerToVectorDeg(this.rotation.y, 0f));
 
-			swingForce = (float) -plane.signedDistanceTo(playerPos)*4f;
+			swingForce = (float) plane.signedDistanceTo(playerPos)*4f;
 		}
 		
-		if (rotation.y < 0 || rotation.y > 90) {
-			swingForce = -swingForce/2f;
+		if (rotation.y < 0) {
+			swingForce = Math.abs(swingForce/2f);
+		}
+		
+		if (rotation.y > 90) {
+			swingForce = -Math.abs(swingForce/2f);
 		}
 		
 		if (swingForce > 0) {

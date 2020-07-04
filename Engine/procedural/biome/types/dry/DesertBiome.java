@@ -4,10 +4,10 @@ import java.util.Random;
 
 import map.Moisture;
 import map.Temperature;
-import procedural.NoiseUtil;
 import procedural.biome.Biome;
 import procedural.biome.types.BiomeColors;
 import procedural.structures.Structure;
+import procedural.terrain.TerrainMeshBuilder;
 
 public class DesertBiome extends Biome {
 	public DesertBiome() {
@@ -19,6 +19,8 @@ public class DesertBiome extends Biome {
 		this.terrainRoughness = 8f;
 		
 		this.soilQuality = .1f;
+		
+		this.groundTx = 1 * TerrainMeshBuilder.TERRAIN_ATLAS_SIZE;
 		
 		this.skyColor = BiomeColors.DESERT_SKY;
 		this.groundColor = BiomeColors.SAND_COLOR;

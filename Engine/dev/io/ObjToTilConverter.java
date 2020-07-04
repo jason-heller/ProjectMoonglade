@@ -9,18 +9,50 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.joml.Vector3f;
 
 import dev.Console;
 
 public class ObjToTilConverter {
-	public static void tileTileParser(String filename) {
+	final static float PI = (float)Math.PI;
+	final static float PI2 = PI / 2f;
+	
+	private static final int[] idToFacing = new int[] {
+			1, 1, 2, 3, 1, 1,
+			4, 4, 5, 6, 5, 6
+	};
+	
+	// left, right, top, bottom, front, back, slopeLR, slopeFB, gradLR1, gradLR2, gradFB1, grabFB2
+	private static final Vector3f[] rotAxis = new Vector3f[] {
+			Vector3f.Y_AXIS, null, null, null, Vector3f.Y_AXIS, Vector3f.Y_AXIS,
+			null, Vector3f.Y_AXIS, null, null, Vector3f.Y_AXIS, Vector3f.Y_AXIS
+	};
+	
+	private static final float[] rotRad = new float[] {
+		PI, 0f, 0f, 0f, PI2, -PI2,
+		0f, -PI2, 0f, 0f, PI2, PI2
+	};
+	
+	private static final float[] dx = new float[] {
+			1, 0, 0, 0, 1, 0,
+			0, 0, 0, 0, 0, 0,
+		};
+	
+	private static final float[] dz = new float[] {
+			0, 1, 1, 1, 1, 0,
+			1, 0, 0, 0, 0, 0
+		};
+	
+	public static void tileFileParser(String filename) {
 		List<String> lines;
 		String path = "";
-		float posVar = 0, scaleVar = 0;
-		float width = Float.NaN, height = Float.NaN, length = Float.NaN;
+		
+		byte wallFlags = 0, slopeFlags = 0;
+		
 		try {
 			lines = Files.readAllLines(new File(filename).toPath());
 			
@@ -33,31 +65,15 @@ public class ObjToTilConverter {
 					String data = line.replaceAll(" ", "").replaceAll("\t", "").replace("{","");
 					path = data;
 					
-				} else if (line.contains("pos_variance")) {
-					String[] data = line.replaceAll(" ", "").replaceAll("\t", "").split("=");
-					posVar = Float.parseFloat(data[1]);
-					
-				} else if (line.contains("scale_variancle")) {
-					String[] data = line.replaceAll(" ", "").replaceAll("\t", "").split("=");
-					scaleVar = Float.parseFloat(data[1]);
-					
-				} else if (line.contains("width")) {
-					String[] data = line.replaceAll(" ", "").replaceAll("\t", "").split("=");
-					width = Float.parseFloat(data[1]);
-					
-				} else if (line.contains("height")) {
-					String[] data = line.replaceAll(" ", "").replaceAll("\t", "").split("=");
-					height = Float.parseFloat(data[1]);
-					
-				} else if (line.contains("length")) {
-					String[] data = line.replaceAll(" ", "").replaceAll("\t", "").split("=");
-					length = Float.parseFloat(data[1]);
-					
+				} else if (line.contains("wallFlags")) {
+					String[] data = line.split("=");
+					wallFlags = (byte)Float.parseFloat(data[1]);
+				} else if (line.contains("slopeFlags")) {
+					String[] data = line.split("=");
+					slopeFlags = (byte)Float.parseFloat(data[1]);
 				}
 				else if (line.contains("}")) {
-					convert(path, posVar, scaleVar, width, height, length);
-					posVar = 0;
-					scaleVar = 0;
+					convert(path, wallFlags, slopeFlags);
 				}
 			}
 		} catch (IOException e) {
@@ -65,23 +81,18 @@ public class ObjToTilConverter {
 		}
 	}
 	
-	public static void convert(String filename, float posVar, float scaleVar, float width, float height, float length) {
+	public static void convert(String filename, byte wallFlags, byte slopeFlags) {
 		BufferedReader reader;
 		
-		List<Vertex> glData = new ArrayList<Vertex>();
-		List<Integer> glIndexOrder = new ArrayList<Integer>();
+		List<float[]> vertexPool = new ArrayList<float[]>();
+		List<float[]> uvPool = new ArrayList<float[]>();
+		List<float[]> normalPool = new ArrayList<float[]>();
 		
-		List<float[]> positions = new ArrayList<float[]>();
-		List<float[]> uvs = new ArrayList<float[]>();
-		List<float[]> normals = new ArrayList<float[]>();
-		List<int[]> indices = new ArrayList<int[]>();
+		int currentId = -1;
 		
-		float w = width;
-		float h = height;
-		float l = length;
-		
-		Vector3f max = new Vector3f(Float.MIN_VALUE, Float.MIN_VALUE, Float.MIN_VALUE);
-		Vector3f min = new Vector3f(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
+		Map<Integer, List<Vertex>> glData = new HashMap<Integer, List<Vertex>>();
+		Map<Integer, List<int[]>> indices = new HashMap<Integer, List<int[]>>();
+		Map<Integer, List<Integer>> glIndexOrder = new HashMap<Integer, List<Integer>>();
 		
 		File f = new File(filename);
 		
@@ -96,22 +107,19 @@ public class ObjToTilConverter {
 					float[] v = new float[] { Float.parseFloat(data[1]), Float.parseFloat(data[2]),
 							Float.parseFloat(data[3]) };
 					
-					positions.add(v);
-					
-					max.x = Math.max(max.x, v[0]);
-					max.y = Math.max(max.y, v[1]);
-					max.z = Math.max(max.z, v[2]);
-					
-					min.x = Math.min(min.x, v[0]);
-					min.y = Math.min(min.y, v[1]);
-					min.z = Math.min(min.z, v[2]);
+					vertexPool.add(v);
 				} else if (data[0].equals("vt")) {
 					
-					uvs.add(new float[] { Float.parseFloat(data[1]), Float.parseFloat(data[2]) });
+					uvPool.add(new float[] { Float.parseFloat(data[1]), Float.parseFloat(data[2]) });
 				} else if (data[0].equals("vn")) {
 					
-					normals.add(new float[] { Float.parseFloat(data[1]), Float.parseFloat(data[2]),
+					normalPool.add(new float[] { Float.parseFloat(data[1]), Float.parseFloat(data[2]),
 							Float.parseFloat(data[3]) });
+				} else if (data[0].equals("usemtl")) {
+					currentId = getId(data[1]);
+					glData.put(currentId, new ArrayList<Vertex>());
+					indices.put(currentId, new ArrayList<int[]>());
+					glIndexOrder.put(currentId, new ArrayList<Integer>());
 				} else if (data[0].equals("f")) {
 					
 					for (byte i = 1; i < 4; i++) {
@@ -121,8 +129,8 @@ public class ObjToTilConverter {
 
 						int indexPosition = -1;
 
-						for (int j = 0; j < indices.size(); j++) {
-							final int[] check = indices.get(j);
+						for (int j = 0; j < indices.get(currentId).size(); j++) {
+							final int[] check = indices.get(currentId).get(j);
 							if (check[0] == index[0] && check[1] == index[1] && check[2] == index[2]) {
 								indexPosition = j;
 								break;
@@ -132,16 +140,15 @@ public class ObjToTilConverter {
 						if (indexPosition == -1) {
 
 							Vertex v = new Vertex();
-							v.position = positions.get(index[0]);
-							v.uv = uvs.get(index[1]);
-							v.normal = normals.get(index[2]);
-							
-							glData.add(v);
-							glIndexOrder.add(indices.size());
+							v.position = vertexPool.get(index[0]);
+							v.uv = uvPool.get(index[1]);
+							v.normal = normalPool.get(index[2]);
+							glData.get(currentId).add(v);
+							glIndexOrder.get(currentId).add(indices.get(currentId).size());
 
-							indices.add(index);
+							indices.get(currentId).add(index);
 						} else {
-							glIndexOrder.add(indexPosition);
+							glIndexOrder.get(currentId).add(indexPosition);
 						}
 					}
 				}
@@ -152,49 +159,47 @@ public class ObjToTilConverter {
 			reader.close();
 			DataOutputStream dos = null;
 			
-			if (Float.isNaN(width))
-				w = (max.x - min.x) / 2f;
-			if (Float.isNaN(height))
-				h = (max.y - min.y) / 2f;
-			if (Float.isNaN(length))
-				l = (max.z - min.z) / 2f;
-			
 			try {
 				dos = new DataOutputStream(new FileOutputStream(f.getPath().substring(0, f.getPath().indexOf(".")) + ".til"));
 				Console.log(f.getPath().substring(0, f.getPath().indexOf(".")) + ".til");
-				dos.writeChars("TIL");
-				dos.writeByte(2);
+				dos.writeChars("TIL");// Static Entity File
+				dos.writeByte(1);
 				
-				dos.writeFloat(w);
-				dos.writeFloat(h);
-				dos.writeFloat(l);
+				dos.writeByte(wallFlags);
+				dos.writeByte(slopeFlags);
 				
-				dos.writeFloat(posVar);
-				dos.writeFloat(scaleVar);
-				
-				dos.writeByte(1);// \ TODO: allow multiple models to be fit into this
-				dos.writeByte(0);// / (model #1 id, 0=always render)
-				
-				int vertexCount = glData.size();
-				dos.writeShort(vertexCount);
-				int indexCount = glIndexOrder.size();
-				dos.writeShort(indexCount);
-				
-				for(Vertex vertex : glData) {
-					dos.writeFloat(vertex.position[0]);
-					dos.writeFloat(vertex.position[1]);
-					dos.writeFloat(vertex.position[2]);
+				for(int i = 0; i < 12; i++) {
+					int id = idToFacing[i];
+					Vector3f axis = rotAxis[i];
+					float thetaRadians = rotRad[i];
+					if (glData.get(id).isEmpty()) continue;
 					
-					dos.writeFloat(vertex.uv[0]);
-					dos.writeFloat(1f-vertex.uv[1]);
+					dos.writeShort(glData.get(id).size());
+					dos.writeShort(glIndexOrder.get(id).size());
 					
-					dos.writeFloat(vertex.normal[0]);
-					dos.writeFloat(vertex.normal[1]);
-					dos.writeFloat(vertex.normal[2]);
-				}
+					for(Vertex vertex : glData.get(id)) {
+						Vector3f vert = new Vector3f(vertex.position[0], vertex.position[1], vertex.position[2]);
+						Vector3f norm = new Vector3f(vertex.normal[0], vertex.normal[1], vertex.normal[2]);
+						if (axis != null) {
+							vert = Vector3f.rotate(vert, axis, thetaRadians);
+							norm = Vector3f.rotate(norm, axis, thetaRadians);
+						}
+						
+						dos.writeFloat(vert.x+dx[i]);
+						dos.writeFloat(vert.y);
+						dos.writeFloat(vert.z+dz[i]);
+						
+						dos.writeFloat(vertex.uv[0]);
+						dos.writeFloat(1f-vertex.uv[1]);
+						
+						dos.writeFloat(norm.x);
+						dos.writeFloat(norm.y);
+						dos.writeFloat(norm.z);
+					}
 
-				for(int i = 0; i < indexCount; i++) {
-					dos.writeInt(glIndexOrder.get(i));
+					for(int j = 0; j < glIndexOrder.get(id).size(); j++) {
+						dos.writeInt(glIndexOrder.get(id).get(j));
+					}
 				}
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
@@ -218,10 +223,19 @@ public class ObjToTilConverter {
 		
 		System.out.println("Converted: "+filename+" to .TIL");
 	}
-}
 
-class Vertex {
-	float[] position;
-	float[] uv;
-	float[] normal;
+	private static int getId(String name) {
+		switch(name) {
+		case "WALL": return 1;
+		case "FLOOR": return 3;
+		case "CEILING": return 2;
+		case "SLOPE": return 4;
+		case "GRADSLOPE1": return 5;
+		case "GRADSLOPE2": return 6;
+		}
+		
+		return -1;
+	}
+	
+	
 }

@@ -59,17 +59,17 @@ public class WaterMeshBuilder {
 				vertices.add(table[i+1][j+1]);
 				vertices.add((float) z + ((j + 1) * POLYGON_SIZE));
 
-				uvs.add(.1f);
+				uvs.add(1f);
 				uvs.add(0f);
 				
 				uvs.add(0f);
 				uvs.add(0f);
 				
 				uvs.add(0f);
-				uvs.add(.1f);
+				uvs.add(1f);
 				
-				uvs.add(.1f);
-				uvs.add(.1f);
+				uvs.add(1f);
+				uvs.add(1f);
 				
 				indices.add(k+0);
 				indices.add(k+1);
@@ -77,6 +77,14 @@ public class WaterMeshBuilder {
 				indices.add(k+3);
 				indices.add(k+1);
 				indices.add(k+2);
+				
+				/*indices.add(k+2);
+				indices.add(k+1);
+				indices.add(k+3);
+				indices.add(k+3);
+				indices.add(k+1);
+				indices.add(k+0);
+				indsSize += 12;*/
 				indsSize += 6;
 				k += 4;
 			}

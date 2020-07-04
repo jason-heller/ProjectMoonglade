@@ -47,8 +47,8 @@ public class GenTerrain {
 		int terrainTile;
 		Structure structure;
 		float[][] heights = chunk.heightmap;
-		int[][] tileItems = chunk.items.getTilemap();
 		float[][] waterTable = chunk.waterTable;
+		int[][] tileItems = chunk.chunkProps.getTilemap();
 		
 		boolean needsTileItems = (chunk.editFlags & 0x02) == 0;
 		boolean needsHeights = (chunk.editFlags & 0x04) == 0;
@@ -61,7 +61,7 @@ public class GenTerrain {
 		for(int j = 0; j < vertexStripeSize; j++) {
 			for(int i = 0; i < vertexStripeSize; i++) {
 				BiomeData biomeData = biomeVoronoi.getDataAt((x+i)*polygonSize, (z+j)*polygonSize);
-
+				
 				boolean l = (i*2) >= 0;
 				boolean t = (j*2) >= 0;
 				

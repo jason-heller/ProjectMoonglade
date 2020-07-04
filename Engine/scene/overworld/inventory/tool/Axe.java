@@ -8,7 +8,7 @@ import gl.particle.ParticleHandler;
 import map.Chunk;
 import map.Terrain;
 import map.TerrainIntersection;
-import map.tile.EnvTile;
+import map.prop.StaticProp;
 import scene.entity.PlayerEntity;
 import scene.overworld.inventory.Item;
 
@@ -21,7 +21,7 @@ public class Axe {
 		}
 		
 		if (lmb) {
-			EnvTile envTile = terrain.getTileById(terrainIntersection.getTile());
+			StaticProp envTile = terrain.getPropById(terrainIntersection.getTile());
 			if (envTile == null || !envTile.isDestroyableBy(Item.AXE)) {
 				player.getSource().play(Resources.getSound("swing"));
 				return;
@@ -35,7 +35,7 @@ public class Axe {
 			
 			int relX = (int)(selectionPt.x - cx)/Chunk.POLYGON_SIZE;
 			int relZ = (int)(selectionPt.z - cz)/Chunk.POLYGON_SIZE;
-			chunkPtr.damageEnvTile(relX, relZ, (byte)15);
+			chunkPtr.damangeProp(relX, relZ, (byte)15);
 		}
 	}
 }

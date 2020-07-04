@@ -115,4 +115,7 @@ public class Skybox {
 		GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
 	}
 
+	public Vector3f getTopColor() {
+		return topColor;
+	}
 }

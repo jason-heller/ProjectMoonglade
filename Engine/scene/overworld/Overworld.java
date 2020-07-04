@@ -1,18 +1,19 @@
 package scene.overworld;
 
-import static map.building.BuildingTile.TILE_SIZE;
+import static map.tile.BuildingTile.TILE_SIZE;
 
 import org.joml.Vector3f;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
 import core.Application;
 import core.Resources;
+import dev.Console;
 import dev.Debug;
 import gl.Camera;
 import gl.Window;
 import gl.particle.Particle;
 import gl.particle.ParticleHandler;
-import gl.skybox.Skybox;
 import io.Input;
 import io.SaveDataIO;
 import map.Chunk;
@@ -20,10 +21,10 @@ import map.Enviroment;
 import map.Material;
 import map.Terrain;
 import map.TerrainIntersection;
-import map.building.Building;
-import map.building.BuildingTile;
-import map.tile.EnvTile;
-import map.tile.TileProperties;
+import map.prop.StaticProp;
+import map.prop.StaticPropProperties;
+import map.tile.BuildData;
+import map.tile.BuildingTile;
 import scene.MainMenu;
 import scene.Scene;
 import scene.entity.Entity;
@@ -45,8 +46,6 @@ public class Overworld implements Scene {
 	public static String worldSeed;
 	public static String worldFileName;
 
-	private Skybox skybox;
-	
 	private Enviroment enviroment;
 	private Camera camera;
 	private Inventory inventory;
@@ -59,6 +58,10 @@ public class Overworld implements Scene {
 	private byte cameraFacing;
 
 	protected boolean returnToMenu;
+	
+	private byte slopeSetting = 0, wallSetting = 0;
+	
+	private float actionDelay = 0f;
 	
 	public Overworld() {
 		Enviroment.time = 0;
@@ -73,8 +76,8 @@ public class Overworld implements Scene {
 		
 		SaveDataIO.readSaveData(this);
 		
-		skybox = new Skybox();
 		enviroment = new Enviroment(this);
+		enviroment.tick(this);
 		
 		ui = new OverworldUI(this);
 		
@@ -92,34 +95,26 @@ public class Overworld implements Scene {
 	
 	@Override
 	public void update() {
-		camera.move();
-		EntityHandler.update(enviroment.getTerrain());
-	}
-
-	@Override
-	public void tick() {
 		if (returnToMenu) {
 			Application.changeScene(MainMenu.class);
 			return;
 		}
 		
-		ui.update();
-		EntityHandler.tick(enviroment.getTerrain());
-		
-		if (ui.isPaused()) {
-			return;
-		}
-		
-		enviroment.tick(this);
-		inventory.update();
-		
 		if (Mouse.isGrabbed()) {
 			Mouse.setCursorPosition(Window.getWidth()/2, Window.getHeight()/2);
 		}
 		
-		cameraFacing = BuildingTile.getFacingByte(camera, Input.isDown("sneak"));
+		cameraFacing = BuildingTile.getFacingByte(camera, wallSetting == 1);
 		selectionPt = null;
 		exactSelectionPt = null;
+		
+		camera.move();
+		EntityHandler.update(enviroment.getTerrain());
+	
+		if (Debug.debugMode) {
+			Debug.uiDebugInfo(this);
+		}
+		
 		boolean facingTile = false;
 		
 		TerrainIntersection terrainIntersection = null;
@@ -131,7 +126,9 @@ public class Overworld implements Scene {
 			}
 				
 			if (inventory.getSelected().getMaterial() != Material.NONE) {
-				Vector3f pt = enviroment.getTerrain().buildingRaycast(this, camera.getPosition(), camera.getDirectionVector(), PLAYER_REACH, cameraFacing, Input.isDown("sneak"));
+				byte snapFlags = (byte) ((wallSetting == 1) ? 1 : 0);
+				snapFlags = (byte) ((slopeSetting == 1) ? 2 : snapFlags);
+				Vector3f pt = enviroment.getTerrain().buildingRaycast(this, camera.getPosition(), camera.getDirectionVector(), PLAYER_REACH, cameraFacing, snapFlags);
 
 				
 				if (pt != null && (selectionPt == null || Vector3f.distanceSquared(camera.getPosition(), pt) <
@@ -141,14 +138,15 @@ public class Overworld implements Scene {
 				}
 			}
 		}
+		actionDelay = Math.max(actionDelay - Window.deltaTime, 0f);
 		
-		if (selectionPt != null) {
+		if (selectionPt != null && Input.isMouseGrabbed() && actionDelay == 0f) {
 			exactSelectionPt = new Vector3f(selectionPt);
 			selectionPt.set((float)Math.floor(selectionPt.x),
 					(float)Math.floor(selectionPt.y ),
 					(float)Math.floor(selectionPt.z ));
 			
-			selectionPt.y = Math.min(Math.max(selectionPt.y, Building.MIN_BUILD_HEIGHT+1), Building.MAX_BUILD_HEIGHT-1);
+			selectionPt.y = Math.min(Math.max(selectionPt.y, BuildData.MIN_BUILD_HEIGHT+1), BuildData.MAX_BUILD_HEIGHT-1);
 			
 			float dx = camera.getPosition().x - selectionPt.x;
 			float dy = camera.getPosition().y - selectionPt.y;
@@ -171,6 +169,10 @@ public class Overworld implements Scene {
 			
 			BuildingTile tile;
 			
+			if (lmb || rmb) {
+				actionDelay = .05f;
+			}
+			
 			switch(inventory.getSelected()) {
 			case SPADE:
 				Spade.interact(chunkPtr, terrain, terrainIntersection, exactSelectionPt, cx, cz, facingTile, withinRange, lmb, rmb);
@@ -189,7 +191,7 @@ public class Overworld implements Scene {
 			default:
 				tile = chunkPtr.getBuilding().get(_x, _y, _z);
 				
-				byte facing = BuildingTile.getFacingByte(camera, Input.isDown("sneak"));
+				byte facing = BuildingTile.getFacingByte(camera, wallSetting == 1);
 				if (lmb && tile != null) {
 					if (tile.getMaterial(facingIndex).isTiling()) {
 						final float rx = (_x * TILE_SIZE) + cx;
@@ -203,16 +205,21 @@ public class Overworld implements Scene {
 					}
 					
 					if ((tile.getWalls() & facing) != 0) {
-						EntityHandler.addEntity(new ItemEntity(exactSelectionPt, tile.getMaterial(facingIndex).getDrop(), 1));
+						EntityHandler.addEntity(new ItemEntity(getTileDropPos(selectionPt), tile.getMaterial(facingIndex).getDrop(), 1));
 					}
 					
-					chunkPtr.setTile(_x, _y, _z, facing,
-							Material.NONE, (byte) 0);
+					if (slopeSetting != 0) {
+						chunkPtr.setTile(_x, _y, _z, (byte) 0, facing,
+								Material.NONE, (byte) 0);
+					} else {
+						chunkPtr.setTile(_x, _y, _z, facing, (byte) 0,
+								Material.NONE, (byte) 0);
+					}
 					chunkPtr.rebuildWalls();
 				}
 				
 				if (!facingTile && chunkPtr != null && lmb) {
-					EnvTile envTile = terrain.getTileById(terrainIntersection.getTile());
+					StaticProp envTile = terrain.getPropById(terrainIntersection.getTile());
 					
 					if (envTile != null) {
 						int relX = (int)(selectionPt.x - cx)/Chunk.POLYGON_SIZE;
@@ -221,12 +228,12 @@ public class Overworld implements Scene {
 						Item tool = envTile.getTool();
 						if (tool == Item.AIR) {
 							ParticleHandler.addBurst("materials", 0, 0, exactSelectionPt);
-							chunkPtr.breakEnvTile(relX, relZ);
+							chunkPtr.destroyProp(relX, relZ);
 						}
 						
 						if (envTile.getMaterial() == Material.PLANKS) {
 							
-							TileProperties props = chunkPtr.getEnvTileProperties(relX, relZ);
+							StaticPropProperties props = chunkPtr.getChunkPropProperties(relX, relZ);
 							if (props.damage % 5 != 2) {
 								props.damage--;
 								
@@ -236,8 +243,6 @@ public class Overworld implements Scene {
 									pos.x += -2f + (Math.random() * 4f);
 									pos.z += -2f + (Math.random() * 4f);
 									
-									
-
 									if (Math.random() < .1) {
 										EntityHandler.addEntity(new ItemEntity(pos, Item.STICKS, 1));
 									} else {
@@ -286,7 +291,16 @@ public class Overworld implements Scene {
 						}
 						
 						if (tile != null && (tile.getWalls() & facing) != 0) {
-							EntityHandler.addEntity(new ItemEntity(exactSelectionPt, tile.getMaterial(facingIndex).getDrop(), 1));
+							EntityHandler.addEntity(new ItemEntity(getTileDropPos(selectionPt), tile.getMaterial(facingIndex).getDrop(), 1));
+						}
+						
+						byte wallFlags = cameraFacing;
+						byte slopeFlags = 0;
+						if (slopeSetting == 1) {
+							wallFlags = 0;
+							slopeFlags = cameraFacing;
+						} else if (slopeSetting == 2) {
+							// TODO: This
 						}
 						
 						byte specialFlags = 0;
@@ -299,12 +313,16 @@ public class Overworld implements Scene {
 							if ((cameraFacing & 1) != 0) dz *= -1;
 							if ((cameraFacing & 32) != 0) dx *= -1;
 							
-							chunkPtr.setTile(_x, _y, _z, cameraFacing, mat, (byte) 0);
+							chunkPtr.setTile(_x, _y, _z, wallFlags, slopeFlags, mat, (byte) 0);
 							tile = chunkPtr.getBuilding().get(_x,_y,_z);
 							Material.setTilingFlags(tile, terrain, rx, ry, rz, dx, dz, mat, facingIndex, 0);
 							chunkPtr.getBuilding().buildModel();
 						} else {
-							chunkPtr.setTile(_x, _y, _z, cameraFacing, mat, specialFlags);
+							chunkPtr.setTile(_x, _y, _z, wallFlags, slopeFlags, mat, specialFlags);
+						}
+						
+						if ((wallFlags & 12) != 0 && Math.abs(chunkPtr.heightLookup(_x, _z) - _y) <= .1f) {
+							chunkPtr.setHeight(_x, _z, _y - .025f);
 						}
 	
 						inventory.consume(inventory.getSelectionPos());
@@ -318,9 +336,24 @@ public class Overworld implements Scene {
 			}
 		}
 		
-		if (Debug.debugMode) {
-			Debug.uiDebugInfo(this);
+		ui.update();
+		inventory.update();
+		
+	}
+
+	private Vector3f getTileDropPos(Vector3f pos) {
+		return new Vector3f((int)pos.x + .5f, (int)pos.y + .5f, (int)pos.z + .5f);
+	}
+
+	@Override
+	public void tick() {
+		EntityHandler.tick(enviroment.getTerrain());
+		
+		if (ui.isPaused()) {
+			return;
 		}
+		
+		enviroment.tick(this);
 	}
 
 	@Override
@@ -328,8 +361,6 @@ public class Overworld implements Scene {
 		ui.cleanUp();
 		EntityHandler.clearEntities();
 		enviroment.cleanUp();
-		
-		skybox.cleanUp();
 		
 		SaveDataIO.writeSaveData(this);
 	}
@@ -346,13 +377,10 @@ public class Overworld implements Scene {
 	}
 
 	@Override
-	public void render(float px, float py, float pz, float pw) {
+	public void render() {
 		if (returnToMenu) return;
-		Vector3f weatherColor = enviroment.getWeather().determineSkyColor();
 		
-		
-		skybox.render(camera, Enviroment.time, enviroment.getClosestBiome().getSkyColor(), weatherColor);
-		enviroment.render(camera, selectionPt, cameraFacing, px, py, pz, pw);
+		enviroment.render(camera, selectionPt, cameraFacing);
 		EntityHandler.render(camera, enviroment.getLightDirection());	
 	}
 
@@ -378,5 +406,10 @@ public class Overworld implements Scene {
 
 	public Vector3f getSelectionPoint() {
 		return selectionPt;
+	}
+
+	public void setTileShape(int wall, int slope) {
+		this.slopeSetting = (byte)slope;
+		this.wallSetting = (byte)wall;
 	}
 }

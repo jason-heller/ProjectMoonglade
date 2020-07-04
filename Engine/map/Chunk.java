@@ -9,10 +9,10 @@ import geom.Plane;
 import geom.Polygon;
 import gl.particle.ParticleHandler;
 import gl.res.Model;
-import map.building.Building;
-import map.tile.ChunkTiles;
-import map.tile.EnvTile;
-import map.tile.TileProperties;
+import map.prop.ChunkProps;
+import map.prop.StaticProp;
+import map.prop.StaticPropProperties;
+import map.tile.BuildData;
 import procedural.NoiseUtil;
 import procedural.biome.BiomeVoronoi;
 import procedural.terrain.GenTerrain;
@@ -21,42 +21,47 @@ import procedural.terrain.WaterMeshBuilder;
 import scene.entity.EntityHandler;
 import scene.entity.utility.FallingTreeEntity;
 import scene.overworld.Overworld;
-import util.ModelBuilder;
+import util.ModelBuilderOld;
 
 public class Chunk {
+	
 	/* Model vars */
-	public static int POLYGON_SIZE = 1;//32;
-	public static int VERTEX_COUNT = 16;//16;
+	public static int POLYGON_SIZE = 1;		// Maybe remove this later?
+	public static int VERTEX_COUNT = 16;	// 16;
 	public static int CHUNK_SIZE = (VERTEX_COUNT - 1) * POLYGON_SIZE;
 	public static float DIG_SIZE = 1f;
 
 	/* Async loading */
 	public static final byte UNLOADED = 0, LOADING = 1, BUILDING = 2, LOADED = 3, UNLOADING = 4, GENERATING = 5;
-
-	public final int dataX, dataZ;
-	public final int realX, realZ;
-	public float[][] heightmap;
-	public ChunkTiles items;
-	public float[][] waterTable;
-	
-	public int arrX, arrZ;
-
-	private Vector3f min;
-	private Vector3f max;
-
 	private byte state = UNLOADED;
-	private Model groundModel, wallModel, waterModel;
-	private Building building;
-	private boolean culled = true;
-	
-	private Terrain terrain;
-	
-	public byte editFlags;
-	
-	private long seed;
 
+	/* position */
+	public final int dataX, dataZ; 		// Position of chunk in chunk space
+	public final int realX, realZ; 		// Position of chunk in world space
+	public int arrX, arrZ;				// Position in chunk array
+
+	private Vector3f min;				// \ Chunk bounds for frustum culling
+	private Vector3f max;				// /
+	private boolean culled = true;		// Flag, set if chunk is to be culled (usually from frustum culling, if not always)
+
+	/* Chunk data */
+	public float[][] heightmap;			// Terrain heightmap
+	public ChunkProps chunkProps;
+	public float[][] waterTable;		// Water heightmap, effectively
+	private BuildData building;			// Building tiles
+	
+	private long seed;					// Local seed for chunk, used in chunk generation
+	
+	/* Graphics */
+	private Model groundModel, wallModel, waterModel;	// Models for the ground and water surface
+	
+	private Terrain terrain;			// Pointer to the terrain object
+	
+	public byte editFlags;				// Flags that are set when a certain section of chunk data is modified (see "chunk data" above)
+										// Used for compressing/determining what data to save/load
+	
 	public Chunk(int x, int z, Terrain terrain) {
-		heightmap = new float[VERTEX_COUNT][VERTEX_COUNT];
+		heightmap = new float[VERTEX_COUNT*2][VERTEX_COUNT*2];
 		waterTable = new float[VERTEX_COUNT][VERTEX_COUNT];
 		this.dataX = x;
 		this.dataZ = z;
@@ -66,16 +71,15 @@ public class Chunk {
 		this.min = new Vector3f(realX, -128, realZ);
 		this.max = new Vector3f(min.x + CHUNK_SIZE, 1, min.z + CHUNK_SIZE);
 		
-		items = new ChunkTiles(x, z, this, null);
+		chunkProps = new ChunkProps(x, z, this);
 		
-		building = new Building(this);
+		building = new BuildData(this);
 		this.terrain = terrain;
 		
 		seed = NoiseUtil.szudzik(x*VERTEX_COUNT, z*VERTEX_COUNT) * (Enviroment.seed + 2113);
 	}
 	
-	void generate(Terrain terrain, BiomeVoronoi biomeVoronoi, int arrX, int arrZ) {
-		//loadState = BUILDING;
+	void generate(Terrain terrain, BiomeVoronoi biomeVoronoi) {
 		final int wid = (VERTEX_COUNT-1);
 		if (Debug.flatTerrain) {
 			GenTerrain.buildFlatTerrain(this, dataX*wid, 0, dataZ*wid, VERTEX_COUNT, POLYGON_SIZE, biomeVoronoi);
@@ -85,17 +89,14 @@ public class Chunk {
 		setState(LOADED);
 	}
 	
-	void finishGenerationPass(BiomeVoronoi biomeVoronoi) {
+	public void finishGenerationPass(BiomeVoronoi biomeVoronoi) {
 		Model[] models = TerrainMeshBuilder.buildMeshes(this, biomeVoronoi);
-		items.buildModel();
+		chunkProps.buildModel();
 		
 		groundModel = models[0];
 		wallModel = models[1];
 		waterModel = WaterMeshBuilder.buildChunkMesh(this);
-	}
-	
-	public void setState(byte state) {
-		this.state = state;
+		setState(Chunk.LOADED);
 	}
 	
 	public void build(BiomeVoronoi biomeVoronoi) {
@@ -105,7 +106,7 @@ public class Chunk {
 		GenTerrain.buildTerrain(this, dataX*wid, 0, dataZ*wid, VERTEX_COUNT, POLYGON_SIZE, biomeVoronoi);
 		
 		Model[] models = TerrainMeshBuilder.buildMeshes(this, biomeVoronoi);
-		items.buildModel();
+		chunkProps.buildModel();
 		
 		groundModel = models[0];
 		wallModel = models[1];
@@ -132,9 +133,9 @@ public class Chunk {
 			wallModel.cleanUp();
 		}
 		this.building.cleanUp();
-		this.items.cleanUp();
-		
-		this.building = null;
+		this.chunkProps.cleanUp();
+
+		/*this.building = null;
 		this.groundModel = null;
 		this.waterModel = null;
 		this.wallModel = null;
@@ -143,28 +144,16 @@ public class Chunk {
 		this.items = null;
 		this.max = null;
 		this.min = null;
-		this.terrain = null;
+		this.terrain = null;*/
 	}
 
-	public byte getState() {
-		return state;
-	}
-
-	public Model getGroundModel() {
-		return groundModel;
-	}
-	
-	public Model getWallModel() {
-		return wallModel;
-	}
-	
-	public Model getWaterModel() {
-		return waterModel;
-	}
-	
-	public void setTile(int x, int y, int z, byte wall, Material material, byte specialFlags) {
-		building.setTile(x, y, z, wall, material, specialFlags);
+	public void setTile(int x, int y, int z, byte wall, byte slope, Material material, byte specialFlags) {
+		building.setTile(x, y, z, wall, slope, material, specialFlags);
 		editFlags |= 0x01;
+	}
+	
+	public void setState(byte state) {
+		this.state = state;
 	}
 	
 	public void smoothHeight(int x, int z) {
@@ -178,15 +167,11 @@ public class Chunk {
 		setHeight(x, z, lowest);
 	}
 	
-	public TileProperties getEnvTileProperties(int relX, int relZ) {
-		return items.getTileProperties(relX, relZ);
-	}
-	
-	public void damageEnvTile(int relX, int relZ, byte damage) {
+	public void damangeProp(int relX, int relZ, byte damage) {
 		editFlags |= 0x02;
-		int id = items.getTileId(relX, relZ);
-		TileProperties props = items.getTileProperties(relX, relZ);
-		final EnvTile tile = terrain.getTileById(id);
+		int id = chunkProps.getEntityId(relX, relZ);
+		StaticPropProperties props = chunkProps.getEntityProperties(relX, relZ);
+		final StaticProp tile = terrain.getPropById(id);
 		if (tile != null) {
 			props.damage -= damage;
 			
@@ -195,21 +180,21 @@ public class Chunk {
 				float dz = ((relZ+realZ)*Chunk.POLYGON_SIZE)+.5f;
 				float dy = this.getTerrain().getHeightAt(dx, dz);
 				EntityHandler.addEntity(new FallingTreeEntity(tile, dx, dy, dz, props.scale));
-				breakEnvTile(relX, relZ);
+				destroyProp(relX, relZ);
 			}
 		}
 	}
 	
-	public boolean breakEnvTile(int relX, int relZ) {
+	public boolean destroyProp(int relX, int relZ) {
 		editFlags |= 0x02;
-		int id = items.getTileId(relX, relZ);
-		final EnvTile tile = terrain.getTileById(id);
+		int id = chunkProps.getEntityId(relX, relZ);
+		final StaticProp tile = terrain.getPropById(id);
 		
 		if (tile != null) {
 			((Overworld) Application.scene).getInventory().addItem(tile.getDrop(), tile.getNumDrops());
 
-			items.removeTile(relX, relZ);
-			items.buildModel();
+			chunkProps.removeEntity(relX, relZ);
+			chunkProps.buildModel();
 			return true;
 		}
 		
@@ -284,7 +269,6 @@ public class Chunk {
 	}
 
 	private void rebuildModel(int x, int z) {
-		// Adjust heightmap model
 		int index = (z * (Chunk.VERTEX_COUNT - 1) + (x));
 
 		int rx = ((this.dataX * (Chunk.VERTEX_COUNT - 1)) + x) * Chunk.POLYGON_SIZE;
@@ -309,7 +293,6 @@ public class Chunk {
 				new float[] {normal.x, normal.y, normal.z, normal.x, normal.y, normal.z,
 						normal.x, normal.y, normal.z, normal.x, normal.y, normal.z});
 
-		// Fill in gaps
 		rebuildWalls();
 	}
 
@@ -350,7 +333,7 @@ public class Chunk {
 	}
 
 	public void rebuildWalls() {
-		ModelBuilder wallBuilder = new ModelBuilder();
+		ModelBuilderOld wallBuilder = new ModelBuilderOld();
 		
 		for(int j = 1; j < heightmap.length; j += 2) {
 			for (int i = 1; i < heightmap.length; i += 2) {
@@ -422,13 +405,6 @@ public class Chunk {
 			}
 		}
 	}
-
-	/*public void smooth(int x, int y, int z) {
-		if (Math.abs(heightmap[x][z] - y) > 3) return;
-		
-		heightmap[x][z] -= Math.floor(heightmap[x][z]);
-		this.getModel().getVbo(0).updateData(z*Chunk.VERTEX_COUNT + x, new float[] {heightmap[x][z]});
-	}*/
 	
 	public Plane getPlane(float x, float z, boolean bottomPlane) {
 		final float relx = x - this.dataX * Chunk.CHUNK_SIZE;
@@ -485,8 +461,7 @@ public class Chunk {
 		final Polygon p = new Polygon(new Vector3f(trueX + POLYGON_SIZE, heightmap[terrainx + 1][terrainz], trueZ),
 				new Vector3f(trueX, heightmap[terrainx][terrainz + 1], trueZ + POLYGON_SIZE),
 				new Vector3f(trueX + POLYGON_SIZE, heightmap[terrainx + 1][terrainz + 1], trueZ + POLYGON_SIZE));
-		return p;// new Vector2f(MathUtil.barryCentric(p.p1, p.p2, p.p3, new Vector2f(localx,
-					// localz)), p.normal.y);
+		return p;
 
 	}
 
@@ -498,7 +473,7 @@ public class Chunk {
 		return culled;
 	}
 
-	public Building getBuilding() {
+	public BuildData getBuilding() {
 		return building;
 	}
 
@@ -506,8 +481,8 @@ public class Chunk {
 		return terrain;
 	}
 
-	public ChunkTiles getTileItems() {
-		return items;
+	public ChunkProps getChunkEntities() {
+		return chunkProps;
 	}
 
 	public Vector3f getMax() {
@@ -520,5 +495,25 @@ public class Chunk {
 
 	public long getSeed() {
 		return seed;
+	}
+	
+	public byte getState() {
+		return state;
+	}
+
+	public Model getGroundModel() {
+		return groundModel;
+	}
+	
+	public Model getWallModel() {
+		return wallModel;
+	}
+	
+	public Model getWaterModel() {
+		return waterModel;
+	}
+	
+	public StaticPropProperties getChunkPropProperties(int relX, int relZ) {
+		return chunkProps.getEntityProperties(relX, relZ);
 	}
 }

@@ -1,5 +1,6 @@
 package util;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -46,5 +47,9 @@ public class BlockingMap<K, V> {
 
 	public Set<K> keySet() {
 		return map.keySet();
+	}
+	
+	public Collection<ArrayBlockingQueue<V>> values() {
+		return map.values();
 	}
 }

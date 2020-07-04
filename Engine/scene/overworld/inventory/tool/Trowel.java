@@ -6,7 +6,7 @@ import io.Input;
 import map.Chunk;
 import map.Terrain;
 import map.TerrainIntersection;
-import map.tile.EnvTile;
+import map.prop.StaticProp;
 import scene.overworld.inventory.Item;
 
 public class Trowel {
@@ -16,14 +16,14 @@ public class Trowel {
 		
 		if (lmb && withinRange) {
 			
-			EnvTile envTile = terrain.getTileById(terrainIntersection.getTile());
+			StaticProp envTile = terrain.getPropById(terrainIntersection.getTile());
 			if (envTile != null && envTile.isDestroyableBy(Item.TROWEL)) {
 				return;
 			}
 			
 			int relX = Math.round(selectionPt.x - cx);
 			int relZ = Math.round(selectionPt.z - cz);
-			if (!chunkPtr.breakEnvTile(relX, relZ)) {
+			if (!chunkPtr.destroyProp(relX, relZ)) {
 				//chunkPtr.raiseHeight(relX, relZ, -Chunk.DIG_SIZE/2f);
 			}
 		}
@@ -38,7 +38,7 @@ public class Trowel {
 				chunkPtr.addHeight(relX, relZ, Chunk.DIG_SIZE);
 			}*/
 			
-			chunkPtr.damageEnvTile(relX, relZ, (byte)5);
+			chunkPtr.damangeProp(relX, relZ, (byte)5);
 		}
 	}
 }

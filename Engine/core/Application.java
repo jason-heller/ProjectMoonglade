@@ -1,10 +1,13 @@
 package core;
 
 
+import java.io.File;
+
 import org.lwjgl.opengl.Display;
 
 import audio.AudioHandler;
 import dev.Console;
+import dev.io.ObjToSefConverter;
 import dev.io.ObjToTilConverter;
 import gl.Render;
 import gl.Window;
@@ -17,7 +20,7 @@ import ui.UI;
 
 public class Application {
 	
-	public static final String VERSION = "0.1.1";
+	public static final String VERSION = "Engine Dev. 0.2.1";
 	
 	public static Scene scene;
 	private static Class<?> nextScene;
@@ -50,6 +53,8 @@ public class Application {
 	}
 
 	public static void main(String[] args) throws InterruptedException {
+		//System.setProperty("org.lwjgl.librarypath", new File("lib/windows").getAbsolutePath());
+		
 		AudioHandler.init();
 		Settings.init();
 		Controls.init();
@@ -62,8 +67,10 @@ public class Application {
 		scene = new MainMenu();
 
 		for (final String arg : args) {
-			if (arg.toLowerCase().contains("tile.txt")) {
-				ObjToTilConverter.tileTileParser(arg);
+			if (arg.toLowerCase().contains("prop.txt")) {
+				ObjToSefConverter.sefFileParser(arg);
+			} else if (arg.toLowerCase().contains("tile.txt")) {
+				ObjToTilConverter.tileFileParser(arg);
 			} else {
 				Console.send(arg);
 			}
@@ -76,8 +83,10 @@ public class Application {
 			}
 			
 			Window.update();
-			
+			UI.update();
 			scene.update();
+			
+			Console.update();
 			
 			if (nextScene != null) {
 				try {
@@ -93,15 +102,11 @@ public class Application {
 				tickTimer += Window.deltaTime;
 				if (tickTimer >= TICKRATE) {
 					tickTimer -= TICKRATE;
-					Input.poll();
-					UI.update();
-					
-					Console.update();
 					scene.tick();
 					AudioHandler.update(scene.getCamera());
 					
 				}
-				
+				Input.poll();
 				Render.render(scene);
 
 				Render.postRender(scene);
@@ -117,6 +122,8 @@ public class Application {
 		Window.destroy();
 		Settings.save();
 		Controls.save();
+		
+		Thread.sleep(1000);
 		System.exit(0);
 	}
 }

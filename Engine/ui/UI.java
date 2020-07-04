@@ -10,10 +10,12 @@ import org.lwjgl.opengl.GL13;
 
 import audio.Source;
 import core.Resources;
+import dev.Console;
 import gl.Window;
 import gl.res.Model;
 import scene.Scene;
 import ui.render.UIShader;
+import util.MathUtil;
 
 public class UI {
 	private static UIShader shader;
@@ -125,6 +127,38 @@ public class UI {
 		drawImage("none", x, y, thickness, height, color);
 		drawImage("none", x, y + (height - thickness), width, thickness, color);
 		drawImage("none", x + (width - thickness), y, thickness, height, color);
+	}
+	
+	public static Image drawLine(int x1, int y1, int x2, int y2, int width, Vector3f color) {
+		float dx = x2-x1;
+		float dy = y2-y1;
+		float len = (float)Math.sqrt(dx*dx + dy*dy);
+		float dir = MathUtil.pointDirection(x1, y1, x2, y2);
+		
+		final Image img = new Image("none", (x1+x2)/2f, (y1+y2)/2f);
+		img.w = len;
+		img.h = width;
+		img.setColor(color);
+		img.setOpacity(opacity);
+		img.setRotation(dir);
+		img.markAsTemporary();
+		addComponent(img);
+		return img;
+	}
+
+	public static void drawCircle(int x, int y, int radius, Vector3f color) {
+		drawCircle(x, y, radius, 1, 12, color);
+	}
+	
+	public static void drawCircle(int x, int y, int radius, int width, int partitions, Vector3f color) {
+		float prt = (float) (2f * Math.PI) / partitions;
+		for (float i = 0; i < 2 * Math.PI; i += prt) {
+			int dx = (int) (Math.cos(i) * radius);
+			int dy = (int) (Math.sin(i) * radius);
+			int nx = (int) (Math.cos(i + prt) * radius);
+			int ny = (int) (Math.sin(i + prt) * radius);
+			drawLine(x + dx, y + dy, x + nx, y + ny, width, color);
+		}
 	}
 
 	public static Text drawString(Font font, String text, int x, int y, float fontSize, int lineWidth, boolean centered,
@@ -255,4 +289,6 @@ public class UI {
 			addComponent(component);
 		}
 	}
+
+	
 }

@@ -34,8 +34,15 @@ void main(void){
 		cos(rot), -sin(rot),
 		sin(rot),  cos(rot));
 		
+		
+	if (rot == 0.0) {
+		gl_Position = vec4((vec2((in_vertices) + centering)*translation.zw) + translation.xy * vec2(2.0, -2.0), 0.0, 1.0);
+	} else {
+		gl_Position = vec4((((in_vertices * translation.zw) * rotationMatrix)*vec2(1,1280.0/720.0)) + translation.xy * vec2(2.0, -2.0), 0.0, 1.0);
+	}
+		
 	//if (translation.z == -1.0) {
-		gl_Position = vec4((vec2((in_vertices*rotationMatrix) + centering)*translation.zw) + translation.xy * vec2(2.0, -2.0), 0.0, 1.0);
+	//	gl_Position = vec4((vec2((in_vertices*rotationMatrix) + centering)*translation.zw) + translation.xy * vec2(2.0, -2.0), 0.0, 1.0);
 	//} else {
 	//	gl_Position = vec4(rotationMatrix * vec2(((in_vertices + centering)*translation.zw)) + vec2(translation.xy), 0.0, 1.0); //
 	//}

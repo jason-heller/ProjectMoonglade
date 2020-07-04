@@ -1,6 +1,6 @@
 package map;
 
-import map.building.BuildingTile;
+import map.tile.BuildingTile;
 
 public class ChunkDataWrapper {
 	public int x, z, arrX, arrZ;
@@ -19,7 +19,7 @@ public class ChunkDataWrapper {
 		this.arrZ = chunk.arrZ;
 		
 		this.heightmap = chunk.heightmap.clone();
-		this.tilemap = chunk.getTileItems().getTilemap().clone();
+		this.tilemap = chunk.getChunkEntities().getTilemap().clone();
 		this.tiles = chunk.getBuilding().getTilemap().clone();
 	}
 

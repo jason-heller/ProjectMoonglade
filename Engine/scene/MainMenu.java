@@ -19,7 +19,7 @@ public class MainMenu implements Scene {
 
 	@Override
 	public void tick() {
-		ui.update();
+		
 	}
 
 	@Override
@@ -39,15 +39,14 @@ public class MainMenu implements Scene {
 	}
 
 	@Override
-	public void render(float px, float py, float pz, float pw) {
+	public void render() {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void update() {
-		// TODO Auto-generated method stub
-		
+		ui.update();
 	}
 
 

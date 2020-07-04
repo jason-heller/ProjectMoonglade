@@ -6,8 +6,10 @@ import core.Application;
 import gl.Camera;
 import gl.Window;
 import gl.particle.ParticleHandler;
+import map.Enviroment;
 import map.Terrain;
 import scene.entity.EntityHandler;
+import scene.overworld.Overworld;
 import ui.menu.GuiDropdown;
 import ui.menu.GuiPanel;
 import ui.menu.GuiSlider;
@@ -126,7 +128,7 @@ public class GraphicsPanel extends GuiPanel {
 		});
 		add(particleCount);
 
-		chunkRender = new GuiSlider(x, y, "Render distance", 3, 17, Terrain.size, 2);
+		chunkRender = new GuiSlider(x, y, "Render distance", 3, 33, Terrain.size, 2);
 		chunkRender.addListener(new SliderListener() {
 
 			@Override
@@ -137,9 +139,9 @@ public class GraphicsPanel extends GuiPanel {
 			public void onRelease(float value) {
 				Terrain.size = (int) value;
 
-				/*if (Application.scene instanceof GameScene) {
-					((GameScene) Application.scene).getWorld().resize(Globals.chunkRenderDist);
-				}*/
+				if (Application.scene instanceof Overworld) {
+					((Overworld) Application.scene).getEnviroment().resize();
+				}
 			}
 
 		});
@@ -154,8 +156,9 @@ public class GraphicsPanel extends GuiPanel {
 
 			@Override
 			public void onRelease(float value) {
-				EntityHandler.entityRadius = (int) value / 2;
-
+				EntityHandler.entityRadius = (int) value;
+				EntityHandler.entityRadius = Math.max(EntityHandler.entityRadius, 3);
+				
 				/*if (Application.scene instanceof GameScene) {
 					((GameScene) Application.scene).getWorld().resize(Globals.chunkRenderDist);
 				}*/

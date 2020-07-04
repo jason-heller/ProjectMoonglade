@@ -14,6 +14,7 @@ public class GuiTextbox extends GuiElement {
 
 	private final String label;
 	private boolean edit = false;
+	private boolean modified = false;
 
 	private final Image backdrop;
 	private final int TEXTBOX_XSHIFT = 180;
@@ -68,6 +69,11 @@ public class GuiTextbox extends GuiElement {
 			final char[] keysIn = Input.getTypedKey();
 
 			for (final char in : keysIn) {
+				if (!modified) {
+					modified = true;
+					value = "";
+				}
+				
 				if (in != '`') {
 					if (in == '\b') {
 						if (value.length() > 0) {

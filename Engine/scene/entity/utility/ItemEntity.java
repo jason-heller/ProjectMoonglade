@@ -28,7 +28,7 @@ public class ItemEntity extends PhysicsEntity {
 		this.persistency = 2;
 
 		this.setModel(Resources.getModel("cube"));
-		this.setDiffuse(Resources.getTexture("default"));// items
+		this.setDiffuse(Resources.getTexture("items"));// items
 
 		id = 1;
 	}
@@ -74,5 +74,9 @@ public class ItemEntity extends PhysicsEntity {
 		this.item = Item.values()[data.readInt()];
 		
 		this.quantity = data.readByte();
+	}
+	
+	public Item getItem() {
+		return item;
 	}
 }

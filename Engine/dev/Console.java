@@ -2,6 +2,7 @@ package dev;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.joml.Vector3f;
@@ -9,6 +10,8 @@ import org.lwjgl.input.Keyboard;
 
 import core.Application;
 import io.Input;
+import scene.entity.EntityData;
+import scene.overworld.inventory.Item;
 import ui.Colors;
 import ui.Font;
 import ui.Image;
@@ -391,8 +394,15 @@ public class Console {
 			}
 
 			final String blinker = System.currentTimeMillis() % 750 > 375 ? "|" : "";
+			
+			String[] inputSpace = input.split(" ");
+			
+			if (input.indexOf("give") == 0 && inputSpace.length >= 1  && inputSpace.length < 3) {
+				predictEnum(inputSpace.length == 2 ? inputSpace[1] : "", Item.values());
+			}
+			
 			UI.drawString(Font.consoleFont, ">" + input + blinker, x + BORDER_WIDTH * 2,
-					y + BORDER_WIDTH + (VISIBLE_LINES + 1) * FONT_HEIGHT, FONT_SIZE, 1280, false).setDepth(-9999);
+					y + BORDER_WIDTH + (VISIBLE_LINES + 1) * FONT_HEIGHT, FONT_SIZE, 1280, false).setDepth(-99999);
 		}
 
 		final int mx = Input.getMouseX();
@@ -432,4 +442,31 @@ public class Console {
 		}
 	}
 
+	private static void predictEnum(String string, Enum<?>[] values) {
+		List<String> preds = new ArrayList<String>();
+		
+		if (string.equals("")) {
+			for(Enum<?> e : values) {
+				preds.add(e.name().toLowerCase());
+			}
+		} else {
+			for(Enum<?> e : values) {
+				String name = e.name().toLowerCase();
+				
+				if (name.indexOf(string) == 0) {
+					preds.add(name);
+				}
+			}
+		}
+		
+		int boxY = (y + HEADER_HEIGHT + BORDER_WIDTH + (VISIBLE_LINES + 1) * FONT_HEIGHT) + predictions.size() * FONT_HEIGHT + BORDER_WIDTH;
+		UI.drawRect(x+28, boxY, 70,
+				preds.size()*10, BORDER_COLOR).setDepth(-9998);
+		for (int i = 0; i < preds.size(); i++) {
+			final int lineY = boxY + (i) * FONT_HEIGHT;
+
+			UI.drawString(Font.consoleFont, "#s" + preds.get(i), x + 28 + BORDER_WIDTH * 2, lineY, FONT_SIZE,
+					1280, false).setDepth(-9999);
+		}
+	}
 }

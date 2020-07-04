@@ -2,7 +2,6 @@ package procedural.biome.types.dry;
 
 import java.util.Random;
 
-import dev.Console;
 import map.Moisture;
 import map.Temperature;
 import procedural.biome.Biome;
@@ -40,9 +39,9 @@ public class GrasslandBiome extends Biome {
 	
 	@Override
 	public Structure getTerrainStructures(int x, int z, float currentHeight, int subseed, Random r) {
-		if (x==0&&z==0) {
+		/*if (x==0&&z==0) {
 			return Structure.BUTTE;
-		}
+		}*/
 		
 		return null;
 	}

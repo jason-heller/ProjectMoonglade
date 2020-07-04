@@ -51,12 +51,14 @@ public class ParticleHandler {
 
 	public static void cleanUp() {
 		renderer.cleanup();
+		Resources.getTexture("particles").delete();
+		Resources.getTexture("small_particles").delete();
 	}
 
 	public static void init() {
 		renderer = new ParticleRenderer();
 		Resources.addTexture("particles", "particles/particles.png", GL11.GL_TEXTURE_2D, true, 8);
-		Resources.addTexture("smoke", "particles/smoke.png", GL11.GL_TEXTURE_2D, true, 8);
+		Resources.addTexture("small_particles", "particles/small_particles.png", GL11.GL_TEXTURE_2D, true, 32);
 	}
 
 	public static void render(Camera camera) {

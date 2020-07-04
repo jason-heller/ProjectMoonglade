@@ -10,15 +10,12 @@ out vec3 pass_normals;
 out vec4 pass_colors;
 
 uniform mat4 projectionViewMatrix;
-uniform vec4 clipSpace;
 
 void main(void) {
 
 	vec4 worldPos = vec4(in_vertices.x, in_vertices.y, in_vertices.z, 1.0);
 	gl_Position = projectionViewMatrix * worldPos;
 
-	gl_ClipDistance[0] = dot(worldPos, clipSpace);
-	
 	pass_colors = in_colors;
 	
 	if (in_normals.y <= 0.0) {

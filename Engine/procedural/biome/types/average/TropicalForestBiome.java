@@ -12,7 +12,7 @@ import procedural.structures.Structure;
 public class TropicalForestBiome extends Biome {
 	public TropicalForestBiome() {
 		////////////////////////////////////////////////
-		this.name = "Desert";
+		this.name = "Tropical Forest";
 		this.temp = Temperature.WARM;
 		this.moisture = Moisture.AVERAGE;
 		this.terrainHeightFactor = 2f;

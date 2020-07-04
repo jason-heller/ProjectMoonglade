@@ -266,13 +266,25 @@ public class TextureUtils {
 		}
 
 		if (data.isMipmap()) {
-			GL30.glGenerateMipmap(data.type);
+			if (data.getNumRows() <= 1) {
+				GL30.glGenerateMipmap(data.type);
+			}
 			GL11.glTexParameteri(data.type, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
 			GL11.glTexParameteri(data.type, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST_MIPMAP_LINEAR);// GL11.
 			GL11.glTexParameterf(data.type, GL14.GL_TEXTURE_LOD_BIAS, data.getBias());
+			GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAX_LEVEL, 5);
 			if (data.isAnisotropic() && GLContext.getCapabilities().GL_EXT_texture_filter_anisotropic) {
 				GL11.glTexParameterf(data.type, GL14.GL_TEXTURE_LOD_BIAS, data.getBias());
 				GL11.glTexParameterf(data.type, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, 4.0f);
+			}
+			
+			if (data.getNumRows() > 1) {
+				GL11.glTexImage2D(data.type, 1, GL11.GL_RGBA, data.getWidth()/2, data.getHeight()/2, 0, GL12.GL_BGRA, GL11.GL_UNSIGNED_BYTE, data.getBuffer());
+				GL11.glTexImage2D(data.type, 2, GL11.GL_RGBA, data.getWidth()/4, data.getHeight()/4, 0, GL12.GL_BGRA, GL11.GL_UNSIGNED_BYTE, data.getBuffer());
+				GL11.glTexImage2D(data.type, 3, GL11.GL_RGBA, data.getWidth()/8, data.getHeight()/8, 0, GL12.GL_BGRA, GL11.GL_UNSIGNED_BYTE, data.getBuffer());
+				GL11.glTexImage2D(data.type, 4, GL11.GL_RGBA, data.getWidth()/16, data.getHeight()/16, 0, GL12.GL_BGRA, GL11.GL_UNSIGNED_BYTE, data.getBuffer());
+				GL11.glTexImage2D(data.type, 5, GL11.GL_RGBA, data.getWidth()/32, data.getHeight()/32, 0, GL12.GL_BGRA, GL11.GL_UNSIGNED_BYTE, data.getBuffer());
+				//GL11.glTexImage2D(data.type, 6, GL11.GL_RGBA, data.getWidth()/12, data.getHeight()/12, 0, GL12.GL_BGRA, GL11.GL_UNSIGNED_BYTE, data.getBuffer());
 			}
 		} else if (data.isNearest()) {
 			GL11.glTexParameteri(data.type, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);

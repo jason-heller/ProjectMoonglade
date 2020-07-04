@@ -46,7 +46,7 @@ public class EntitySpawnHandler {
 	}
 
 	private void attemptSpawn() {
-		final int center = terrain.getArraySize() / 2;
+		final int center = Terrain.size / 2;
 		Chunk chunk = terrain.get(center, center);
 		
 		final int focusX = chunk.realX + (Chunk.CHUNK_SIZE/2);

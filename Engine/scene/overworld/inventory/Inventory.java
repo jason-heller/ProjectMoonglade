@@ -7,6 +7,7 @@ import dev.Debug;
 import gl.Camera;
 import gl.res.Texture;
 import io.Input;
+import scene.entity.EntityHandler;
 import scene.overworld.inventory.crafting.ItemStack;
 import scene.overworld.inventory.crafting.RecipeHandler;
 import ui.Colors;
@@ -21,7 +22,7 @@ public class Inventory {
 	private int selectionPos = 0;
 
 	private final static float itemAtlasScale = 32;
-	private static float itemAtlasSize;
+	public static float itemAtlasSize;
 
 	// private Texture itemTexture;
 	private final int itemTexSize = 32;
@@ -63,6 +64,7 @@ public class Inventory {
 
 		Texture texture = Resources.addTexture("items", "item/items.png");
 		itemAtlasSize = 1f / (texture.size / itemAtlasScale);
+		EntityHandler.getItemRender().setTexture(texture);
 		// int type, boolean nearest, boolean mipmap, float bias,
 		// boolean clampEdges, boolean isTransparent, int numRows
 

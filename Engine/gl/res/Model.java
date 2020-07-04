@@ -86,7 +86,7 @@ public class Model {
 			vertexCount = data.length / 3;
 		}
 	}
-
+	
 	public void createAttribute(int attribute, int[] data, int attrSize) {
 		final Vbo dataVbo = Vbo.create(GL15.GL_ARRAY_BUFFER);
 		dataVbo.bind();

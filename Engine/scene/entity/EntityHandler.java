@@ -15,6 +15,7 @@ import org.lwjgl.opengl.GL30;
 import core.Application;
 import gl.Camera;
 import gl.entity.GenericMeshShader;
+import gl.entity.item.ItemRender;
 import gl.res.Model;
 import gl.res.Texture;
 import map.Chunk;
@@ -23,6 +24,7 @@ import map.Terrain;
 public class EntityHandler {
 
 	private static GenericMeshShader shader;
+	private static ItemRender itemRender;
 	private static Map<Texture, List<Entity>> entities;
 	private static Map<Chunk, List<Entity>> byChunk;
 	private static LinkedList<Entity> removalQueue;
@@ -41,6 +43,7 @@ public class EntityHandler {
 
 	public static void cleanUp() {
 		shader.cleanUp();
+		itemRender.cleanUp();
 		EntityData.cleanUp();
 	}
 
@@ -53,6 +56,7 @@ public class EntityHandler {
 		entities = new HashMap<Texture, List<Entity>>();
 		byChunk = new HashMap<Chunk, List<Entity>>();
 		removalQueue = new LinkedList<Entity>();
+		itemRender = new ItemRender();
 		
 		EntityData.init();
 	}
@@ -71,11 +75,12 @@ public class EntityHandler {
 		GL20.glEnableVertexAttribArray(2);
 
 		for (final Texture texture : entities.keySet()) {
-			if (texture == null) {
+			if (texture == null || texture == itemRender.getTexture()) {
 				continue;
 			}
 
 			texture.bind(0);
+
 			for (final Entity entity : entities.get(texture)) {
 				final Model model = entity.getModel();
 
@@ -95,8 +100,12 @@ public class EntityHandler {
 		GL20.glDisableVertexAttribArray(1);
 		GL20.glDisableVertexAttribArray(2);
 		GL30.glBindVertexArray(0);
-		GL11.glDisable(GL30.GL_CLIP_DISTANCE0);
 		shader.stop();
+		
+		List<Entity> items = entities.get(itemRender.getTexture());
+		if (items != null) {
+			itemRender.render(camera, lightDir, items);
+		}
 	}
 
 	public static void renderViewmodel(Camera camera, Vector3f lightDir, Model model, Texture texture, Matrix4f modelMatrix) {
@@ -120,10 +129,8 @@ public class EntityHandler {
 		GL20.glDisableVertexAttribArray(1);
 		GL20.glDisableVertexAttribArray(2);
 		GL30.glBindVertexArray(0);
-		GL11.glDisable(GL30.GL_CLIP_DISTANCE0);
 		shader.stop();
 	}
-
 	
 	public static void render(Camera camera, Vector3f lightDir, Entity object) {
 		shader.start();
@@ -311,5 +318,9 @@ public class EntityHandler {
 				}
 			}
 		}
+	}
+
+	public static ItemRender getItemRender() {
+		return itemRender;
 	}
 }

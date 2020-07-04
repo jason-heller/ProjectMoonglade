@@ -9,5 +9,5 @@ public interface Scene {
 	public void cleanUp();
 	public Camera getCamera();
 	public boolean isLoading();
-	public void render(float px, float py, float pz, float pw);
+	public void render();
 }

@@ -91,10 +91,16 @@ public class Source {
 		AL10.alSourcei(sourceId, EFX10.AL_DIRECT_FILTER, EFX10.AL_FILTER_NULL);
 	}
 
+	
 	public void setAttenuation(float rolloffFactor, float referenceDistance) {
 		AL10.alSourcef(sourceId, AL10.AL_ROLLOFF_FACTOR, rolloffFactor);
 		AL10.alSourcef(sourceId, AL10.AL_REFERENCE_DISTANCE, referenceDistance);
-		// AL10.alSourcef(sourceId, AL10.AL_MAX_DISTANCE, maxDistance);
+	}
+	
+	public void setAttenuation(float rolloffFactor, float referenceDistance, float maxDistance) {
+		AL10.alSourcef(sourceId, AL10.AL_ROLLOFF_FACTOR, rolloffFactor);
+		AL10.alSourcef(sourceId, AL10.AL_REFERENCE_DISTANCE, referenceDistance);
+		AL10.alSourcef(sourceId, AL10.AL_MAX_DISTANCE, maxDistance);
 	}
 
 	public void setGain(float vol) {

@@ -38,6 +38,13 @@ public abstract class Biome {
 	public Vector3f skyColor = BiomeColors.DEFAULT_SKY;
 	public Vector3f groundColor = BiomeColors.DEFAULT_GRASS;
 	
+	public float groundTx, groundTy;
+	public Vector3f waterColor = BiomeColors.DEFAULT_WATER;
+	
+	public float shoreSize = 0f;				// Increases the biome's "shore". Higher values = bigger flat land on biomes edge.
+												// NOTE techically this value is squared so keep it small.
+	public float terrainTransitionScale = 1f;	// values > 1 = steeper/more cliff-like terrain interpolation. Values < 1 will make it smoother
+	
 	public abstract float augmentTerrainHeight(int x, int z, float currentHeight, int subseed, Random r);
 	public abstract int getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r, int[][] tileItems);
 	public abstract Structure getTerrainStructures(int x, int z, float currentHeight, int subseed, Random r);

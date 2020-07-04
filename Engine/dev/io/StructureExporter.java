@@ -12,8 +12,8 @@ import io.FileUtils;
 import map.Chunk;
 import map.Enviroment;
 import map.Terrain;
-import map.building.Building;
-import map.building.BuildingTile;
+import map.tile.BuildData;
+import map.tile.BuildingTile;
 import scene.overworld.Overworld;
 import scene.overworld.inventory.tool.EditorBoundsTool;
 
@@ -59,14 +59,14 @@ public class StructureExporter {
 					int rx = x + i;
 					int rz = x + j;
 					Chunk c = t.getChunkAt(rx, rz);
-					Building b = c.getBuilding();
+					BuildData b = c.getBuilding();
 					int dx = rx - c.realX;
 					int dz = rz - c.realZ;
 
 					if (includeHeights)
 						dos.writeFloat(c.heightmap[dx][dz]);
 					if (includeEnvTiles)
-						dos.writeInt(c.getTileItems().getTileId(dx, dz));
+						dos.writeInt(c.getChunkEntities().getEntityId(dx, dz));
 
 					if (includeBuildings) {
 						for (int k = 0; k < h; k++) {
@@ -75,6 +75,7 @@ public class StructureExporter {
 								dos.write((byte)0);
 							} else {
 								dos.write(tile.getWalls());
+								dos.write(tile.getSlope());
 								dos.write(tile.getFlags());
 								for(int s = 0; s < 6; s++) {
 									dos.writeShort(tile.getMaterial(s).ordinal());

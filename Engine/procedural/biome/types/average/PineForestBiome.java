@@ -4,7 +4,6 @@ import java.util.Random;
 
 import map.Moisture;
 import map.Temperature;
-import procedural.NoiseUtil;
 import procedural.biome.Biome;
 import procedural.biome.types.BiomeColors;
 import procedural.structures.Structure;

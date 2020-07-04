@@ -1,5 +1,6 @@
 package gl.water;
 
+import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
@@ -31,21 +32,21 @@ public class WaterRender {
 		GL20.glEnableVertexAttribArray(0);
 		GL20.glEnableVertexAttribArray(1);
 		
-		shader.reflection.loadTexUnit(0);
-		shader.refraction.loadTexUnit(1);
-		shader.dudv.loadTexUnit(2);
-		//shader.offset.loadVec4(px, py, pz, pw);
+		shader.dudv.loadTexUnit(0);
+		shader.water.loadTexUnit(1);
 		
-		GL13.glActiveTexture(GL13.GL_TEXTURE0);
-		GL11.glBindTexture(GL11.GL_TEXTURE_2D, Render.reflection.getTextureBuffer());
+		GL11.glDisable(GL11.GL_CULL_FACE);
+		GL11.glEnable(GL11.GL_BLEND);
+		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		
-		GL13.glActiveTexture(GL13.GL_TEXTURE1);
-		GL11.glBindTexture(GL11.GL_TEXTURE_2D, Render.refraction.getTextureBuffer());
-		
-		Resources.getTexture("dudv").bind(2);
+		Resources.getTexture("dudv").bind(0);
+		Resources.getTexture("water").bind(1);
 		
 		shader.projectionViewMatrix.loadMatrix(camera.getProjectionViewMatrix());
 		shader.timer.loadFloat(timer);
+		
+		Vector3f waterColor = Vector3f.lerp(env.getClosestBiome().waterColor, env.getSkybox().getTopColor(), .75f);
+		shader.color.loadVec3(waterColor);
 		
 		for(Chunk[] chunks : env.getTerrain().get()) {
 			for(Chunk chunk : chunks) {
@@ -59,12 +60,17 @@ public class WaterRender {
 			}
 		}
 		
+		GL11.glDisable(GL11.GL_BLEND);
+		GL11.glEnable(GL11.GL_CULL_FACE);
+		
 		GL20.glDisableVertexAttribArray(0);
 		GL20.glDisableVertexAttribArray(1);
+		
 		shader.stop();
 	}
 	
 	public void cleanUp() {
 		Resources.removeTextureReference("water");
+		Resources.removeTextureReference("dudv");
 	}
 }

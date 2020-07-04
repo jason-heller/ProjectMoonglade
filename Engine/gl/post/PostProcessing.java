@@ -21,6 +21,8 @@ public class PostProcessing {
 
 	private static int numActiveShaders = 0;
 
+	public static boolean underwater = false;
+
 	public static final BrightnessShader BRIGHTNESS_SHADER = new BrightnessShader();
 	public static final WaveShader WAVE_SHADER = new WaveShader();
 	public static final GaussianHBlur H_BLUR_SHADER = new GaussianHBlur();
@@ -65,12 +67,16 @@ public class PostProcessing {
 	}
 
 	public static void init() {
-		quad = ModelUtils.quad2DModel();
+		quad = Model.create();
+		quad.bind();
+		quad.createAttribute(0, new float[] { -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f }, 2);
+		quad.createAttribute(1, new float[] { 0, 0, 1, 0, 0, 1, 1, 1 }, 2);
+		quad.unbind();
 		timer = 0f;
 
 		// Added later = higher priority
 		// addShader(BRIGHTNESS_SHADER);
-		// addShader(WAVE_SHADER);
+		addShader(WAVE_SHADER);
 		addShader(H_BLUR_SHADER);
 		addShader(V_BLUR_SHADER);
 		addShader(COMBINE_SHADER);
@@ -89,7 +95,11 @@ public class PostProcessing {
 		GL13.glActiveTexture(GL13.GL_TEXTURE0);
 		GL11.glDisable(GL11.GL_DEPTH_TEST);
 
-		DEFAULT_SHADER.render(Render.screen);
+		if (PostProcessing.underwater ) {
+			WAVE_SHADER.render(Render.screen);
+		} else {
+			DEFAULT_SHADER.render(Render.screen);
+		}
 
 		GL11.glEnable(GL11.GL_DEPTH_TEST);
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);

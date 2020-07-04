@@ -4,9 +4,11 @@ import org.joml.Vector3f;
 
 import core.Application;
 import core.Resources;
+import dev.Console;
 import gl.Camera;
-import gl.Window;
+import gl.skybox.Skybox;
 import gl.terrain.TerrainRender;
+import map.tile.TileModels;
 import map.weather.Weather;
 import procedural.biome.Biome;
 import procedural.biome.BiomeMap;
@@ -48,6 +50,8 @@ public class Enviroment {
 	private Weather weather;
 	public static Terrain terrain;
 	private EntitySpawnHandler spawner;
+	
+	private Skybox skybox;
 
 	static long seed;
 
@@ -56,8 +60,11 @@ public class Enviroment {
 		seed = Overworld.worldSeed.hashCode();
 		GenTerrain.init(terrain, (int)(seed & 0xff), (int)(seed & 0xff00), (int)(seed & 0xff0000), (int)(seed & 0xff000000));
 		
-		//skyboxRenderer = new SkyboxRenderer();
+		skybox = new Skybox();
+		
 		terrainRender = new TerrainRender();
+		
+		TileModels.init();
 
 		lightDirection = new Vector3f();
 
@@ -79,12 +86,13 @@ public class Enviroment {
 		Resources.addSound("chop_bark", "chop.ogg", 2, false);
 		Resources.addSound("swing", "swing.ogg", 2, false);
 		Resources.addSound("collect", "collect03.wav", true);
+		Resources.addSound("water", "ambient/water_ambient.ogg", true);
 		
 		spawner = new EntitySpawnHandler(this, terrain);
 	}
 	
 	public void cleanUp() {
-		//skyboxRenderer.cleanUp();
+		skybox.cleanUp();
 		terrainRender.cleanUp();
 		terrain.cleanUp();
 		weather.cleanUp();
@@ -95,17 +103,18 @@ public class Enviroment {
 		Resources.removeSound("chop_bark");
 		Resources.removeSound("swing");
 		Resources.removeSound("collect");
-		
+		Resources.removeSound("water");
 	}
 
 	public Terrain getTerrain() {
 		return terrain;
 	}
 	
-	public void render(Camera camera, Vector3f selectionPt, byte facing, float px, float py, float pz, float pw) {
-		//skyboxRenderer.render(camera, time);
+	public void render(Camera camera, Vector3f selectionPt, byte facing) {
+		Vector3f weatherColor = weather.determineSkyColor();
 		
-		terrainRender.render(camera, lightDirection, selectionPt, facing, terrain, px, py, pz, pw);
+		skybox.render(camera, Enviroment.time, getClosestBiome().getSkyColor(), weatherColor);
+		terrainRender.render(camera, lightDirection, selectionPt, facing, terrain);
 
 		//EntityControl.render(camera, lightDirection);
 	}
@@ -118,11 +127,16 @@ public class Enviroment {
 		EntityHandler.setActivation(terrain);
 	}
 
-	public void resize(int chunkArrSize) {
-		Terrain.size = chunkArrSize;
+	public void resize() {
+		chunkArrSize = Terrain.size;
+		Console.log(Terrain.size);
+		Vector3f c = Application.scene.getCamera().getPosition();
+		x = (int) Math.floor(c.x / Chunk.CHUNK_SIZE);
+		z = (int) Math.floor(c.z / Chunk.CHUNK_SIZE);
 		terrain.cleanUp();
 		terrain = new Terrain(this, chunkArrSize);
 		terrain.populate(x, z);
+		Console.log(Terrain.size);
 	}
 
 	public void tick(Scene scene) {
@@ -215,5 +229,9 @@ public class Enviroment {
 	
 	public Vector3f getLightDirection() {
 		return lightDirection;
+	}
+
+	public Skybox getSkybox() {
+		return skybox;
 	}
 }

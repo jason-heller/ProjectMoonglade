@@ -3,7 +3,9 @@ package map;
 import org.joml.Vector3f;
 
 import gl.building.BuildingRender;
-import map.building.BuildingTile;
+import gl.res.TileModel;
+import map.tile.BuildingTile;
+import map.tile.TileModels;
 import scene.overworld.inventory.Item;
 
 /**
@@ -12,23 +14,24 @@ import scene.overworld.inventory.Item;
  */
 public enum Material {
 	NONE("", 0, 0, 0, false, false), 	// Effectively not a material
-	STICK("stick", 6, 0, 5, false, false, false),
-	STICK_BUNDLE("stick bundle", 3, 0, 6, false, false),
-	PLANKS("planks", 0, 0, 6, false, false),
+	STICK("stick", 6, 0, 5, TileModels.DEFAULT, false, false, false),
+	STICK_BUNDLE("stick bundle", 3, 0, 6, TileModels.FILLED, false, false, true),
+	PLANKS("planks", 0, 0, 6, TileModels.FILLED, false),
 	DRYWALL("drywall", 1, 0, 7, false, false),
-	STONE_BRICK("stone bricks", 2, 0, 4, false, false),
-	BRICK("bricks", 4, 0, 8, false, false),
+	STONE_BRICK("stone bricks", 2, 0, 4, TileModels.FILLED, false),
+	BRICK("bricks", 4, 0, 8, TileModels.FILLED, false),
 	WINDOW("window", 0, 13, 9, true, true),
-	THATCH("thatch", 5, 0, 10, false, false),
-	FENCE("fence", 0, 16, 22, true, true),
+	THATCH("thatch", 5, 0, 10,  TileModels.FILLED, false, false, true),
+	FENCE("fence", 0, 16, 5, true, true),
 	VINE("vine", 0, 16, 23, false, true);
 	
 	private String name;
 	private int tx, ty;
 	private boolean isTiling;
-	private boolean transparent;
+	private boolean transparent = false;
 	private int drop;
 	private boolean solid = true;
+	private TileModels tileModel;
 	
 	Material(String name, int tx, int ty, int drop, boolean isTiling, boolean transparent) {
 		this.name = name;
@@ -37,9 +40,19 @@ public enum Material {
 		this.drop = drop;
 		this.isTiling = isTiling;
 		this.transparent = transparent;
+		this.tileModel = TileModels.DEFAULT;
 	}
 	
-	Material(String name, int tx, int ty, int drop, boolean isTiling, boolean transparent, boolean solid) {
+	Material(String name, int tx, int ty, int drop, TileModels tileModel, boolean isTiling) {
+		this.name = name;
+		this.tx = tx;
+		this.ty = ty;
+		this.drop = drop;
+		this.isTiling = isTiling;
+		this.tileModel = tileModel;
+	}
+	
+	Material(String name, int tx, int ty, int drop, TileModels tileModel, boolean isTiling, boolean transparent, boolean solid) {
 		this.name = name;
 		this.tx = tx;
 		this.ty = ty;
@@ -47,6 +60,7 @@ public enum Material {
 		this.isTiling = isTiling;
 		this.transparent = transparent;
 		this.solid = solid;
+		this.tileModel = tileModel;
 	}
 	
 	public String getName() {
@@ -89,6 +103,9 @@ public enum Material {
 		return solid;
 	}
 
+	public TileModel getTileModel() {
+		return tileModel.getModel();
+	}
 	
 	/** This will probably be confusing, maps a byteflag variable to a 16x16 (+) offset in the
 	 * material texture offset. This is to be used for tiling materials. Note that this expects a 

@@ -7,7 +7,7 @@ import core.Resources;
 import gl.Window;
 import map.Chunk;
 import map.Terrain;
-import map.tile.EnvTile;
+import map.prop.StaticProp;
 import scene.Scene;
 import scene.entity.Entity;
 import scene.entity.EntityHandler;
@@ -25,12 +25,12 @@ public class FallingTreeEntity extends Entity {
 	private int fallDirPos;
 	private Item drop;
 
-	public FallingTreeEntity(EnvTile tile, float x, float y, float z, float scale) {
+	public FallingTreeEntity(StaticProp tile, float x, float y, float z, float scale) {
 		super();
 		this.position.set(x, y, z);
 		this.scale = scale;
 
-		this.setModel(tile.getModel().toNonTileModel());
+		this.setModel(tile.getModel().toOpenGLModel());
 		this.setDiffuse(Resources.getTexture("fauna"));
 		this.bounds = tile.getBounds();
 		

@@ -4,10 +4,10 @@ import java.util.Random;
 
 import map.Moisture;
 import map.Temperature;
-import procedural.NoiseUtil;
 import procedural.biome.Biome;
 import procedural.biome.types.BiomeColors;
 import procedural.structures.Structure;
+import procedural.terrain.TerrainMeshBuilder;
 
 public class MangroveBiome extends Biome {
 	public MangroveBiome() {
@@ -20,6 +20,10 @@ public class MangroveBiome extends Biome {
 		
 		this.skyColor = BiomeColors.DEFAULT_SKY;
 		this.groundColor = BiomeColors.MUD_COLOR;
+		
+
+		
+		this.groundTx = 2*TerrainMeshBuilder.TERRAIN_ATLAS_SIZE;
 		////////////////////////////////////////////////
 	}
 
@@ -46,7 +50,7 @@ public class MangroveBiome extends Biome {
 	
 	@Override
 	public float getWaterTable(int x, int z, float height, int subseed) {
-		return 0f;
+		return -0.5f;
 	}
 	
 	@Override

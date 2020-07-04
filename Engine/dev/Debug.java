@@ -11,7 +11,7 @@ import gl.res.Model;
 import gl.res.Vbo;
 import map.Chunk;
 import map.Enviroment;
-import map.building.BuildingTile;
+import map.tile.BuildingTile;
 import procedural.biome.Biome;
 import procedural.biome.BiomeVoronoi;
 import procedural.biome.BiomeVoronoi.BiomeNode;

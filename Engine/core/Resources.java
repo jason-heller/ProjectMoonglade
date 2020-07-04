@@ -201,8 +201,8 @@ public class Resources {
 	}
 
 	public static Texture addTexture(String key, String path, boolean nearest, boolean isTransparent,
-			boolean clampEdges, boolean mipmap, float offset) {
-		final Texture tex = TextureUtils.createTexture("res/" + path, GL11.GL_TEXTURE_2D, nearest, mipmap, offset,
+			boolean clampEdges, boolean mipmap, float bias) {
+		final Texture tex = TextureUtils.createTexture("res/" + path, GL11.GL_TEXTURE_2D, nearest, mipmap, bias,
 				clampEdges, isTransparent, 0);
 		textureMap.put(key, tex);
 		return tex;
@@ -210,9 +210,9 @@ public class Resources {
 	// String path, int type, boolean nearest, boolean mipmap, float bias, boolean
 	// clampEdges, boolean isTransparent, int numRows
 
-	public static Texture addTexture(String key, String path, int type, boolean nearest, boolean mipmap, float bias,
-			boolean clampEdges, boolean isTransparent, int numRows) {
-		final Texture tex = TextureUtils.createTexture("res/" + path, type, nearest, mipmap, bias, clampEdges,
+	public static Texture addTexture(String key, String path, boolean nearest, boolean isTransparent,
+			boolean clampEdges, boolean mipmap, float bias, int numRows) {
+		final Texture tex = TextureUtils.createTexture("res/" + path, GL11.GL_TEXTURE_2D, nearest, mipmap, bias, clampEdges,
 				isTransparent, numRows);
 		return addTexture(key, tex);
 	}

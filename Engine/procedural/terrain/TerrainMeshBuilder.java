@@ -5,32 +5,52 @@ import static map.Chunk.VERTEX_COUNT;
 
 import org.joml.Vector3f;
 
-import dev.Console;
 import dev.Debug;
 import gl.res.Model;
 import gl.res.Vbo;
 import map.Chunk;
-import map.building.Building;
-import map.building.BuildingTile;
+import map.tile.BuildData;
+import map.tile.BuildingTile;
+import procedural.biome.Biome;
 import procedural.biome.BiomeData;
 import procedural.biome.BiomeVoronoi;
 import procedural.biome.types.BiomeColors;
 import util.ModelBuilder;
+import util.ModelBuilderOld;
 
 public class TerrainMeshBuilder {
+	
+	public static final float TERRAIN_ATLAS_SIZE = 1f / 8f;
 	
 	private static ModelBuilder groundBuilder;
 	private static ModelBuilder wallBuilder;
 	
 	private static int groundIndices = 0, wallIndices = 0;
 	
+	private static float[] random;
+	private static int randomIndex = 0;
+
+	public static void init() {
+		random = new float[100];
+		for (int i = 0; i < 100; i++)
+			random[i] = (float) Math.random();
+	}
+
+	public static float getRandom() {
+		if (randomIndex >= 99)
+			randomIndex = 0;
+		else
+			randomIndex = randomIndex + 1;
+		return random[randomIndex];
+	}
+	
 	private static Vbo[][] buildChunkMesh(Chunk chunk, BiomeVoronoi biomeVoronoi) {
 		final int x = chunk.dataX * (VERTEX_COUNT-1);
 		final int z = chunk.dataZ * (VERTEX_COUNT-1);
 		final float[][] heights = chunk.heightmap;
 		
-		groundBuilder = new ModelBuilder();
-		wallBuilder = new ModelBuilder();
+		groundBuilder = new ModelBuilder(true, true, true);
+		wallBuilder = new ModelBuilder(true, true, true);
 		groundIndices = 0;
 		wallIndices = 0;
 		
@@ -39,11 +59,12 @@ public class TerrainMeshBuilder {
 				for(int i = 0; i < VERTEX_COUNT; i++) {
 					int dx = (i)-1;
 					int dz = (j)-1;
-					BiomeData biomeCellData = biomeVoronoi.getDataAt((x+i)*POLYGON_SIZE, (z+j)*POLYGON_SIZE);
+					BiomeData biomeData = biomeVoronoi.getDataAt((x+i)*POLYGON_SIZE, (z+j)*POLYGON_SIZE);
+					
 					if (j != 0 && i != 0) {
 						addTile((x+dx)*POLYGON_SIZE, (z+dz)*POLYGON_SIZE,
 								heights[i*2-1][j*2-1], heights[i*2][j*2-1],
-								heights[i*2-1][j*2], heights[i*2][j*2], biomeCellData);
+								heights[i*2-1][j*2], heights[i*2][j*2], biomeData);
 					}
 					
 				}
@@ -85,10 +106,27 @@ public class TerrainMeshBuilder {
 		groundBuilder.addVertex(x, 					btmLeft, 	z + POLYGON_SIZE);
 		groundBuilder.addVertex(x + POLYGON_SIZE, 	btmRight, 	z + POLYGON_SIZE);
 		
-		groundBuilder.addTextureCoord(1, 0);
-		groundBuilder.addTextureCoord(0, 0);
-		groundBuilder.addTextureCoord(0, 1);
-		groundBuilder.addTextureCoord(1, 1);
+		Biome mainBiome = biomeData.getMainBiome();
+		Biome secondaryBiome = biomeData.getSecondaryBiome();
+		float influence = biomeData.getTerrainFactor();
+		
+		if ((mainBiome.groundTx != 0f || mainBiome.groundTy != 0f) && (influence != 0f || (secondaryBiome == mainBiome
+				|| (secondaryBiome.groundTx == mainBiome.groundTx && secondaryBiome.groundTy == mainBiome.groundTy))
+				)) {
+
+			float dx = mainBiome.groundTx;
+			float dy = mainBiome.groundTy;
+
+			groundBuilder.addUv(dx + TERRAIN_ATLAS_SIZE, dy);
+			groundBuilder.addUv(dx, dy);
+			groundBuilder.addUv(dx, dy + TERRAIN_ATLAS_SIZE);
+			groundBuilder.addUv(dx + TERRAIN_ATLAS_SIZE, dy + TERRAIN_ATLAS_SIZE);
+		} else{
+			groundBuilder.addUv(TERRAIN_ATLAS_SIZE, 0);
+			groundBuilder.addUv(0, 0);
+			groundBuilder.addUv(0, TERRAIN_ATLAS_SIZE);
+			groundBuilder.addUv(TERRAIN_ATLAS_SIZE, TERRAIN_ATLAS_SIZE);
+		}
 		
 		Vector3f normal = Vector3f.cross(new Vector3f(POLYGON_SIZE, topRight-topLeft, 0),
 				new Vector3f(0, btmLeft-topLeft, POLYGON_SIZE));
@@ -139,7 +177,7 @@ public class TerrainMeshBuilder {
 		return new Model[] {ground, wall};
 	}
 	
-	public static void addWall(ModelBuilder builder, Vector3f p1, Vector3f p2, Vector3f p3,
+	public static void addWall(ModelBuilderOld builder, Vector3f p1, Vector3f p2, Vector3f p3,
 			Vector3f p4, int bx, int bz,Chunk chunk) {
 		
 		Vector3f normal = Vector3f.cross(Vector3f.sub(p3, p1), Vector3f.sub(p2, p1));
@@ -158,7 +196,7 @@ public class TerrainMeshBuilder {
 			p4.set(hold);
 		}
 		
-		Building b = chunk.getBuilding();
+		BuildData b = chunk.getBuilding();
 		//final int cx = chunk.realX;
 		//final int cz = chunk.realZ;
 		
@@ -178,10 +216,10 @@ public class TerrainMeshBuilder {
 		
 		if (tile == null || (facing & tile.getWalls()) == 0) {
 			addTerrainWall(builder, v1, v2, v3, v4, normal);
-			builder.addTextureCoord(0,1f-(((p1.y % 1) + 1) % 1));
-			builder.addTextureCoord(1,1f-(((p2.y % 1) + 1) % 1));
-			builder.addTextureCoord(1,1);
-			builder.addTextureCoord(0,1);
+			builder.addTextureCoord(0, (1f - (((p1.y % 1) + 1) % 1)) * TERRAIN_ATLAS_SIZE);
+			builder.addTextureCoord(TERRAIN_ATLAS_SIZE, (1f - (((p2.y % 1) + 1) % 1)) * TERRAIN_ATLAS_SIZE);
+			builder.addTextureCoord(TERRAIN_ATLAS_SIZE, TERRAIN_ATLAS_SIZE);
+			builder.addTextureCoord(0, TERRAIN_ATLAS_SIZE);
 		}
 		
 		y1 = dy;
@@ -195,15 +233,15 @@ public class TerrainMeshBuilder {
 
 			addTerrainWall(builder, v1, v2, v3, v4, normal);
 			builder.addTextureCoord(0,0);
-			builder.addTextureCoord(1,0);
-			builder.addTextureCoord(1,1);
-			builder.addTextureCoord(0,1);
+			builder.addTextureCoord(TERRAIN_ATLAS_SIZE,0);
+			builder.addTextureCoord(TERRAIN_ATLAS_SIZE,TERRAIN_ATLAS_SIZE);
+			builder.addTextureCoord(0,TERRAIN_ATLAS_SIZE);
 			
 			y2 -= BuildingTile.TILE_SIZE;
 		}
 	}
 
-	private static void addTerrainWall(ModelBuilder builder, Vector3f v1, Vector3f v2, Vector3f v3, Vector3f v4, Vector3f normal) {
+	private static void addTerrainWall(ModelBuilderOld builder, Vector3f v1, Vector3f v2, Vector3f v3, Vector3f v4, Vector3f normal) {
 		builder.addVertex(v1);
 		builder.addVertex(v2);
 		builder.addVertex(v3);

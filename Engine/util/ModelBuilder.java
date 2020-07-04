@@ -7,14 +7,115 @@ import org.joml.Vector3f;
 import org.lwjgl.opengl.GL15;
 
 import gl.res.Model;
-import gl.res.TileableModel;
+import gl.res.PropModel;
 import gl.res.Vbo;
+
+class Attribute {
+	public int id;
+	private List<Float> data;
+	public int stride;
+
+	public Attribute() {
+		data = new ArrayList<Float>();
+	}
+
+	public float[] getData() {
+		float[] arr = new float[data.size()];
+		int i = 0;
+		for (Float f : data) {
+			arr[i++] = f;
+		}
+		return arr;
+	}
+
+	public void add(float f) {
+		data.add(f);
+	}
+}
 
 public class ModelBuilder {
 
 	private int indexRel = 0;
-	private boolean hasColorChannel = false;
+	private List<Attribute> attribs;
+	private List<Integer> indices = new ArrayList<Integer>();
+
+	private Attribute vertices, uvs, normals, colors;
+
+	public ModelBuilder(boolean hasUvs, boolean hasNormals, boolean hasColors) {
+		indices = new ArrayList<Integer>();
+		attribs = new ArrayList<Attribute>();
+		
+		int index = 1;
+
+		addAttrib(0, 3);
+		if (hasUvs) {
+			addAttrib(index, 2);
+			uvs = attribs.get(index++);
+		}
+		if (hasNormals) {
+			addAttrib(index, 3);
+			normals = attribs.get(index++);
+		}
+		if (hasColors) {
+			addAttrib(index, 4);
+			colors = attribs.get(index++);
+		}
+
+		vertices = attribs.get(0);
+	}
+
+	public int addAttrib(int id, int stride) {
+		Attribute attrib = new Attribute();
+		attrib.id = id;
+		attrib.stride = stride;
+		attribs.add(attrib);
+
+		return attribs.size() - 1;
+	}
+
+	public void add(int id, float... data) {
+		Attribute attrib = attribs.get(id);
+		for (float f : data) {
+			attrib.add(f);
+		}
+	}
+
+	public void addVertex(float x, float y, float z) {
+		vertices.add(x);
+		vertices.add(y);
+		vertices.add(z);
+	}
+
+	public void addUv(float tx, float ty) {
+		uvs.add(tx);
+		uvs.add(ty);
+	}
+
+	public void addNormal(float x, float y, float z) {
+		normals.add(x);
+		normals.add(y);
+		normals.add(z);
+	}
+
+	public void addNormal(Vector3f n) {
+		addNormal(n.x, n.y, n.z);
+	}
+
+	public void addColor(float r, float g, float b, float a) {
+		colors.add(r);
+		colors.add(g);
+		colors.add(b);
+		colors.add(a);
+	}
 	
+	public void addColor(float r, float g, float b) {
+		addColor(r, g, b, 1f);
+	}
+
+	public void addColor(Vector3f n) {
+		addColor(n.x, n.y, n.z, 1f);
+	}
+
 	public static Model buildQuad(float[] vertices) {
 		final float[] normals = new float[vertices.length];
 		final Vector3f normal = getNormal(vertices, 0);
@@ -35,169 +136,50 @@ public class ModelBuilder {
 		return model;
 	}
 
-	public static Model createModel(float[] vertices, float[] uvs, float[] normals, float[] colors, int[] indices) {
+	public Model createModel() {
 		final Model model = Model.create();
 		model.bind();
-		model.createAttribute(0, vertices, 3);
-		model.createAttribute(1, uvs, 2);
-		model.createAttribute(2, normals, 3);
-		model.createAttribute(3, colors, 4);
-		model.createIndexBuffer(indices);
-		model.unbind();
+		for (Attribute attrib : attribs) {
+			model.createAttribute(attrib.id, attrib.getData(), attrib.stride);
+		}
 
-		//model.setVertexData(indices, vertices);
+		model.createIndexBuffer(getIndexArray());
+		model.unbind();
 
 		return model;
 	}
-	
-	public static Model createModel(float[] vertices, float[] uvs, float[] normals, int[] indices) {
-		final Model model = Model.create();
-		model.bind();
-		model.createAttribute(0, vertices, 3);
-		model.createAttribute(1, uvs, 2);
-		model.createAttribute(2, normals, 3);
-		model.createIndexBuffer(indices);
-		model.unbind();
 
-		//model.setVertexData(indices, vertices);
+	private int[] getIndexArray() {
+		int[] inds = new int[indices.size()];
+		for (int i = 0; i < inds.length; i++) {
+			inds[i] = indices.get(i);
+		}
 
-		
-		return model;
+		return inds;
 	}
-	
+
 	public Model finish() {
 		indexRel = 0;
-		return (hasColorChannel) ? createModel(vertices, uvs, normals, colors, indices) :
-			createModel(vertices, uvs, normals, indices);
+		return createModel();
 	}
-	
+
 	public Vbo[] asVbos() {
 		indexRel = 0;
-		return asVbos(vertices, uvs, normals, colors, indices);
-	}
-	
-	public static Vbo[] asVbos(float[] vertices, float[] uvs, float[] normals, float[] colors, int[] indices) {
-		final Vbo[] vbos = new Vbo[5];
-		
-		vbos[0] = Vbo.create(GL15.GL_ARRAY_BUFFER);
-		vbos[0].bind();
-		vbos[0].storeData(vertices);
-		vbos[0].unbind();
-		
-		vbos[1] = Vbo.create(GL15.GL_ARRAY_BUFFER);
-		vbos[1].bind();
-		vbos[1].storeData(uvs);
-		vbos[1].unbind();
-		
-		vbos[2] = Vbo.create(GL15.GL_ARRAY_BUFFER);
-		vbos[2].bind();
-		vbos[2].storeData(normals);
-		vbos[2].unbind();
-		
-		vbos[3] = Vbo.create(GL15.GL_ARRAY_BUFFER);
-		vbos[3].bind();
-		vbos[3].storeData(colors);
-		vbos[3].unbind();
-		
+		final Vbo[] vbos = new Vbo[attribs.size() + 1];
+
+		for (int i = 0; i < attribs.size(); i++) {
+			vbos[i] = Vbo.create(GL15.GL_ARRAY_BUFFER);
+			vbos[i].bind();
+			vbos[i].storeData(attribs.get(i).getData());
+			vbos[i].unbind();
+		}
+
 		vbos[4] = Vbo.create(GL15.GL_ELEMENT_ARRAY_BUFFER);
 		vbos[4].bind();
-		vbos[4].storeData(indices);
+		vbos[4].storeData(getIndexArray());
 		vbos[4].unbind();
-	
+
 		return vbos;
-	}
-
-	public static Model createModel(List<Float> meshVerts, List<Float> meshUvs, List<Float> meshNorms,
-			List<Float> meshColors, List<Integer> meshIndices) {
-		final int len = meshVerts.size() / 3;
-		final float[] _v = new float[meshVerts.size()];
-		final float[] _u = new float[meshUvs.size()];
-		final float[] _n = new float[meshNorms.size()];
-		final float[] _c = new float[meshColors.size()];
-		final int[] _i = new int[meshIndices.size()];
-		for (int i = 0; i < len; i++) {
-			_v[i * 3 + 0] = meshVerts.get(i * 3 + 0);
-			_v[i * 3 + 1] = meshVerts.get(i * 3 + 1);
-			_v[i * 3 + 2] = meshVerts.get(i * 3 + 2);
-
-			_u[i * 2 + 0] = meshUvs.get(i * 2 + 0);
-			_u[i * 2 + 1] = meshUvs.get(i * 2 + 1);
-
-			_n[i * 3 + 0] = meshNorms.get(i * 3 + 0);
-			_n[i * 3 + 1] = meshNorms.get(i * 3 + 1);
-			_n[i * 3 + 2] = meshNorms.get(i * 3 + 2);
-			
-			_c[i * 4 + 0] = meshColors.get(i * 4 + 0);
-			_c[i * 4 + 1] = meshColors.get(i * 4 + 1);
-			_c[i * 4 + 2] = meshColors.get(i * 4 + 2);
-			_c[i * 4 + 3] = meshColors.get(i * 4 + 3);
-		}
-
-		for (int i = 0; i < meshIndices.size(); i++) {
-			_i[i] = meshIndices.get(i);
-		}
-
-		return createModel(_v, _u, _n, _c, _i);
-	}
-	
-	public static Model createModel(List<Float> meshVerts, List<Float> meshUvs, List<Float> meshNorms,
-			List<Integer> meshIndices) {
-		final int len = meshVerts.size() / 3;
-		final float[] _v = new float[meshVerts.size()];
-		final float[] _u = new float[meshUvs.size()];
-		final float[] _n = new float[meshNorms.size()];
-		final int[] _i = new int[meshIndices.size()];
-		for (int i = 0; i < len; i++) {
-			_v[i * 3 + 0] = meshVerts.get(i * 3 + 0);
-			_v[i * 3 + 1] = meshVerts.get(i * 3 + 1);
-			_v[i * 3 + 2] = meshVerts.get(i * 3 + 2);
-
-			_u[i * 2 + 0] = meshUvs.get(i * 2 + 0);
-			_u[i * 2 + 1] = meshUvs.get(i * 2 + 1);
-
-			_n[i * 3 + 0] = meshNorms.get(i * 3 + 0);
-			_n[i * 3 + 1] = meshNorms.get(i * 3 + 1);
-			_n[i * 3 + 2] = meshNorms.get(i * 3 + 2);
-		}
-
-		for (int i = 0; i < meshIndices.size(); i++) {
-			_i[i] = meshIndices.get(i);
-		}
-
-		return createModel(_v, _u, _n, _i);
-	}
-	
-	public static Vbo[] asVbos(List<Float> meshVerts, List<Float> meshUvs, List<Float> meshNorms,
-			List<Float> meshColors, List<Integer> meshIndices) {
-		final int len = meshVerts.size() / 3;
-		final float[] _v = new float[meshVerts.size()];
-		final float[] _u = new float[meshUvs.size()];
-		final float[] _n = new float[meshNorms.size()];
-		final float[] _c = new float[meshColors.size()];
-		final int[] _i = new int[meshIndices.size()];
-		for (int i = 0; i < len; i++) {
-			_v[i * 3 + 0] = meshVerts.get(i * 3 + 0);
-			_v[i * 3 + 1] = meshVerts.get(i * 3 + 1);
-			_v[i * 3 + 2] = meshVerts.get(i * 3 + 2);
-
-			_u[i * 2 + 0] = meshUvs.get(i * 2 + 0);
-			_u[i * 2 + 1] = meshUvs.get(i * 2 + 1);
-
-			_n[i * 3 + 0] = meshNorms.get(i * 3 + 0);
-			_n[i * 3 + 1] = meshNorms.get(i * 3 + 1);
-			_n[i * 3 + 2] = meshNorms.get(i * 3 + 2);
-			
-			_c[i * 4 + 0] = meshColors.get(i * 4 + 0);
-			_c[i * 4 + 1] = meshColors.get(i * 4 + 1);
-			_c[i * 4 + 2] = meshColors.get(i * 4 + 2);
-			_c[i * 4 + 3] = meshColors.get(i * 4 + 3);
-		}
-
-		for (int i = 0; i < meshIndices.size(); i++) {
-			_i[i] = meshIndices.get(i);
-		}
-
-		return asVbos(_v, _u, _n, _c, _i);
 	}
 
 	public static int[] genIndexPattern(int vertexStripSize) {
@@ -229,157 +211,51 @@ public class ModelBuilder {
 		return Vector3f.cross(Vector3f.sub(p2, p1), Vector3f.sub(p3, p1)).normalize();
 	}
 
-	private final List<Float> vertices, uvs, normals, colors;
-
-	private final List<Integer> indices;
-
-	public ModelBuilder() {
-		vertices = new ArrayList<Float>();
-		uvs = new ArrayList<Float>();
-		normals = new ArrayList<Float>();
-		colors = new ArrayList<Float>();
-		indices = new ArrayList<Integer>();
-	}
-
 	public void addIndices(int... inds) {
 		for (final int i : inds) {
 			indices.add(i);
 		}
 	}
-	
+
 	public void addRelativeIndices(int jump, int... inds) {
 		for (final int i : inds) {
-			indices.add(indexRel+i);
+			indices.add(indexRel + i);
 		}
-		
+
 		indexRel += jump;
 	}
-	
-	public void addRelativeIndices(int jump, byte... inds) {
-		for (final byte i : inds) {
-			indices.add(indexRel+i);
-		}
-		indexRel += jump;
-	}
-	
-	public void addNormal(float nx, float ny, float nz) {
-		normals.add(nx);
-		normals.add(ny);
-		normals.add(nz);
-	}
-	
-	public void addNormal(Vector3f normal) {
-		normals.add(normal.x);
-		normals.add(normal.y);
-		normals.add(normal.z);
-	}
 
-	public void addTextureCoord(float tx, float ty) {
-		uvs.add(tx);
-		uvs.add(ty);
-	}
+	/*
+	 * public void addQuad(Vector3f p1, Vector3f p2, Vector3f p3, Vector3f p4,
+	 * Vector3f tex) {
+	 * 
+	 * Vector3f normal = Vector3f.cross(Vector3f.sub(p3, p1), Vector3f.sub(p2, p1));
+	 * normal.normalize().negate();
+	 * 
+	 * addVertex(p1); addVertex(p2); addVertex(p3); addVertex(p4);
+	 * 
+	 * addTextureCoord(tex.x + tex.z, tex.y); addTextureCoord(tex.x, tex.y);
+	 * addTextureCoord(tex.x, tex.y + tex.z); addTextureCoord(tex.x + tex.z, tex.y +
+	 * tex.z);
+	 * 
+	 * addNormal(normal); addNormal(normal); addNormal(normal); addNormal(normal);
+	 * 
+	 * addRelativeIndices(4, 0, 1, 3, 3, 1, 2); }
+	 * 
+	 * public void addTileableModel(float rx, float ry, float rz, float scale,
+	 * TileableModel tiledModel) { int len = tiledModel.getVertices(0).length / 3;
+	 * float[] vertices = tiledModel.getVertices(0); float[] uvs =
+	 * tiledModel.getUvs(0); float[] normals = tiledModel.getNormals(0);
+	 * 
+	 * for (int i = 0; i < len; i++) { addVertex(rx + vertices[i * 3]*scale, ry +
+	 * vertices[i * 3 + 1]*scale, rz + vertices[i * 3 + 2]*scale);
+	 * addTextureCoord(uvs[i * 2], uvs[i * 2 + 1]); addNormal(normals[i * 3],
+	 * normals[i * 3 + 1], normals[i * 3 + 2]); addColor(1, 1, 1, 0); }
+	 * 
+	 * int[] indices = tiledModel.getIndices(0); addRelativeIndices(len, indices); }
+	 */
 
-	public void addVertex(float x, float y, float z) {
-		vertices.add(x);
-		vertices.add(y);
-		vertices.add(z);
-	}
-	
-	public void addColor(Vector3f color) {
-		colors.add(color.x);
-		colors.add(color.y);
-		colors.add(color.z);
-		colors.add(1f);
-		hasColorChannel = true;
-	}
-	
-	public void addColor(float x, float y, float z) {
-		colors.add(x);
-		colors.add(y);
-		colors.add(z);
-		colors.add(1f);
-		hasColorChannel = true;
-	}
-	
-	public void addColor(float x, float y, float z, float w) {
-		colors.add(x);
-		colors.add(y);
-		colors.add(z);
-		colors.add(w);
-		hasColorChannel = true;
-	}
-
-	public void addVertex(Vector3f v) {
-		vertices.add(v.x);
-		vertices.add(v.y);
-		vertices.add(v.z);
-	}
-
-	public float[] getVertex(int index) {
-		final int i = index * 3;
-		return new float[] { vertices.get(i), vertices.get(i + 1), vertices.get(i + 2) };
-	}
-
-	public List<Float> getVertices() {
-		return vertices;
-	}
-
-	public void addQuad(Vector3f p1, Vector3f p2, Vector3f p3, Vector3f p4, Vector3f tex) {
-			
-		Vector3f normal = Vector3f.cross(Vector3f.sub(p3, p1), Vector3f.sub(p2, p1));
-		normal.normalize().negate();
-		
-		addVertex(p1);
-		addVertex(p2);
-		addVertex(p3);
-		addVertex(p4);
-
-		addTextureCoord(tex.x + tex.z, tex.y);
-		addTextureCoord(tex.x, tex.y);
-		addTextureCoord(tex.x, tex.y + tex.z);
-		addTextureCoord(tex.x + tex.z, tex.y + tex.z);
-
-		addNormal(normal);
-		addNormal(normal);
-		addNormal(normal);
-		addNormal(normal);
-		
-		addRelativeIndices(4, 0, 1, 3, 3, 1, 2);
-	}
-
-	public void addTileableModel(float rx, float ry, float rz, float scale, TileableModel tiledModel) {
-		int len = tiledModel.getVertices(0).length / 3;
-		float[] vertices = tiledModel.getVertices(0);
-		float[] uvs = tiledModel.getUvs(0);
-		float[] normals = tiledModel.getNormals(0);
-		
-		for (int i = 0; i < len; i++) {
-			addVertex(rx + vertices[i * 3]*scale, ry + vertices[i * 3 + 1]*scale, rz + vertices[i * 3 + 2]*scale);
-			addTextureCoord(uvs[i * 2], uvs[i * 2 + 1]);
-			addNormal(normals[i * 3], normals[i * 3 + 1], normals[i * 3 + 2]);
-			addColor(1, 1, 1, 0);
-		}
-		
-		int[] indices = tiledModel.getIndices(0);
-		addRelativeIndices(len, indices);
-
-		/*this.addQuad(new Vector3f(rx,ry,rz-1),
-				new Vector3f(rx-1,ry,rz),
-				new Vector3f(rx,ry,rz),
-				new Vector3f(rx-1,ry,rz-1), new Vector3f(rx,ry,rz));*/
-	}
-	
-	public void addTileableModel(float rx, float ry, float rz, float scale, TileableModel tiledModel, byte flags) {
+	public void addTileableModel(float rx, float ry, float rz, float scale, PropModel tiledModel, byte flags) {
 		// TODO finish this
 	}
-
-	public List<Float> getTextureCoords() {
-		return this.uvs;
-	}
-
-	public List<Integer> getIndices() {
-		return indices;
-	}
-
-	
 }

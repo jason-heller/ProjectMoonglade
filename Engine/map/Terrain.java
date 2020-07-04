@@ -1,6 +1,6 @@
 package map;
 
-import static map.building.BuildingTile.TILE_SIZE;
+import static map.tile.BuildingTile.TILE_SIZE;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -10,13 +10,15 @@ import org.joml.Vector3f;
 import dev.Console;
 import geom.Plane;
 import gl.Camera;
-import gl.res.TileableModel;
+import gl.res.PropModel;
 import gl.res.Vbo;
-import io.ChunkStreamer;
-import map.building.BuildingTile;
-import map.tile.EnvTile;
-import map.tile.TileData;
+import io.terrain.ChunkStreamer;
+import map.prop.StaticProp;
+import map.prop.PropData;
+import map.tile.BuildingTile;
 import procedural.terrain.GenTerrain;
+import procedural.terrain.TerrainMeshBuilder;
+import scene.entity.EntityHandler;
 import scene.overworld.Overworld;
 import util.MathUtil;
 
@@ -25,15 +27,17 @@ public class Terrain {
 	public static int size = 7;
 	private Chunk[][] data;
 	private Enviroment enviroment;
-	private TileData itemResources;
+	private PropData propData;
 	private ChunkStreamer streamer;
 	
 	public Terrain(Enviroment enviroment, int chunkArrSize) {
 		size = chunkArrSize;
-
-		itemResources = new TileData();
 		
-		streamer = new ChunkStreamer(Overworld.worldName, this);
+		TerrainMeshBuilder.init();
+
+		propData = new PropData();
+		
+		streamer = new ChunkStreamer(Overworld.worldName, enviroment);
 		if (size < 0) {
 			throw new IllegalArgumentException("Illegal Capacity: " + size);
 		}
@@ -46,7 +50,7 @@ public class Terrain {
 
 	public void cleanUp() {
 
-		itemResources = null;
+		propData = null;
 		
 		for (final Chunk[] chunkBatch : get()) {
 			for (final Chunk chunk : chunkBatch) {
@@ -56,7 +60,6 @@ public class Terrain {
 		}
 		//streamer.save(Application.scene.getCamera().getPosition());
 		streamer.update();
-		streamer.finish();
 	}
 
 	private void cleanUpChunk(Chunk chunk) {
@@ -99,14 +102,13 @@ public class Terrain {
 				final Chunk chunk = data[i][j];
 				switch(chunk.getState()) {
 				case Chunk.GENERATING:
-					chunk.generate(this, enviroment.getBiomeVoronoi(), i, j);
+					chunk.generate(this, enviroment.getBiomeVoronoi());
 					structPass.add(chunk);
 					break;
 				case Chunk.BUILDING:
 					chunk.build(enviroment.getBiomeVoronoi());
 					break;
 				case Chunk.UNLOADING:
-					Console.log("E");
 					chunk.cleanUp();
 					break;
 				case Chunk.LOADED:
@@ -125,24 +127,23 @@ public class Terrain {
 		
 	}
 
-	final float raycastDelta = 0.1f;
-	public Vector3f buildingRaycast(Overworld ow, Vector3f origin, Vector3f dir, float maxDist, byte facing, boolean floor) {
+	// NOTE: snapFlags = wwwwwgsf
+	// w = walls, s = slope, f = floor, g = gradual slope
+	final float raycastDelta = 0.05f;
+	public Vector3f buildingRaycast(Overworld ow, Vector3f origin, Vector3f dir, float maxDist, byte facing, byte snapFlags) {
 		BuildingTile output;
 		
 		Vector3f point = new Vector3f(origin);
 		Vector3f offset = Vector3f.mul(dir, raycastDelta);
 		
-		Vector3f potentialConnect = null;
-		byte potentialConnectFacingByte = 0;
-		
 		float tx = Float.MIN_VALUE;
 		float ty = Float.MIN_VALUE;
 		float tz = Float.MIN_VALUE;
 		
-		for(float i = 0; i <= maxDist; i += raycastDelta) {
-			float x = (float) ((Math.floor(point.x/BuildingTile.TILE_SIZE))*BuildingTile.TILE_SIZE);
-			float y = (float) ((Math.floor(point.y/BuildingTile.TILE_SIZE))*BuildingTile.TILE_SIZE);
-			float z = (float) ((Math.floor(point.z/BuildingTile.TILE_SIZE))*BuildingTile.TILE_SIZE);
+		for (float i = 0; i <= maxDist; i += raycastDelta) {
+			float x = (float) ((Math.floor(point.x / BuildingTile.TILE_SIZE)) * BuildingTile.TILE_SIZE);
+			float y = (float) ((Math.floor(point.y / BuildingTile.TILE_SIZE)) * BuildingTile.TILE_SIZE);
+			float z = (float) ((Math.floor(point.z / BuildingTile.TILE_SIZE)) * BuildingTile.TILE_SIZE);
 			if (x != tx || y != ty || z != tz) {
 				tx = x;
 				ty = y;
@@ -151,19 +152,29 @@ public class Terrain {
 				output = getTileAt(tx, ty, tz);
 				
 				byte side = 0;
-	        	if (output != null && (side = BuildingTile.checkRay(point, dir, x, y, z, output.getWalls())) != 0) {
-	        		return new Vector3f(tx, ty, tz);
-	        	} else {
-	        		Vector3f normal = MathUtil.rayBoxEscapeNormal(point, dir, x, y, z, TILE_SIZE);
-	        		byte potentialFacingByte = BuildingTile.getFacingByte(normal);
-
-					if (output != null && side == 0 && (BuildingTile.getOpposingBytes(output.getWalls()) & potentialFacingByte) == 0) {
-	        			potentialConnect = new Vector3f(tx, ty, tz);
-	        			potentialConnectFacingByte = potentialFacingByte;
+				Vector3f normal = MathUtil.rayBoxEscapeNormal(point, dir, x, y, z, TILE_SIZE);
+				byte potentialFacingByte = BuildingTile.getFacingByte(normal);
+				
+	        	if (output != null) {
+	        		// Check for collision within a tile space
+	        		if (snapFlags == 0) {
+	        			byte potentialFacingEntrance = BuildingTile.getFacingByte(MathUtil.rayBoxEscapeNormal(point, Vector3f.negate(dir), x, y, z, TILE_SIZE));
+	        			Vector3f out = testInTileConnection(ow, output, side, potentialFacingEntrance, normal, snapFlags, tx, ty, tz);
+	        			if (out != null && placeableInTile(output.getWalls(), output.getSlope(), side, snapFlags)) return out;
 	        		}
+
+	        		Vector3f out = testInTileConnection(ow, output, side, potentialFacingByte, normal, snapFlags, tx, ty, tz);
+	        		if (out != null) return out;
+	        		
+	        		// Check for direct collision
+	        		if ((side = BuildingTile.checkRay(point, dir, x, y, z, output.getWalls())) != 0
+	 	        			&& placeableInTile(output.getWalls(), output.getSlope(), side, snapFlags)) {
+	 	        		return new Vector3f(tx, ty, tz);
+	 	        	}
+	        	} else {
 	        		
 	        		// Check neighbors
-	        		if (floor) {
+	        		if (snapFlags == 1) {	// Do Floors
 	        			if ((output = getTileAt(tx + TILE_SIZE, ty, tz)) != null && 
 	        					(facing & output.getWalls()) != 0 && BuildingTile.checkRay(normal, output.getWalls()) != 0) {
 	        				//ow.setCamFacingByte(potentialFacingByte);
@@ -184,13 +195,47 @@ public class Terrain {
 							//ow.setCamFacingByte(potentialFacingByte);
 							return new Vector3f(tx, ty, tz);
 						}
-	        		} else {
-					
+	        		} else if (snapFlags == 2) {	// Do slopes ( steep )
 	        			float dx = ((facing & 3) == 0) ? TILE_SIZE : 0;
 						float dz = TILE_SIZE - dx;
 						if ((facing & 1) != 0) dz *= -1;
 						if ((facing & 32) != 0) dx *= -1;
 						
+	        			if ((output = getTileAt(tx-dx, ty, tz-dz)) != null && (output.getSlope() & 0x04) == 0 &&
+								(facing & output.getSlope()) != 0 && BuildingTile.checkRay(normal, output.getSlope()) != 0) {
+							ow.setCamFacingByte(potentialFacingByte);
+							return new Vector3f(tx, ty, tz);
+						}
+						if ((output = getTileAt(tx+dx, ty, tz+dz)) != null && (output.getSlope() & 0x04) == 0 && 
+								(facing & output.getSlope()) != 0 && BuildingTile.checkRay(normal, output.getSlope()) != 0) {
+							ow.setCamFacingByte(potentialFacingByte);
+							return new Vector3f(tx, ty, tz);
+						}
+						if ((output = getTileAt(tx, ty+TILE_SIZE, tz)) != null && (output.getSlope() & 0x04) == 0 && 
+								(facing & output.getSlope()) != 0 && BuildingTile.checkRay(normal, output.getSlope()) != 0) {
+							ow.setCamFacingByte(potentialFacingByte);
+							return new Vector3f(tx-dz, ty, tz+dx);
+						}
+						if ((output = getTileAt(tx, ty-TILE_SIZE, tz)) != null && (output.getSlope() & 0x04) == 0 && 
+								(facing & output.getSlope()) != 0 && BuildingTile.checkRay(normal, output.getSlope()) != 0) {
+							ow.setCamFacingByte(potentialFacingByte);
+							return new Vector3f(tx+dz, ty, tz-dx);
+						}
+						if ((output = getTileAt(tx, ty-TILE_SIZE, tz)) != null && (output.getWalls() & 0x04) == 0 && 
+								(facing & output.getWalls()) != 0 && BuildingTile.checkRay(normal, output.getWalls()) != 0) {
+							ow.setCamFacingByte(potentialFacingByte);
+							return new Vector3f(tx, ty, tz);
+						}
+						
+	        		} else if (snapFlags == 4) {	// Do slopes ( gradual )
+	        			// TODO
+	        		} else {	// Do walls
+					
+	        			float dx = ((facing & 3) == 0) ? TILE_SIZE : 0;
+						float dz = TILE_SIZE - dx;
+						if ((facing & 1) != 0) dz *= -1;
+						if ((facing & 32) != 0) dx *= -1;
+
 						if ((output = getTileAt(tx-dx, ty, tz-dz)) != null && (output.getWalls() & 0x04) == 0 &&
 								(facing & output.getWalls()) != 0 && BuildingTile.checkRay(normal, output.getWalls()) != 0) {
 							ow.setCamFacingByte(potentialFacingByte);
@@ -218,12 +263,45 @@ public class Terrain {
 			point.add(offset);
 		}
 		
-		if (potentialConnect != null) {
-			ow.setCamFacingByte(potentialConnectFacingByte);
-		}
-		return potentialConnect;
+		return null;
 	}
 	
+	private Vector3f testInTileConnection(Overworld ow, BuildingTile output, byte side, byte facing, Vector3f normal, byte snapFlags, float tx, float ty, float tz) {
+		if (output != null && side == 0 && placeableInTile(output.getWalls(), output.getSlope(), facing, snapFlags)) {
+			//potentialConnect = new Vector3f(tx, ty, tz);
+			//potentialConnectFacingByte = potentialFacingByte;
+			
+			//TODO: If wall, also check ray's entrance normal
+			
+			// Check adjacent, if it has the same wall flags as the hit tile, continue loop
+			byte prevWall = output.getWalls();
+			Vector3f n = BuildingTile.getNormal(facing).negate();
+			
+			output = getTileAt(tx+n.x, ty+n.y, tz+n.z);
+			if (output == null || (prevWall & output.getWalls()) == 0) {
+				ow.setCamFacingByte(facing);
+				return new Vector3f(tx, ty, tz);
+			}
+		}
+		
+		return null;
+	}
+
+	private boolean placeableInTile(byte walls, byte slope, byte placeWalls, byte snapFlags) {
+		byte illegal = BuildingTile.getOpposingBytes(walls);
+
+		switch(snapFlags) {
+		case 1: // Floors
+			illegal = 51;
+			break;
+		case 2: // Steep slope
+			return true;
+		default:
+			illegal |= 12;
+		}
+		return (illegal & placeWalls) == 0;
+	}
+
 	public TerrainIntersection terrainRaycast(Vector3f origin, Vector3f dir, float maxDist) {
 		Vector3f end = Vector3f.add(origin, Vector3f.mul(dir, maxDist));
 		List<int[]> terrainTiles = MathUtil.bresenham(origin.x+dir.x, origin.z+dir.z, end.x, end.z);
@@ -236,7 +314,7 @@ public class Terrain {
 			
 			final float tileY = chunk.getTerrain().getHeightAt(point[0] + .5f, point[1] + .5f);//plane.projectPoint(new Vector3f(point[0] + .5f, 0, point[1] + .5f)).y;
 			
-			ti = chunk.getTileItems().testCollision(origin, dir, point[0], tileY, point[1]);
+			ti = chunk.getChunkEntities().testCollision(origin, dir, point[0], tileY, point[1]);
 			
 			if (ti != null) {
 				return ti;
@@ -330,10 +408,7 @@ public class Terrain {
 	// Called by populate, shiftX, and shiftY
 	private void addChunk(int x, int z, int arrX, int arrY, Vbo[][] vbos) {
 		
-		float[][] heightmap = new float[Chunk.VERTEX_COUNT*2][Chunk.VERTEX_COUNT*3];
 		Chunk chunk = new Chunk(x, z, this);
-		chunk.heightmap = heightmap;
-		chunk.items.initEmpty();
 		chunk.arrX = arrX;
 		chunk.arrZ = arrY;
 		
@@ -376,15 +451,11 @@ public class Terrain {
 		return c.getPolygon(x, z).barryCentric(x, z);
 	}
 	
-	public TileableModel getTileItem(int id) {
-		return itemResources.getModel(id);
+	public PropModel getPropModel(int id) {
+		return propData.getModel(id);
 	}
 
-	public int getArraySize() {
-		return Terrain.size;
-	}
-
-	public EnvTile getTileById(int id) {
-		return this.itemResources.get(id);
+	public StaticProp getPropById(int id) {
+		return this.propData.get(id);
 	}
 }

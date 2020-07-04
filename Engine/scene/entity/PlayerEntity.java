@@ -9,8 +9,6 @@ import util.RunLengthOutputStream;
 
 public class PlayerEntity extends PhysicsEntity {
 
-	private int jumpSfx;
-	
 	public PlayerEntity(Scene scene) {
 		super(null, null);
 		position.set(scene.getCamera().getPosition());

@@ -7,6 +7,7 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 
+import dev.Console;
 import gl.Window;
 import ui.UI;
 
@@ -481,5 +482,9 @@ public enum Input {
 		keys = new int[MAX_KEYS];
 		states = new int[MAX_KEYS];
 		// mouse = new int[3];
+	}
+
+	public static boolean isMouseGrabbed() {
+		return Mouse.isGrabbed();
 	}
 }
