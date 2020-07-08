@@ -34,7 +34,7 @@ public class EntityData {
 
 	public static Entity instantiate(int id) {
 		switch(id) {
-		case 1: return new ItemEntity(new Vector3f(), Item.AIR, 0);
+		case 1: return new ItemEntity(new Vector3f(), 0, 0);
 		case 2: return new FireflyEntity(Application.scene);
 		case 3: return new DoorEntity(new Vector3f(), 0);
 		case 4: return new CampfireEntity(0, 0, 0);

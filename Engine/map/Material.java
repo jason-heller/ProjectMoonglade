@@ -4,7 +4,7 @@ import org.joml.Vector3f;
 
 import gl.building.BuildingRender;
 import gl.res.TileModel;
-import map.tile.BuildingTile;
+import map.tile.Tile;
 import map.tile.TileModels;
 import scene.overworld.inventory.Item;
 
@@ -14,52 +14,54 @@ import scene.overworld.inventory.Item;
  */
 public enum Material {
 	
-	NONE("", 0, 0, 0, false, false), 	// Effectively not a material
-	STICK("stick", 6, 0, 5, TileModels.DEFAULT, false, false, false, false),
-	STICK_BUNDLE("stick bundle", 3, 0, 6, TileModels.FILLED, false, false, true, false),
-	PLANKS("planks", 0, 1, 6, TileModels.FILLED, false, false, true, true, (byte)13),
-	DRYWALL("drywall", 1, 0, 7, TileModels.DEFAULT, false, false, true, true),
-	STONE_BRICK("stone bricks", 2, 0, 4, TileModels.FILLED, false),
-	BRICK("bricks", 4, 0, 8, TileModels.FILLED, false),
-	WINDOW("window", 0, 13, 9, true, true),
-	THATCH("thatch", 5, 0, 10,  TileModels.FILLED, false, false, true, false),
-	FENCE("fence", 0, 16, 5, true, true),
-	VINE("vine", 0, 16, 23, false, true),
-	SHINGLES("shingles", 1, 1, 23, TileModels.FILLED, false, false, true, true, (byte)14);
+	NONE("", 0, 0, "air", false, false), 	// Effectively not a material
+	STICK("stick", 6, 0, "stick", TileModels.DEFAULT, false, false, false, false, 0),
+	STICK_BUNDLE("stick_bundle", 3, 0, "stick_bundle", TileModels.FILLED, false, false, true, false, 0),
+	PLANKS("planks", 0, 1, null, TileModels.FILLED, false, false, true, true, 13),
+	DRYWALL("drywall", 1, 0, null, TileModels.DEFAULT, false, false, true, true, 0),
+	STONE_BRICK("stone_bricks", 2, 0, TileModels.FILLED),
+	STONE_WALL("stone_wall", 8, 0, TileModels.FILLED),
+	BRICK("bricks", 4, 0, TileModels.FILLED),
+	WINDOW("window", 0, 13, null, true, true),
+	THATCH("thatch", 5, 0, null, TileModels.FILLED, false, false, true, false, 0),
+	FENCE("fence", 0, 16, null, true, true),
+	VINE("vine", 0, 16, "vine", false, true),
+	SHINGLES("shingles", 1, 1, null, TileModels.FILLED, false, false, true, true, 14),
+	METAL_MESH("metal_mesh", 7, 0, TileModels.FILLED);
 	
 	private String name;
 	private int tx, ty;
 	private boolean tiling;
 	private boolean transparent = false;
 	private boolean colorable = false;
-	private int drop;
+	private String drop;
 	private boolean solid = true;
 	private byte initialFlags = 0;
 	private TileModels tileModel;
 	
-	Material(String name, int tx, int ty, int drop, boolean tiling, boolean transparent) {
-		this(name, tx, ty, drop, TileModels.DEFAULT, tiling, transparent, false, true);
+	Material(String name, int tx, int ty, TileModels tileModel) {
+		this(name, tx, ty, null, tileModel, false, false, true, false, 0);
 	}
 	
-	Material(String name, int tx, int ty, int drop, TileModels tileModel, boolean tiling) {
-		this(name, tx, ty, drop, tileModel, tiling, false, true, false);
+	Material(String name, int tx, int ty, String drop, boolean tiling, boolean transparent) {
+		this(name, tx, ty, drop, TileModels.DEFAULT, tiling, transparent, true, false, 0);
 	}
 	
-	Material(String name, int tx, int ty, int drop, TileModels tileModel, boolean tiling, boolean transparent, boolean solid, boolean colorable) {
-		this(name, tx, ty, drop, tileModel, tiling, transparent, solid, colorable, (byte)0);
-	}
-	
-	Material(String name, int tx, int ty, int drop, TileModels tileModel, boolean tiling, boolean transparent, boolean solid, boolean colorable, byte initialFlags) {
+	Material(String name, int tx, int ty, String drop, TileModels tileModel, boolean tiling, boolean transparent, boolean solid, boolean colorable, int initialFlags) {
 		this.name = name;
 		this.tx = tx;
 		this.ty = ty;
-		this.drop = drop;
+		
 		this.tiling = tiling;
 		this.transparent = transparent;
 		this.solid = solid;
 		this.colorable = colorable;
 		this.tileModel = tileModel;
-		this.initialFlags = initialFlags;
+		this.initialFlags = (byte)initialFlags;
+		
+		if (drop != null) {
+			this.drop = name;
+		}
 	}
 	
 	public String getName() {
@@ -74,8 +76,8 @@ public enum Material {
 		return ty;
 	}
 	
-	public Item getDrop() {
-		return Item.values()[drop]; // Have to use ids due to weird java jank 
+	public int getDrop() {
+		return Item.getId(drop);
 	}
 	
 	public byte getInitialFlags() {
@@ -155,14 +157,14 @@ public enum Material {
 		}
 	}
 
-	public static byte setTilingFlags(BuildingTile originator, Terrain terrain, float rx, float ry, float rz, float dx, float dz, Material mat, int facingIndex, int iterations) {
+	public static byte setTilingFlags(Tile originator, Terrain terrain, float rx, float ry, float rz, float dx, float dz, Material mat, int facingIndex, int iterations) {
 		byte specialFlags = 0;
 		
-		BuildingTile l, r, t, b;
+		Tile l, r, t, b;
 		l = terrain.getTileAt(rx - dx, ry, rz - dz);
 		r = terrain.getTileAt(rx + dx, ry, rz + dz);
-		t = terrain.getTileAt(rx,  ry + BuildingTile.TILE_SIZE,  rz);
-		b = terrain.getTileAt(rx, ry - BuildingTile.TILE_SIZE,  rz);
+		t = terrain.getTileAt(rx,  ry + Tile.TILE_SIZE,  rz);
+		b = terrain.getTileAt(rx, ry - Tile.TILE_SIZE,  rz);
 		
 		specialFlags += (l == null) ? 0 : (l.getMaterial(facingIndex) == mat) ? 1 : 0;
 		specialFlags += (r == null) ? 0 : (r.getMaterial(facingIndex) == mat) ? 2 : 0;
@@ -172,9 +174,9 @@ public enum Material {
 		if (specialFlags != 0) {
 			
 			specialFlags = Material.tileFlagsToUvOffset(specialFlags);
-			originator.setFlags(specialFlags);
+			originator.setFlags(facingIndex, specialFlags);
 			
-			mimicOnFlipside(terrain, originator, rx, ry, rz);
+			mimicOnFlipside(terrain, originator, rx, ry, rz, facingIndex);
 			
 			if (iterations == 0) {
 				if (l != null)
@@ -182,29 +184,29 @@ public enum Material {
 				if (r != null)
 					setTilingFlags(r, terrain, rx + dx, ry, rz + dz, dx, dz, mat, facingIndex, iterations + 1);
 				if (t != null)
-					setTilingFlags(t, terrain, rx,  ry + BuildingTile.TILE_SIZE,  rz, dx, dz, mat, facingIndex, iterations + 1);
+					setTilingFlags(t, terrain, rx,  ry + Tile.TILE_SIZE,  rz, dx, dz, mat, facingIndex, iterations + 1);
 				if (b != null)
-					setTilingFlags(b, terrain, rx,  ry - BuildingTile.TILE_SIZE,  rz, dx, dz, mat, facingIndex, iterations + 1);
+					setTilingFlags(b, terrain, rx,  ry - Tile.TILE_SIZE,  rz, dx, dz, mat, facingIndex, iterations + 1);
 			}
 		} else {
-			originator.setFlags((byte)0);
-			mimicOnFlipside(terrain, originator, rx, ry, rz);
+			originator.setFlags(facingIndex, (byte)0);
+			mimicOnFlipside(terrain, originator, rx, ry, rz, facingIndex);
 		}
 		
 		return specialFlags;
 	}
 	
-	public static void removeTilingFlags(BuildingTile originator, Terrain terrain, float rx, float ry, float rz, float dx, float dz, int facingIndex, int iterations) {
-		BuildingTile l, r, t, b;
+	public static void removeTilingFlags(Tile originator, Terrain terrain, float rx, float ry, float rz, float dx, float dz, int facingIndex, int iterations) {
+		Tile l, r, t, b;
 		l = terrain.getTileAt(rx - dx, ry, rz - dz);
 		r = terrain.getTileAt(rx + dx, ry, rz + dz);
-		t = terrain.getTileAt(rx,  ry + BuildingTile.TILE_SIZE,  rz);
-		b = terrain.getTileAt(rx, ry - BuildingTile.TILE_SIZE,  rz);
+		t = terrain.getTileAt(rx,  ry + Tile.TILE_SIZE,  rz);
+		b = terrain.getTileAt(rx, ry - Tile.TILE_SIZE,  rz);
 		
 		for(int i = 0; i < 6; i++) {
 			originator.materials[i] = Material.NONE;
 		}
-		mimicOnFlipside(terrain, originator, rx, ry, rz);
+		mimicOnFlipside(terrain, originator, rx, ry, rz, facingIndex);
 		
 		if (iterations == 0) {
 			if (l != null)
@@ -212,40 +214,40 @@ public enum Material {
 			if (r != null)
 				setTilingFlags(r, terrain, rx + dx, ry, rz + dz, dx, dz, r.getMaterial(facingIndex), facingIndex, iterations + 1);
 			if (t != null)
-				setTilingFlags(t, terrain, rx,  ry + BuildingTile.TILE_SIZE, rz, dx, dz, t.getMaterial(facingIndex), facingIndex, iterations + 1);
+				setTilingFlags(t, terrain, rx,  ry + Tile.TILE_SIZE, rz, dx, dz, t.getMaterial(facingIndex), facingIndex, iterations + 1);
 			if (b != null)
-				setTilingFlags(b, terrain, rx,  ry - BuildingTile.TILE_SIZE, rz, dx, dz, b.getMaterial(facingIndex), facingIndex, iterations + 1);
+				setTilingFlags(b, terrain, rx,  ry - Tile.TILE_SIZE, rz, dx, dz, b.getMaterial(facingIndex), facingIndex, iterations + 1);
 		}
 	}
 	
-	private static void mimicOnFlipside(Terrain terrain, BuildingTile tile, float x, float y, float z) {
-		byte specialFlags = flipUvOffset(tile.getFlags());
-		BuildingTile flipTile = null;
+	private static void mimicOnFlipside(Terrain terrain, Tile tile, float x, float y, float z, int facingIndex) {
+		byte specialFlags = flipUvOffset(tile.getFlags()[facingIndex]);
+		Tile flipTile = null;
 		//TODO: This igores the flip tile possibly having more sides to it
 		switch(tile.getWalls()) {
 		case 1:
-			if ((flipTile = terrain.getTileAt(x-BuildingTile.TILE_SIZE, y, z)) != null)
-				flipTile.setFlags(specialFlags);
+			if ((flipTile = terrain.getTileAt(x-Tile.TILE_SIZE, y, z)) != null)
+				flipTile.setFlags(facingIndex, specialFlags);
 			break;
 		case 2:
-			if ((flipTile = terrain.getTileAt(x+BuildingTile.TILE_SIZE, y, z)) != null)
-				flipTile.setFlags(specialFlags);
+			if ((flipTile = terrain.getTileAt(x+Tile.TILE_SIZE, y, z)) != null)
+				flipTile.setFlags(facingIndex, specialFlags);
 			break;
 		case 4:
-			if ((flipTile = terrain.getTileAt(x, y+BuildingTile.TILE_SIZE, z)) != null)
-				flipTile.setFlags(specialFlags);
+			if ((flipTile = terrain.getTileAt(x, y+Tile.TILE_SIZE, z)) != null)
+				flipTile.setFlags(facingIndex, specialFlags);
 			break;
 		case 8:
-			if ((flipTile = terrain.getTileAt(x, y-BuildingTile.TILE_SIZE, z)) != null)
-				flipTile.setFlags(specialFlags);
+			if ((flipTile = terrain.getTileAt(x, y-Tile.TILE_SIZE, z)) != null)
+				flipTile.setFlags(facingIndex, specialFlags);
 			break;
 		case 16:
-			if ((flipTile = terrain.getTileAt(x, y, z-BuildingTile.TILE_SIZE)) != null)
-				flipTile.setFlags(specialFlags);
+			if ((flipTile = terrain.getTileAt(x, y, z-Tile.TILE_SIZE)) != null)
+				flipTile.setFlags(facingIndex, specialFlags);
 			break;
 		case 32:
-			if ((flipTile = terrain.getTileAt(x, y, z+BuildingTile.TILE_SIZE)) != null)
-				flipTile.setFlags(specialFlags);
+			if ((flipTile = terrain.getTileAt(x, y, z+Tile.TILE_SIZE)) != null)
+				flipTile.setFlags(facingIndex, specialFlags);
 			break;
 		}
 	}
@@ -256,6 +258,14 @@ public enum Material {
 
 	public boolean isColorable() {
 		return colorable;
+	}
+
+	public String getDropName() {
+		return drop;
+	}
+
+	public void setDrop(String drop) {
+		this.drop = drop;
 	}
 }
  

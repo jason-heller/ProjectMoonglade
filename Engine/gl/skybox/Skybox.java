@@ -1,5 +1,8 @@
 package gl.skybox;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
@@ -10,7 +13,9 @@ import gl.Camera;
 import gl.Window;
 import gl.res.Model;
 import gl.res.Texture;
+import gl.skybox.entity.SkyboxEntityRender;
 import map.Enviroment;
+import scene.entity.skybox.SkyboxEntity;
 import util.MathUtil;
 
 // This handles the logic between the player's character and the game
@@ -21,6 +26,9 @@ public class Skybox {
 	private final SkyboxShader shader;
 	private final Model box;
 	private float alpha;
+	
+	private List<SkyboxEntity> entities;
+	private SkyboxEntityRender skyEntRender;
 
 	private final Vector3f topColor = new Vector3f(), bottomColor = new Vector3f();
 
@@ -45,6 +53,9 @@ public class Skybox {
 	public Skybox() {
 		this.shader = new SkyboxShader();
 		this.box = CubeGenerator.generateCube(SIZE);
+		
+		entities = new ArrayList<SkyboxEntity>();
+		skyEntRender = new SkyboxEntityRender();
 		/*
 		 * skyboxTexture = new CubemapTexture(new String[] { "sky/stars.png",
 		 * "sky/stars.png", "sky/stars.png", "sky/stars.png", "sky/stars.png",
@@ -63,6 +74,11 @@ public class Skybox {
 	public void cleanUp() {
 		starTexture.delete();
 		shader.cleanUp();
+		skyEntRender.cleanUp();
+	}
+	
+	public void addEntity(SkyboxEntity entity) {
+		entities.add(entity);
 	}
 
 	private void getColors(int gameTime, Vector3f tint, float influence) {
@@ -100,7 +116,7 @@ public class Skybox {
 		 */
 	}
 
-	public void render(Camera camera, int time, Vector3f tint, Vector3f weatherColor) {
+	public void render(Camera camera, int time, Vector3f lightDirection, Vector3f tint, Vector3f weatherColor) {
 		prepare(camera);
 		box.bind(0);
 		getColors(time, tint, .2f);
@@ -112,6 +128,8 @@ public class Skybox {
 		GL11.glDrawElements(GL11.GL_TRIANGLES, box.getIndexCount(), GL11.GL_UNSIGNED_INT, 0);
 		box.unbind(0);
 		shader.stop();
+		
+		skyEntRender.render(camera, lightDirection, entities);
 		GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
 	}
 

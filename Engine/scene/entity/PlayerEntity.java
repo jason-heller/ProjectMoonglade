@@ -1,5 +1,6 @@
 package scene.entity;
 
+import dev.Console;
 import geom.AABB;
 import scene.Scene;
 import scene.entity.utility.PhysicsEntity;
@@ -14,6 +15,7 @@ public class PlayerEntity extends PhysicsEntity {
 		position.set(scene.getCamera().getPosition());
 		visible = false;
 		PlayerHandler.setEntity(this);
+		persistency = 3;
 	}
 
 	@Override

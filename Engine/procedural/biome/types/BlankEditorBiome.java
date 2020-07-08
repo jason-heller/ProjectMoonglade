@@ -4,6 +4,7 @@ import java.util.Random;
 
 import map.Moisture;
 import map.Temperature;
+import map.prop.Props;
 import procedural.biome.Biome;
 import procedural.structures.Structure;
 import util.Colors;
@@ -28,8 +29,8 @@ public class BlankEditorBiome extends Biome {
 	}
 	
 	@Override
-	public int getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r, int[][] tileItems) {
-		return 0;
+	public Props getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r, Props[][] tileItems) {
+		return null;
 	}
 	
 	@Override

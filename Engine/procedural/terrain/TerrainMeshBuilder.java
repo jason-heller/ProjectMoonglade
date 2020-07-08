@@ -10,7 +10,7 @@ import gl.res.Model;
 import gl.res.Vbo;
 import map.Chunk;
 import map.tile.BuildData;
-import map.tile.BuildingTile;
+import map.tile.Tile;
 import procedural.biome.Biome;
 import procedural.biome.BiomeData;
 import procedural.biome.BiomeVoronoi;
@@ -182,7 +182,7 @@ public class TerrainMeshBuilder {
 		
 		Vector3f normal = Vector3f.cross(Vector3f.sub(p3, p1), Vector3f.sub(p2, p1));
 		normal.normalize().negate();
-		byte facing = BuildingTile.getFacingByte(normal);
+		byte facing = Tile.getFacingByte(normal);
 		
 		Vector3f v1 = new Vector3f(), v2 = new Vector3f(), 
 				v3 = new Vector3f(), v4 = new Vector3f();
@@ -200,12 +200,12 @@ public class TerrainMeshBuilder {
 		//final int cx = chunk.realX;
 		//final int cz = chunk.realZ;
 		
-		BuildingTile tile;
+		Tile tile;
 		
 		float y1 = p1.y;
 		float y2 = p2.y;
 		
-		int dy = Math.round(y1 - BuildingTile.TILE_SIZE);
+		int dy = Math.round(y1 - Tile.TILE_SIZE);
 		
 		v1.set(p1.x, y1, p1.z);
 		v2.set(p2.x, y2, p2.z);
@@ -225,11 +225,11 @@ public class TerrainMeshBuilder {
 		y1 = dy;
 		y2 = dy;
 		
-		for(; y1 > p3.y; y1 -= BuildingTile.TILE_SIZE) {
+		for(; y1 > p3.y; y1 -= Tile.TILE_SIZE) {
 			v1.set(p1.x, y1, p1.z);
 			v2.set(p2.x, y2, p2.z);
-			v3.set(p3.x, y2 - BuildingTile.TILE_SIZE, p3.z);
-			v4.set(p4.x, y1 - BuildingTile.TILE_SIZE, p4.z);
+			v3.set(p3.x, y2 - Tile.TILE_SIZE, p3.z);
+			v4.set(p4.x, y1 - Tile.TILE_SIZE, p4.z);
 
 			addTerrainWall(builder, v1, v2, v3, v4, normal);
 			builder.addTextureCoord(0,0);
@@ -237,7 +237,7 @@ public class TerrainMeshBuilder {
 			builder.addTextureCoord(TERRAIN_ATLAS_SIZE,TERRAIN_ATLAS_SIZE);
 			builder.addTextureCoord(0,TERRAIN_ATLAS_SIZE);
 			
-			y2 -= BuildingTile.TILE_SIZE;
+			y2 -= Tile.TILE_SIZE;
 		}
 	}
 

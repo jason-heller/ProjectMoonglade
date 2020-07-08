@@ -1,7 +1,8 @@
 package procedural.structures;
 
 import map.Material;
-import map.tile.BuildingTile;
+import map.prop.Props;
+import map.tile.Tile;
 
 public class StructureData {
 	
@@ -62,8 +63,8 @@ public class StructureData {
 		return buildingTiles[i][j][k];
 	}
 	
-	public int getEnvTile(int i, int j) {
-		return envTiles[i][j];
+	public Props getProp(int i, int j) {
+		return Props.values()[envTiles[i][j]];
 	}
 
 	public void setHeight(int i, int j, float height) {
@@ -74,7 +75,7 @@ public class StructureData {
 		this.envTiles[i][j] = id;
 	}
 
-	public void setBuildingTile(int i, int j, int k, int[] mats, int tileWalls, int tileSlope, int tileFlags) {
+	public void setBuildingTile(int i, int j, int k, int[] mats, int tileWalls, int tileSlope, byte[] tileFlags) {
 		this.buildingTiles[i][j][k] = new CompTileData(mats, tileWalls, tileSlope, tileFlags);
 	}
 }
@@ -117,14 +118,15 @@ class CompTileData {
 		return (byte) ((l2 >> 40) & 0xff);
 	}*/
 	
-	private byte walls, slope, flags;
+	private byte walls, slope;
+	private byte[] flags;
 	private int[] materials;
 	
-	public CompTileData(int[] materials, int walls, int slope, int flags) {
+	public CompTileData(int[] materials, int walls, int slope, byte[] flags) {
 		this.materials = materials;
 		this.walls = (byte) walls;
 		this.slope = (byte) slope;
-		this.flags = (byte) flags;
+		this.flags = flags;
 	}
 	
 	public Material[] getMaterials() {
@@ -144,7 +146,7 @@ class CompTileData {
 		return walls;
 	}
 	
-	public byte getFlags() {
+	public byte[] getFlags() {
 		return flags;
 	}
 

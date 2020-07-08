@@ -10,6 +10,7 @@ import geom.Polygon;
 import gl.particle.ParticleHandler;
 import gl.res.Model;
 import map.prop.ChunkProps;
+import map.prop.Props;
 import map.prop.StaticProp;
 import map.prop.StaticPropProperties;
 import map.tile.BuildData;
@@ -169,9 +170,9 @@ public class Chunk {
 	
 	public void damangeProp(int relX, int relZ, byte damage) {
 		editFlags |= 0x02;
-		int id = chunkProps.getEntityId(relX, relZ);
+		Props id = chunkProps.getProp(relX, relZ);
 		StaticPropProperties props = chunkProps.getEntityProperties(relX, relZ);
-		final StaticProp tile = terrain.getPropById(id);
+		final StaticProp tile = Props.get(id);
 		if (tile != null) {
 			props.damage -= damage;
 			
@@ -187,8 +188,8 @@ public class Chunk {
 	
 	public boolean destroyProp(int relX, int relZ) {
 		editFlags |= 0x02;
-		int id = chunkProps.getEntityId(relX, relZ);
-		final StaticProp tile = terrain.getPropById(id);
+		Props id = chunkProps.getProp(relX, relZ);
+		final StaticProp tile = Props.get(id);
 		
 		if (tile != null) {
 			((Overworld) Application.scene).getInventory().addItem(tile.getDrop(), tile.getNumDrops());

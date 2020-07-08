@@ -1,17 +1,18 @@
 package scene.overworld.inventory.crafting;
 
+import map.Material;
 import scene.overworld.inventory.Item;
 
 public class ItemStack {
-	private Item item;
+	private int item;
 	private int quantity;
 	
-	public ItemStack(Item item, int quantity) {
+	public ItemStack(int item, int quantity) {
 		this.item = item;
 		this.quantity = quantity;
 	}
 
-	public Item getItem() {
+	public int getItem() {
 		return item;
 	}
 	

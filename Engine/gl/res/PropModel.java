@@ -76,4 +76,31 @@ public class PropModel {
 		model.unbind();
 		return model;
 	}
+
+	public PropModel copyAndShiftTexture(float dtx, float dty) {
+		PropModel newPropModel = new PropModel(this.getNumSubmodels(), this.bounds);
+		for(int i = 0; i < models.length; i++) {
+			if (models[i] != null) {
+				float[] uvs = new float[models[i].uvs.length];
+				for(int j = 0; j < models[i].uvs.length; j += 2) {
+					uvs[j] = models[i].uvs[j] + dtx;
+					uvs[j+1] = models[i].uvs[j+1] + dty;
+				}
+				newPropModel.addSubModel(models[i].flags, models[i].vertices, uvs, models[i].normals, models[i].indices);
+			}
+		}
+		
+		return newPropModel;
+	}
+
+	public PropModel copy(PropModel propModel) {
+		PropModel newPropModel = new PropModel(this.getNumSubmodels(), this.bounds);
+		for(int i = 0; i < models.length; i++) {
+			if (models[i] != null) {
+				newPropModel.addSubModel(models[i].flags, models[i].vertices, models[i].uvs, models[i].normals, models[i].indices);
+			}
+		}
+		
+		return newPropModel;
+	}
 }

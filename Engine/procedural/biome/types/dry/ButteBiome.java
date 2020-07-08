@@ -4,6 +4,7 @@ import java.util.Random;
 
 import map.Moisture;
 import map.Temperature;
+import map.prop.Props;
 import procedural.biome.Biome;
 import procedural.biome.types.BiomeColors;
 import procedural.structures.Structure;
@@ -34,14 +35,14 @@ public class ButteBiome extends Biome {
 	}
 	
 	@Override
-	public int getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r, int[][] tileItems) {
+	public Props getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r, Props[][] tileItems) {
 		int tile = r.nextInt(520);
 		switch(tile) { 
-		case 0: return 4;
-		case 1: return 7;
-		case 2: return 8;
+		case 0: return Props.AGAVE;
+		case 1: return Props.CACTUS;
+		case 2: return Props.ROCK;
 		}
-		return 0;
+		return null;
 	}
 	
 	@Override

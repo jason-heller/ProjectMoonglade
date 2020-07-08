@@ -8,6 +8,7 @@ import gl.particle.ParticleHandler;
 import map.Chunk;
 import map.Terrain;
 import map.TerrainIntersection;
+import map.prop.Props;
 import map.prop.StaticProp;
 import scene.entity.PlayerEntity;
 import scene.overworld.inventory.Item;
@@ -21,7 +22,7 @@ public class Axe {
 		}
 		
 		if (lmb) {
-			StaticProp envTile = terrain.getPropById(terrainIntersection.getTile());
+			StaticProp envTile = Props.get(terrainIntersection.getTile());
 			if (envTile == null || !envTile.isDestroyableBy(Item.AXE)) {
 				player.getSource().play(Resources.getSound("swing"));
 				return;

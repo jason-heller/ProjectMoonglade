@@ -8,6 +8,7 @@ public class BiomeColors {
 	// DIRT
 	public static final Vector3f DIRT_COLOR = rgb(169, 100, 55);
 	public static final Vector3f MUD_COLOR = rgb(94, 63, 29);
+	public static final Vector3f SWAMP_MUD = rgb(47, 59, 33);
 	public static final Vector3f ROCK_COLOR = new Vector3f(0.3f, 0.3f, 0.4f);
 	
 	// SKY
@@ -15,6 +16,7 @@ public class BiomeColors {
 	public static final Vector3f DESERT_SKY = new Vector3f(1, 1, .5f);
 	public static final Vector3f TROPIC_SKY = new Vector3f(1, 1, 1.2f);
 	public static final Vector3f SNOW_SKY = new Vector3f(.8f, 1f, .8f);
+	public static final Vector3f SWAMP_SKY = rgb(244, 255, 219);
 	
 	// GROUND
 	public static final Vector3f DEFAULT_GRASS = rgb(77, 178, 21);
@@ -28,6 +30,8 @@ public class BiomeColors {
 	
 	// WATER
 	public static final Vector3f DEFAULT_WATER = rgb(12, 92, 247);
+	public static final Vector3f SWAMP_WATER = rgb(90, 158, 112);
+	public static final Vector3f CHAPARREL_GRASS = rgb(150, 115, 100);
 	
 	private static Vector3f rgb(float r, float g, float b) {
 		return MathUtil.rgb(r,g,b);

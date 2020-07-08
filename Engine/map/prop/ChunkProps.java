@@ -13,7 +13,7 @@ import map.TerrainIntersection;
 import util.ModelBuilderOld;
 
 public class ChunkProps {
-	private int[][] entityMap;
+	private Props[][] propMap;
 	private StaticPropProperties[][] properties;
 	
 	private Chunk chunk;
@@ -25,7 +25,7 @@ public class ChunkProps {
 		this.x = x;
 		this.z = z;
 		final int size = Chunk.VERTEX_COUNT-1;
-		entityMap = new int[size][size];
+		propMap = new Props[size][size];
 		properties = new StaticPropProperties[size][size];	
 	}
 	
@@ -34,7 +34,6 @@ public class ChunkProps {
 			this.model.cleanUp();
 		}
 		ModelBuilderOld builder = new ModelBuilderOld();
-		Terrain terrain = chunk.getTerrain();
 		
 		Random r = new Random();
 		r.setSeed(chunk.getSeed());
@@ -43,16 +42,16 @@ public class ChunkProps {
 		float ry;
 		float rz = z*Chunk.CHUNK_SIZE + .5f;
 		
-		for(int i = 0; i < entityMap.length; i++) {
-			for(int j = 0; j < entityMap.length; j++) {
-				int tile = entityMap[i][j];
+		for(int i = 0; i < propMap.length; i++) {
+			for(int j = 0; j < propMap.length; j++) {
+				Props tile = propMap[i][j];
 				
 				ry = (chunk.heightmap[i * 2 + 0][j * 2 + 0] + chunk.heightmap[i * 2 + 1][j * 2 + 1]) / 2f;
 				
-				if (tile != 0) {
+				if (tile != null) {
 					float dx, dz, scale;
 					
-					PropModel tiledModel = terrain.getPropModel(tile);
+					PropModel tiledModel = Props.getModel(tile);
 					if (properties[i][j] != null) {
 						dx = properties[i][j].dx;
 						dz = properties[i][j].dz;
@@ -65,7 +64,7 @@ public class ChunkProps {
 						scale = (1 - scaleVar) + (r.nextFloat()*(scaleVar*2));
 						
 						properties[i][j] = new StaticPropProperties(dx, dz, scale);
-						properties[i][j].damage = terrain.getPropById(tile).getStrength();
+						properties[i][j].damage = Props.get(tile).getStrength();
 					}
 				
 					//if (tiledModel.getNumSubmodels() == 1) {
@@ -108,32 +107,32 @@ public class ChunkProps {
 		return properties[x][z];
 	}
 
-	public int getEntityId(int x, int z) {
-		return entityMap[x][z];
+	public Props getProp(int x, int z) {
+		return propMap[x][z];
 	}
 	
 	public void removeEntity(int x, int z) {
-		entityMap[x][z] = 0;
+		propMap[x][z] = null;
 		properties[x][z] = null;
 	}
 
-	public int[][] getTilemap() {
-		return entityMap; 
+	public Props[][] getPropMap() {
+		return propMap; 
 	}
 	
 	public TerrainIntersection testCollision(Vector3f origin, Vector3f dir, float tileX, float tileY, float tileZ) {
 		final int tileArrX = (int) (tileX - chunk.realX);
 		final int tileArrZ = (int) (tileZ - chunk.realZ);
 
-		final int tileId = entityMap[tileArrX][tileArrZ];
+		final Props tileId = propMap[tileArrX][tileArrZ];
 		
-		if (tileId == 0) return null;
+		if (tileId == null) return null;
 		
 		final StaticPropProperties tileProps = properties[tileArrX][tileArrZ];
 		final float x = tileProps.dx + (tileX + .5f);
 		final float z = tileProps.dz + (tileZ + .5f);
 		
-		final StaticProp tile = chunk.getTerrain().getPropById(tileId);
+		final StaticProp tile = Props.get(tileId);
 		Vector3f bounds = tile.getBounds();
 
 		final float y = tileY + (tileProps.scale * bounds.y) / 2f;

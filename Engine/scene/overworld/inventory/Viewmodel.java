@@ -16,7 +16,7 @@ public class Viewmodel {
 	private Texture texture;
 	private Model model;
 	private Matrix4f matrix;
-	private Item item;
+	private int item;
 
 	private float xWag, zWag;
 	
@@ -28,18 +28,18 @@ public class Viewmodel {
 		matrix = new Matrix4f();
 	}
 
-	public void set(Item item) {
+	public void set(int item) {
 		this.item = item;
 		switch (item) {
-		case AXE:
+		case Item.AXE:
 			texture = Resources.getTexture("tools");
 			model = Resources.getModel("axe");
 			break;
-		case SPADE:
+		case Item.SPADE:
 			texture = Resources.getTexture("tools");
 			model = Resources.getModel("spade");
 			break;
-		case TROWEL:
+		case Item.TROWEL:
 			texture = Resources.getTexture("tools");
 			model = Resources.getModel("spade");
 			break;

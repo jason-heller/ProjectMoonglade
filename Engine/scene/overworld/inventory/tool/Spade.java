@@ -6,6 +6,7 @@ import io.Input;
 import map.Chunk;
 import map.Terrain;
 import map.TerrainIntersection;
+import map.prop.Props;
 import map.prop.StaticProp;
 import scene.overworld.inventory.Item;
 
@@ -17,7 +18,7 @@ public class Spade {
 
 		if (lmb && withinRange) {
 
-			StaticProp envTile = terrain.getPropById(terrainIntersection.getTile());
+			StaticProp envTile = Props.get(terrainIntersection.getTile());
 			if (envTile != null && envTile.isDestroyableBy(Item.SPADE)) {
 				return;
 			}

@@ -20,7 +20,7 @@ public class Camera {
 
 	public static float cameraSpeed = .5f;
 
-	public static int fov = 90;
+	public static int fov = 70;
 
 	public static float mouseSensitivity = 1f;
 	public static final float FAR_PLANE = 4500f;

@@ -5,6 +5,7 @@ import java.util.Random;
 import map.Chunk;
 import map.Moisture;
 import map.Temperature;
+import map.prop.Props;
 import procedural.NoiseUtil;
 import procedural.biome.Biome;
 import procedural.biome.types.BiomeColors;
@@ -31,7 +32,7 @@ public class DeciduousForestBiome extends Biome {
 	}
 
 	@Override
-	public int getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r, int[][] tileItems) {
+	public Props getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r, Props[][] tileItems) {
 		int vc = Chunk.VERTEX_COUNT-1;
 		int tx = ((x % vc) + vc) % vc;
 		int tz = ((z % vc) + vc) % vc;
@@ -43,19 +44,19 @@ public class DeciduousForestBiome extends Biome {
 			if (n < treeDensity) {
 				switch(r.nextInt() & 0x15) {
 				case 0:
-					return 9;
+					return Props.PINE;
 				default:
-					return 6;
+					return Props.OAK;
 				}
 			}
-		} else if (tx != 0 && tileItems[tx-1][tz] == 6) {
+		} else if (tx != 0 && tileItems[tx-1][tz] == Props.OAK) {
 			float n = r.nextFloat();
 			if (n < .1) {
-				return 12;
+				return Props.VINE;
 			}
 		}
 		
-		return 0;
+		return null;
 	}
 
 	@Override

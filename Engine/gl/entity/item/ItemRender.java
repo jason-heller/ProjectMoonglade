@@ -8,12 +8,15 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 
 import core.Resources;
+import dev.Console;
 import gl.Camera;
+import gl.building.BuildingRender;
 import gl.res.Texture;
 import scene.entity.Entity;
 import scene.entity.utility.ItemEntity;
 import scene.overworld.inventory.Inventory;
 import scene.overworld.inventory.Item;
+import scene.overworld.inventory.ItemData;
 
 public class ItemRender {
 	
@@ -47,10 +50,17 @@ public class ItemRender {
 
 		for(Entity entity : list) {
 			shader.viewMatrix.loadMatrix(buildViewMatrix(entity.position, camera.getViewMatrix()));
-			Item item = ((ItemEntity) entity).getItem();
-			shader.uv.loadVec3(item.getTX(), item.getTY(), size);
+			ItemData item = Item.get(((ItemEntity) entity).getItem());
 			
-			GL11.glDrawArrays(GL11.GL_TRIANGLE_STRIP, 0, 4);
+			if (item.isUsingMaterialTexture()) {
+				Resources.getTexture("materials").bind(0);
+				shader.uv.loadVec3(item.getTX(), item.getTY(), BuildingRender.materialAtlasSize);
+				GL11.glDrawArrays(GL11.GL_TRIANGLE_STRIP, 0, 4);
+				texture.bind(0);
+			} else {
+				shader.uv.loadVec3(item.getTX(), item.getTY(), size);
+				GL11.glDrawArrays(GL11.GL_TRIANGLE_STRIP, 0, 4);
+			}
 		}
 
 		Resources.QUAD2D.unbind(0, 1);

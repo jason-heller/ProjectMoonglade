@@ -4,6 +4,7 @@ import java.util.Random;
 
 import map.Moisture;
 import map.Temperature;
+import map.prop.Props;
 import procedural.biome.Biome;
 import procedural.biome.types.BiomeColors;
 import procedural.structures.Structure;
@@ -31,8 +32,8 @@ public class TundraBiome extends Biome {
 	}
 
 	@Override
-	public int getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r, int[][] tileItems) {
-		return 0;
+	public Props getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r, Props[][] tileItems) {
+		return null;
 	}
 
 	@Override

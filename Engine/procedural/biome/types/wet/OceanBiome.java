@@ -4,6 +4,7 @@ import java.util.Random;
 
 import map.Moisture;
 import map.Temperature;
+import map.prop.Props;
 import procedural.biome.Biome;
 import procedural.biome.types.BiomeColors;
 import procedural.structures.Structure;
@@ -13,8 +14,8 @@ public class OceanBiome extends Biome {
 	public OceanBiome() {
 		////////////////////////////////////////////////
 		this.name = "Ocean";
-		this.temp = Temperature.COLD;
-		this.moisture = Moisture.DRY;
+		this.temp = Temperature.TEMPERATE;
+		this.moisture = Moisture.WET;
 		this.terrainHeightFactor = 8f;
 		this.terrainRoughness = 64f;
 		this.shoreSize = .2f;
@@ -35,8 +36,15 @@ public class OceanBiome extends Biome {
 	}
 	
 	@Override
-	public int getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r, int[][] tileItems) {
-		return 0;
+	public Props getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r, Props[][] tileItems) {
+		if (currentHeight > -2) {
+			int n = r.nextInt(4000);
+			if (n == 0) {
+				return map.prop.Props.PALM;
+			}
+		}
+		
+		return null;
 	}
 	
 	@Override

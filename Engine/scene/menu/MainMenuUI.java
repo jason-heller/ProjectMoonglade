@@ -6,6 +6,7 @@ import core.Resources;
 import dev.Console;
 import gl.res.Texture;
 import io.Input;
+import io.Settings;
 import scene.Scene;
 import scene.entity.PlayerHandler;
 import scene.menu.pause.OptionsPanel;
@@ -57,13 +58,20 @@ public class MainMenuUI {
 				case 0:
 					newGame.setFocus(true);
 					loadGame.setFocus(false);
-					options.setFocus(false);
+					
+					if (options.isFocused()) {
+						Settings.save();
+						options.setFocus(false);
+					}
 					break;
 				case 1:
 					loadGame.scan();
 					loadGame.setFocus(true);
 					newGame.setFocus(false);
-					options.setFocus(false);
+					if (options.isFocused()) {
+						Settings.save();
+						options.setFocus(false);
+					}
 					break;
 				case 2:
 					options.setFocus(!options.isFocused());

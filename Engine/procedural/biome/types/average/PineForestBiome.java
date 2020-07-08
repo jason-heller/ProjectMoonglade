@@ -4,6 +4,7 @@ import java.util.Random;
 
 import map.Moisture;
 import map.Temperature;
+import map.prop.Props;
 import procedural.biome.Biome;
 import procedural.biome.types.BiomeColors;
 import procedural.structures.Structure;
@@ -12,7 +13,7 @@ public class PineForestBiome extends Biome {
 
 	public PineForestBiome() {
 		////////////////////////////////////////////////
-		this.name = "snowy Pine Forest";
+		this.name = "Pine Forest";
 		this.temp = Temperature.COLD;
 		this.moisture = Moisture.AVERAGE;
 		this.terrainHeightFactor = 4f;
@@ -29,16 +30,16 @@ public class PineForestBiome extends Biome {
 	}
 
 	@Override
-	public int getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r, int[][] tileItems) {
+	public Props getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r, Props[][] tileItems) {
 		if (x % 2 == 0 && z % 2 == 0) {
 			final float treeDensity = .08f;
 			
 			float n = r.nextFloat();
 			if (n < treeDensity) {
-				return 9;
+				return Props.PINE;
 			}
 		}
-		return 0;
+		return null;
 	}
 
 	@Override

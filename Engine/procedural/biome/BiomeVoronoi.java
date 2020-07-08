@@ -247,7 +247,7 @@ public class BiomeVoronoi {
 		
 		node.biome = enviroment.calcBiome(nx, ny, seed,
 				GenTerrain.getTemperature(climateProperties[0]),
-				GenTerrain.getMoisture(climateProperties[0]),
+				GenTerrain.getMoisture(climateProperties[1]),
 				climateProperties[2]
 				);
 		points[i][j] = node;

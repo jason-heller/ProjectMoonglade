@@ -2,12 +2,15 @@ package scene.overworld.inventory;
 
 import org.joml.Vector3f;
 
+import core.Application;
 import core.Resources;
 import dev.Debug;
 import gl.Camera;
+import gl.building.BuildingRender;
 import gl.res.Texture;
 import io.Input;
 import scene.entity.EntityHandler;
+import scene.entity.utility.ItemEntity;
 import scene.overworld.inventory.crafting.ItemStack;
 import scene.overworld.inventory.crafting.RecipeHandler;
 import ui.Image;
@@ -15,7 +18,7 @@ import ui.UI;
 import util.Colors;
 
 public class Inventory {
-	private Item[] items;
+	private int[] items;
 	private int[] quantities;
 	private final int INV_WIDTH = 9;
 
@@ -34,16 +37,16 @@ public class Inventory {
 	private final int LEFT_ALIGN = 24;
 	private final int BOTTOM_ALIGN = 24;
 	
-	private Item heldItem = Item.AIR;
+	private int heldItem = 0;
 	private int heldQuantity = 0;
 
 	private boolean open = false;
 
 	public Inventory() {
-		items = new Item[45];
+		items = new int[45];
 		quantities = new int[45];
 		for (int i = 0; i < items.length; i++) {
-			items[i] = Item.AIR;
+			items[i] = 0;
 		}
 
 		Resources.addModel("axe", "item/axe.mod");
@@ -51,15 +54,15 @@ public class Inventory {
 		Resources.addTexture("tools", "item/tools.png");
 
 		if (Debug.structureMode) {
-			addItem(Item.SPADE, 1);
+			/*addItem(Item.SPADE, 1);
 			addItem(Item.AXE, 1);
-			addItem(Item.PLANKS, 1);
+			//addItem(Item.PLANK, 1);
 			addItem(Item.STONE, 1);
 			addItem(Item.GLASS, 1);
 			addItem(Item.BRICKS, 1);
 			addItem(Item.DRYWALL, 1);
 			addItem(Item.THATCH, 1);
-			addItem(Item.STICKS, 1);
+			addItem(Item.STICKS, 1);*/
 		}
 
 		Texture texture = Resources.addTexture("items", "item/items.png");
@@ -98,10 +101,18 @@ public class Inventory {
 
 				UI.drawRect(dx, dy, size, size, Colors.BLACK).setOpacity(.7f);
 
-				if (items[id] != Item.AIR) {
-					Image img = UI.drawImage("items", dx + padding, dy + padding, imgSize, imgSize);
-					img.setUvOffset(items[id].getTX() * itemAtlasSize, items[id].getTY() * itemAtlasSize,
-							(items[id].getTX() + 1) * itemAtlasSize, (items[id].getTY() + 1) * itemAtlasSize);
+				if (items[id] != 0) {
+					ItemData data = Item.get(items[id]);
+					if (data.isUsingMaterialTexture()) {
+						Image img = UI.drawImage("materials", dx + padding + 8, dy + padding + 8, imgSize - 16, imgSize - 16);
+						img.setUvOffset(data.getTX() * BuildingRender.materialAtlasSize, data.getTY() * BuildingRender.materialAtlasSize,
+								(data.getTX() + 1) * BuildingRender.materialAtlasSize, (data.getTY() + 1) * BuildingRender.materialAtlasSize);
+					} else {
+						Image img = UI.drawImage("items", dx + padding, dy + padding, imgSize, imgSize);
+						img.setUvOffset(data.getTX() * itemAtlasSize, data.getTY() * itemAtlasSize,
+								(data.getTX() + 1) * itemAtlasSize, (data.getTY() + 1) * itemAtlasSize);
+					}
+					
 				}
 
 				final int amt = quantities[id];
@@ -130,7 +141,7 @@ public class Inventory {
 			}
 			
 			if (id != -1 && Input.isPressed(Input.KEY_LMB)) {
-				Item tempItem = items[id];
+				int tempItem = items[id];
 				int tempQuantity = quantities[id];
 				
 				items[id] = heldItem;
@@ -138,38 +149,49 @@ public class Inventory {
 				
 				heldItem = tempItem;
 				heldQuantity = tempQuantity;
-			} else if (heldItem != Item.AIR) {
-				// DROP SHIT
+			} else if (heldItem != 0 && Input.isPressed(Input.KEY_LMB)) {
+				EntityHandler.addEntity(new ItemEntity(Application.scene.getCamera().getPosition(), heldItem, heldQuantity));
+				heldItem = 0;
+				heldQuantity = 0;
 			}
 			
-			if (heldItem != Item.AIR) {
+			if (heldItem != 0) {
 				// Toss graphic
 				if (id == -1) {
 					UI.drawString("->", mx, my - 24);
 				} else {
 					// Crafting
-					ItemStack stack = RecipeHandler.get().checkForRecipe(heldItem, heldQuantity, items[id], quantities[id]);
+					/*ItemStack stack = RecipeHandler.get().checkForRecipe(heldItem, heldQuantity, items[id], quantities[id]);
 					if (stack != null) {
 						
-						Item item = stack.getItem();
+						int item = stack.getItem();
 						UI.drawString("->", mx, my - 24);
 						Image img = UI.drawImage("items", mx+24, my-24, (int)(imgSize/1.5), (int)(imgSize/1.5));
-						img.setUvOffset(item.getTX() * itemAtlasSize, item.getTY() * itemAtlasSize,
-								(item.getTX() + 1) * itemAtlasSize, (item.getTY() + 1) * itemAtlasSize);
+						
+						ItemData data = Item.get(item);
+						img.setUvOffset(data.getTX() * itemAtlasSize, data.getTY() * itemAtlasSize,
+								(data.getTX() + 1) * itemAtlasSize, (data.getTY() + 1) * itemAtlasSize);
 						
 						if (Input.isPressed(Input.KEY_RMB)) {
 							items[id] = stack.getItem();
 							quantities[id] = stack.getQuantity();
 							
-							heldItem = Item.AIR;
+							heldItem = 0;
 							heldQuantity = 0;
 						}
-					}
+					}*/
 				}
 				
-				Image img = UI.drawImage("items", mx, my, imgSize, imgSize);
-				img.setUvOffset(heldItem.getTX() * itemAtlasSize, heldItem.getTY() * itemAtlasSize,
-						(heldItem.getTX() + 1) * itemAtlasSize, (heldItem.getTY() + 1) * itemAtlasSize);
+				ItemData data = Item.get(heldItem);
+				if (data.isUsingMaterialTexture()) {
+					Image img = UI.drawImage("materials", mx, my, imgSize, imgSize);
+					img.setUvOffset(data.getTX() * BuildingRender.materialAtlasSize, data.getTY() * BuildingRender.materialAtlasSize,
+							(data.getTX() + 1) * BuildingRender.materialAtlasSize, (data.getTY() + 1) * BuildingRender.materialAtlasSize);
+				} else {
+					Image img = UI.drawImage("items", mx, my, imgSize, imgSize);
+					img.setUvOffset(data.getTX() * itemAtlasSize, data.getTY() * itemAtlasSize,
+							(data.getTX() + 1) * itemAtlasSize, (data.getTY() + 1) * itemAtlasSize);
+				}
 			}
 		}
 
@@ -198,17 +220,21 @@ public class Inventory {
 		viewmodel.update();
 	}
 
-	public Item getSelected() {
+	public int getSelected() {
 		return items[selectionPos];
 	}
 
-	public void addItem(Item drop, int numDrops) {
+	public void addItem(ItemData drop, int numDrops) {
+		addItem(drop.id, numDrops);
+	}
+	
+	public void addItem(int id, int numDrops) {
 		if (numDrops == 0)
 			return;
 		;
 		for (int i = 0; i < items.length; i++) {
-			if (items[i] == drop || items[i] == Item.AIR) {
-				items[i] = drop;
+			if (items[i] == id || items[i] == 0) {
+				items[i] = id;
 				quantities[i] += numDrops;
 				return;
 			}
@@ -219,7 +245,7 @@ public class Inventory {
 		return open;
 	}
 
-	public Item[] getItems() {
+	public int[] getItems() {
 		return items;
 	}
 
@@ -241,7 +267,7 @@ public class Inventory {
 			quantities[index]--;
 
 			if (quantities[index] == 0) {
-				items[index] = Item.AIR;
+				items[index] = 0;
 			}
 		}
 	}

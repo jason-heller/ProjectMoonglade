@@ -10,9 +10,11 @@ import map.Chunk;
 import map.Enviroment;
 import map.Material;
 import map.Terrain;
+import map.prop.Props;
 import map.prop.StaticPropProperties;
-import map.tile.BuildingTile;
-import procedural.biome.BiomeVoronoi;
+import map.tile.BuildData;
+import map.tile.BuildSector;
+import map.tile.Tile;
 import scene.entity.Entity;
 import scene.entity.EntityData;
 import scene.entity.EntityHandler;
@@ -35,24 +37,24 @@ public class RegionLoader implements Runnable {
 	private Map<Integer, Chunk> map;
 	private ChunkCallbackInterface c;
 	boolean ignoreTimeDifference = false;
-	private Enviroment enviroment;
+	//private Enviroment enviroment;
 	
 	public RegionLoader(ChunkCallbackInterface c, String filename, Map<Integer, Chunk> map, Enviroment enviroment) {
 		this.filename = filename;
 		this.map = map;
 		this.c = c;
-		this.enviroment = enviroment;
+		//this.enviroment = enviroment;
 	}
 
 	@Override
 	public void run() {
 		load(filename, map, ignoreTimeDifference);
+		this.c.loadCallback();
 	}
 
 	private void readChunk(Chunk chunk, RunLengthInputStream data, boolean ignoreTimeDifference) {
-		BuildingTile[][][] tiles = chunk.getBuilding().getTilemap();
 		float[][] heights = chunk.heightmap;
-		int[][] items = chunk.chunkProps.getTilemap();
+		Props[][] items = chunk.chunkProps.getPropMap();
 		StaticPropProperties[][] props = chunk.chunkProps.getEntityPropertyMap();
 		
 		byte editFlags = data.readByte();
@@ -76,35 +78,51 @@ public class RegionLoader implements Runnable {
 		if ((editFlags & 0x02) != 0) {
 			for (int x = 0; x < items.length; x++) {
 				for (int z = 0; z < items.length; z++) {
-					items[x][z] = data.readShort();
-	
-					if (data.readByte() != 0) {
-						float dx = data.readFloat();
-						float dz = data.readFloat();
-						float scale = data.readFloat();
-						StaticPropProperties prop = new StaticPropProperties(dx, dz, scale);
-						prop.damage = data.readByte();
-						props[x][z] = prop;
+					int id = data.readShort();
+					if (id != Short.MAX_VALUE) {
+						items[x][z] = Props.values()[id];
+						
+						if (data.readByte() != 0) {
+							float dx = data.readFloat();
+							float dz = data.readFloat();
+							float scale = data.readFloat();
+							StaticPropProperties prop = new StaticPropProperties(dx, dz, scale);
+							prop.damage = data.readByte();
+							props[x][z] = prop;
+						}
 					}
 				}
 			}
 		}
 		
 		if ((editFlags & 0x01) != 0) {
-			for(int x = 0; x < tiles.length; x++) {
-				for(int z = 0; z < tiles.length; z++) {
-					for(int y = 0; y < tiles[0].length; y++) {
-						byte walls = data.readByte();
-						byte slope = data.readByte();
-						byte flags = data.readByte();
-						
-						Material[] mats = new Material[BuildingTile.NUM_MATS];
-						for (int j = 0; j < BuildingTile.NUM_MATS ; j++) {
-							mats[j] = Material.values()[data.readByte()];
-						}
-						
-						if (walls != 0 || slope != 0) {
-							tiles[x][y][z] = new BuildingTile(chunk, mats, walls, slope, flags);
+			BuildData building = chunk.getBuilding();
+			int numSectors = data.readShort();
+			for(int i = 0; i < numSectors; i++) {
+				int sectorX = data.readByte();
+				int sectorZ = sectorX >> 4;
+				sectorX &= 15;
+				int sectorY = data.readByte();
+				BuildSector sector = building.addSector(sectorX, sectorY, sectorZ);
+				
+				for(int x = 0; x < BuildSector.SIZE; x++) {
+					for(int z = 0; z < BuildSector.SIZE; z++) {
+						for(int y = 0; y < BuildSector.SIZE; y++) {
+							byte slope = data.readByte();
+							
+							boolean noMats = true;
+							Material[] mats = new Material[Tile.NUM_MATS];
+							byte[] flags = new byte[Tile.NUM_MATS];
+							for (int j = 0; j < Tile.NUM_MATS ; j++) {
+								mats[j] = Material.values()[data.readByte()];
+								flags[j] = data.readByte();
+								
+								if (mats[j] != Material.NONE) noMats = false;
+							}
+							
+							if (!noMats || slope != 0) {
+								sector.addTile(new Tile(mats, slope, flags), x, y, z);
+							}
 						}
 					}
 				}
@@ -132,8 +150,8 @@ public class RegionLoader implements Runnable {
 	private void load(String filename, Map<Integer, Chunk> chunks, boolean ignoreTimeDifference) {
 		File file = new File(filename);
 		if (!file.exists()) {
-			BiomeVoronoi biomeVoronoi = enviroment.getBiomeVoronoi();
-			final int wid = (Chunk.VERTEX_COUNT-1);
+			//BiomeVoronoi biomeVoronoi = enviroment.getBiomeVoronoi();
+			//final int wid = (Chunk.VERTEX_COUNT-1);
 			
 			for(Chunk chunk : chunks.values()) {
 				chunk.setState(Chunk.GENERATING);
@@ -173,17 +191,6 @@ public class RegionLoader implements Runnable {
 				e.printStackTrace();
 			}
 		//}
-	}
-	
-	public void load(String filename, int[] header, Map<Integer, Chunk> chunks, boolean ignoreTimeDifference) {
-		try (RandomAccessFile raf = new RandomAccessFile(new File(filename), "r")) {
-			load(header, raf, chunks, ignoreTimeDifference);
-			raf.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (DataFormatException e) {
-			e.printStackTrace();
-		}
 	}
 	
 	private void load(int[] header, RandomAccessFile raf, Map<Integer, Chunk> chunks, boolean ignoreTimeDifference) throws IOException, DataFormatException {

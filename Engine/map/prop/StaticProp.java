@@ -8,18 +8,18 @@ import scene.overworld.inventory.Item;
 
 public class StaticProp {
 	private PropModel model;
-	private Item drop;
+	private int drop;
 	private int dropAmt;
 	private Material material;
 	private byte strength;
 	private boolean alwaysDrop;
-	private Item tool = Item.AIR;
+	private int tool = 0;
 	
-	public StaticProp(PropModel model, Material material, Item drop, int dropAmt, byte strength, boolean alwaysDrop) {
-		this(model, material, drop, dropAmt, strength, alwaysDrop, null);
+	public StaticProp(PropModel model, Material material, int drop, int dropAmt, byte strength, boolean alwaysDrop) {
+		this(model, material, drop, dropAmt, strength, alwaysDrop, 0);
 	}
 	
-	public StaticProp(PropModel model, Material material, Item drop, int dropAmt, byte strength, boolean alwaysDrop, Item tool) {
+	public StaticProp(PropModel model, Material material, int drop, int dropAmt, byte strength, boolean alwaysDrop, int tool) {
 		this.model = model;
 		this.drop = drop;
 		this.material = material;
@@ -33,7 +33,7 @@ public class StaticProp {
 		return (int) ((alwaysDrop) ? dropAmt : Math.round(Math.random() * dropAmt));
 	}
 	
-	public Item getDrop() {
+	public int getDrop() {
 		return drop;
 	}
 	
@@ -45,7 +45,7 @@ public class StaticProp {
 		return model.getBounds();
 	}
 	
-	public Item getTool() {
+	public int getTool() {
 		return tool;
 	}
 	
@@ -57,18 +57,18 @@ public class StaticProp {
 		return strength;
 	}
 
-	public boolean isDestroyableBy(Item item) {
+	public boolean isDestroyableBy(int item) {
 		if (tool == item)
 			return true;
 		
 		switch(tool) {
-		case AXE:
+		case Item.AXE:
 			return false;
-		case SPADE:
+		case Item.SPADE:
 			if (item == Item.TROWEL)
 				return true;
 			return false;
-		case TROWEL:
+		case Item.TROWEL:
 			if (item == Item.SPADE)
 				return true;
 			return false;

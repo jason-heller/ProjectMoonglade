@@ -1,18 +1,20 @@
 package scene.overworld.inventory.crafting;
 
-import scene.overworld.inventory.Item;
-
 public class Recipe {
 	
-	private Item[] items;
+	private int[] items;
 	private int[] amounts;
 
-	public Recipe(Item[] items, int[] amounts) {
-		this.items = items;
+	public Recipe(int[] items, int[] amounts) {
+		this.items = new int[items.length];
+		for(int i = 0; i < items.length; i++) {
+			this.items[i] = items[i];
+		}
+		
 		this.amounts = amounts;
 	}
 
-	public int compare(Item[] items, int[] amounts) {
+	public int compare(int[] items, int[] amounts) {
 		if (this.items.length != items.length) 
 			return 0;
 				

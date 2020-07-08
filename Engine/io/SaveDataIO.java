@@ -16,7 +16,6 @@ import map.Enviroment;
 import map.weather.Weather;
 import scene.overworld.Overworld;
 import scene.overworld.inventory.Inventory;
-import scene.overworld.inventory.Item;
 
 public class SaveDataIO {
 	public static void writeSaveData(Overworld overworld) {
@@ -40,7 +39,7 @@ public class SaveDataIO {
 			String amtData = "";
 			final int len = inv.getItems().length;
 			for(int i = 0; i < len; i++) {
-				itemData += inv.getItems()[i].ordinal() + ",";
+				itemData += inv.getItems()[i] + ",";
 				amtData += inv.getQuantities()[i] + ",";
 			}
 			
@@ -76,8 +75,8 @@ public class SaveDataIO {
 			
 			Overworld.worldName = map.get("worldname");
 			Overworld.worldSeed = map.get("seed");
-			
-			Enviroment.time = (Integer.parseInt(map.get("time")));
+			int time = Integer.parseInt(map.get("time"));
+			Enviroment.exactTime = time;
 			Weather.weatherCell = (Float.parseFloat(map.get("weather")));
 
 			String[] pos = map.get("location").split(",");
@@ -94,7 +93,7 @@ public class SaveDataIO {
 			for(int i = 0; i < len; i++) {
 				int item = Integer.parseInt(itemList[i]);
 				int qty = Integer.parseInt(qtyList[i]);
-				inv.addItem(Item.values()[item], qty);
+				inv.addItem(item, qty);
 			}
 			
 		} catch (FileNotFoundException e) {

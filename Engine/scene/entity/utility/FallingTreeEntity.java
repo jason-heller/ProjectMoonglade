@@ -23,7 +23,7 @@ public class FallingTreeEntity extends Entity {
 	private boolean fallDirZ = false;
 
 	private int fallDirPos;
-	private Item drop;
+	private int drop;
 
 	public FallingTreeEntity(StaticProp tile, float x, float y, float z, float scale) {
 		super();
@@ -31,7 +31,7 @@ public class FallingTreeEntity extends Entity {
 		this.scale = scale;
 
 		this.setModel(tile.getModel().toOpenGLModel());
-		this.setDiffuse(Resources.getTexture("fauna"));
+		this.setDiffuse(Resources.getTexture("flora"));
 		this.bounds = tile.getBounds();
 		
 		drop = tile.getDrop();
@@ -47,16 +47,12 @@ public class FallingTreeEntity extends Entity {
 	@Override
 	public void update(Scene scene) {
 		super.update(scene);
-	}
-
-	@Override
-	public void tick(Scene scene) {
 		Overworld ow = (Overworld)scene;
 		//Terrain t = ow.getEnviroment().getTerrain();
 		if (Math.abs(fallX) < 90 && Math.abs(fallZ) < 90) {
 			
 			animTime += (Window.deltaTime * .009f);
-			fallSpeed += animTime*9;
+			fallSpeed += animTime*.09f;
 			if (fallDirZ) {
 				fallZ = 90 * fallSpeed * fallDirPos;
 			} else {
@@ -79,7 +75,7 @@ public class FallingTreeEntity extends Entity {
 			
 			this.destroy();
 			
-			if (drop != Item.AIR) {
+			if (drop != 0) {
 				Matrix4f up = new Matrix4f();
 				if (fallDirZ) {
 					up.rotateY(fallZ+180);

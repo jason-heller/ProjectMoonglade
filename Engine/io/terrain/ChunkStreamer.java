@@ -20,7 +20,7 @@ public class ChunkStreamer {
 	
 	//private List<Chunk> genList = new LinkedList<Chunk>();
 	
-	private Map<String, int[]> cachedHeaders = new HashMap<String, int[]>();
+	public static Thread saveThread = null, loadThread = null;
 	
 	private ChunkCallback callback;
 	private Enviroment enviroment;
@@ -31,61 +31,32 @@ public class ChunkStreamer {
 	}
 	
 	public void update() {
-		if (!loadList.isEmpty()) {
+		if (!loadList.isEmpty() && loadThread == null) {
 			load();
 		}
 		
-		if (!saveList.isEmpty()) {
+		if (!saveList.isEmpty() && saveThread == null) {
 			save(Application.scene.getCamera().getPosition());
-			saveList.clear();
 		}
 	}
 	
 	private void save(Vector3f cameraPos) {
-		/*int camX = ((int)cameraPos.x / Chunk.CHUNK_SIZE);
-		int camY = ((int)cameraPos.y / Chunk.CHUNK_SIZE);
-		int camZ = ((int)cameraPos.z / Chunk.CHUNK_SIZE);*/
-		
-		Iterator<String> iter = saveList.keySet().iterator();
-		
-		while(iter.hasNext()) {
-			String filename = iter.next();
-			/*String[] fileSplit = filename.split("\\.");
-			
-			int regionX = Integer.parseInt(fileSplit[1]) * RegionIO.CHUNKS_PER_AXIS;
-			int regionY = Integer.parseInt(fileSplit[2]) * RegionIO.CHUNKS_PER_AXIS;
-			int regionZ = Integer.parseInt(fileSplit[3]) * RegionIO.CHUNKS_PER_AXIS;
-			
-			// Check if it is time to stream to file
-			if (regionX - camX >= Globals.chunkRenderDist ||
-				regionY - camY >= Globals.chunkRenderDist ||
-				regionZ - camZ >= Globals.chunkRenderDist ||
-				camX - regionX >= Globals.chunkRenderDist + RegionIO.CHUNKS_PER_AXIS ||
-				camY - regionY >= Globals.chunkRenderDist + RegionIO.CHUNKS_PER_AXIS ||
-				camZ - regionZ >= Globals.chunkRenderDist + RegionIO.CHUNKS_PER_AXIS) {
-				
-			}*/
-			//RegionSaver.save(filename, saveList.get(filename));
-			new Thread(new RegionSaver(callback, filename, saveList.get(filename))).start();
-		}
+		String filename = saveList.keySet().iterator().next();
+		saveThread = new Thread(new RegionSaver(callback, filename, saveList.get(filename)));
+		saveThread.start();
+		saveList.remove(filename);
 		
 	}
 	
 	private void load() {
-		for(String filename : loadList.keySet()) {
-			Map<Integer, Chunk> chunks = loadList.get(filename);
+		String filename =loadList.keySet().iterator().next();
+		
+		Map<Integer, Chunk> chunks = loadList.get(filename);
 			
-			int[] header = cachedHeaders.get(filename);
-			if (header != null) {
-				//RegionSaver.load(filename, header, chunks, false);
-				new Thread(new RegionLoader(callback, filename, chunks, enviroment)).start();
-			} else {
-				//RegionSaver.load(filename, chunks, false);
-				new Thread(new RegionLoader(callback, filename, chunks, enviroment)).start();
-			}
-		}
-		loadList.clear();
-		cachedHeaders.clear();
+		loadThread = new Thread(new RegionLoader(callback, filename, chunks, enviroment));
+		
+		loadThread.start();
+		loadList.remove(filename);
 	}
 	
 	public void queueForSaving(Chunk chunk) {
@@ -136,12 +107,12 @@ public class ChunkStreamer {
 class ChunkCallback implements ChunkCallbackInterface {
 	
 	@Override
-	public void saveCallback(Chunk chunk) {
-		chunk.setState(Chunk.UNLOADING);
+	public void saveCallback() {
+		ChunkStreamer.saveThread = null;
 	}
 	
 	@Override
-	public void loadCallback(Chunk chunk) {
-		chunk.setState(Chunk.GENERATING);
+	public void loadCallback() {
+		ChunkStreamer.loadThread = null;
 	}
 }

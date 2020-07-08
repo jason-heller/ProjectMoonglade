@@ -11,9 +11,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import audio.AudioHandler;
+import dev.Console;
 import gl.Camera;
 import gl.Window;
 import gl.particle.ParticleHandler;
+import gl.shadow.ShadowBox;
+import gl.shadow.ShadowRender;
 import map.Terrain;
 import scene.entity.EntityHandler;
 
@@ -50,6 +53,9 @@ public class Settings {
 		ParticleHandler.maxParticles = getInt("max_particles");
 		Terrain.size = getInt("chunk_dist");
 		EntityHandler.entityRadius = getInt("entity_dist");
+		ShadowRender.pcfCount = getInt("shadow_quality");
+		ShadowBox.shadowDistance = getFloat("shadow_dist");
+		ShadowRender.shadowMapSize = getInt("shadow_fbo_size");
 
 		AudioHandler.changeMasterVolume();
 		// Window.setDisplayMode(Window.getWidth(), Window.getHeight(),
@@ -84,6 +90,9 @@ public class Settings {
 		addEntry("max_particles", ParticleHandler.maxParticles);
 		addEntry("chunk_dist", Terrain.size);
 		addEntry("entity_dist", EntityHandler.entityRadius);
+		addEntry("shadow_quality", ShadowRender.pcfCount);
+		addEntry("shadow_dist", ShadowBox.shadowDistance);
+		addEntry("shadow_fbo_size", ShadowRender.shadowMapSize);
 	}
 
 	public static void init() {
@@ -99,6 +108,9 @@ public class Settings {
 		addEntry("max_particles", 99);
 		addEntry("chunk_dist", 7);
 		addEntry("entity_dist", 5);
+		addEntry("shadow_quality", 2);
+		addEntry("shadow_dist", 16);
+		addEntry("shadow_fbo_size", 2048);
 
 		if (configFile.exists()) {
 			load();

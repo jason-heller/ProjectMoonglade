@@ -2,16 +2,16 @@ package scene.overworld.inventory;
 
 import dev.Console;
 import map.Chunk;
-import map.tile.BuildingTile;
+import map.tile.Tile;
 
 public enum ItemAction {
 	NONE, PAINT;
 
-	public boolean doAction(Item item, int facingIndex, BuildingTile tile, Chunk chunk) {
+	public boolean doAction(int id, int facingIndex, Tile tile, Chunk chunk) {
 		switch(this) {
 		case PAINT:
 			if (tile != null && tile.getMaterial(facingIndex).isColorable()) {
-				paint(item, facingIndex, tile);
+				paint(Item.get(id).getName(), facingIndex, tile);
 				chunk.getBuilding().buildModel();
 				return true;
 			}
@@ -22,46 +22,46 @@ public enum ItemAction {
 		}
 	}
 
-	private void paint(Item item, int facingIndex, BuildingTile tile) {
+	private void paint(String item, int facingIndex, Tile tile) {
 		switch(item) {
-		case RED_PAINT:
-			tile.setFlags((byte) 1);
+		case "red_paint":
+			tile.setFlags(facingIndex, (byte) 1);
 			break;
-		case ORANGE_PAINT:
-			tile.setFlags((byte) 2);
+		case "orange_paint":
+			tile.setFlags(facingIndex, (byte) 2);
 			break;
-		case YELLOW_PAINT:
-			tile.setFlags((byte) 3);
+		case "yellow_paint":
+			tile.setFlags(facingIndex, (byte) 3);
 			break;
-		case GREEN_PAINT:
-			tile.setFlags((byte) 4);
+		case "green_paint":
+			tile.setFlags(facingIndex, (byte) 4);
 			break;
-		case CYAN_PAINT:
-			tile.setFlags((byte) 5);
+		case "cyan_paint":
+			tile.setFlags(facingIndex, (byte) 5);
 			break;
-		case BLUE_PAINT:
-			tile.setFlags((byte) 6);
+		case "blue_paint":
+			tile.setFlags(facingIndex, (byte) 6);
 			break;
-		case INDIGO_PAINT:
-			tile.setFlags((byte) 7);
+		case "indigo_paint":
+			tile.setFlags(facingIndex, (byte) 7);
 			break;
-		case VIOLET_PAINT:
-			tile.setFlags((byte) 8);
+		case "violet_paint":
+			tile.setFlags(facingIndex, (byte) 8);
 			break;
-		case DARK_GREY_PAINT:
-			tile.setFlags((byte) 9);
+		case "dark_grey_paint":
+			tile.setFlags(facingIndex, (byte) 9);
 			break;
-		case LIGHT_GREY_PAINT:
-			tile.setFlags((byte) 10);
+		case "light_grey_paint":
+			tile.setFlags(facingIndex, (byte) 10);
 			break;
-		case SILVER_PAINT:
-			tile.setFlags((byte) 11);
+		case "silver_paint":
+			tile.setFlags(facingIndex, (byte) 11);
 			break;
-		case FOREST_GREEN_PAINT:
-			tile.setFlags((byte) 12);
+		case "forest_green_paint":
+			tile.setFlags(facingIndex, (byte) 12);
 			break;
 		default:
-			tile.setFlags((byte) 0);
+			tile.setFlags(facingIndex, (byte) 0);
 		}
 	}
 }

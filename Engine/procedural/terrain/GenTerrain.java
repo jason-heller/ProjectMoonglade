@@ -7,6 +7,7 @@ import map.Enviroment;
 import map.Moisture;
 import map.Temperature;
 import map.Terrain;
+import map.prop.Props;
 import procedural.Noise;
 import procedural.SimplexNoise;
 import procedural.biome.Biome;
@@ -44,11 +45,11 @@ public class GenTerrain {
 	
 	public static float[][] buildTerrain(Chunk chunk, int x, int y, int z, int vertexStripeSize, int polygonSize, BiomeVoronoi biomeVoronoi) {
 		float terrainHeight;
-		int terrainTile;
+		Props terrainTile;
 		Structure structure;
 		float[][] heights = chunk.heightmap;
 		float[][] waterTable = chunk.waterTable;
-		int[][] tileItems = chunk.chunkProps.getTilemap();
+		Props[][] tileItems = chunk.chunkProps.getPropMap();
 		
 		boolean needsTileItems = (chunk.editFlags & 0x02) == 0;
 		boolean needsHeights = (chunk.editFlags & 0x04) == 0;
@@ -135,7 +136,7 @@ public class GenTerrain {
 		return biome.getTerrainStructures(x, z, currentHeight, biomeData.getSubseed(), r);
 	}
 
-	private static int getTerrainTileItems(int x, int z, float currentHeight, BiomeData biomeData, Random r, int[][] tileItems) {
+	private static Props getTerrainTileItems(int x, int z, float currentHeight, BiomeData biomeData, Random r, Props[][] tileItems) {
 		Biome biome = biomeData.getInfluencingBiomes()[biomeData.mainBiomeId];
 		return biome.getTerrainTileItems(x, z, currentHeight, biomeData.getSubseed(), r, tileItems);
 	}

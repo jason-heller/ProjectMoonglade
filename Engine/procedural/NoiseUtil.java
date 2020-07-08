@@ -18,6 +18,7 @@ public class NoiseUtil {
 	}
 	
 	public static float valueNoise2d(long x, long y, long s) {
+		x += s;
 		x *= s;
 		y *= s*60493;
 		/* mix around the bits in x: */

@@ -6,11 +6,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import dev.Console;
 import io.StructureLoader;
 import map.Chunk;
 import map.Terrain;
+import map.prop.Props;
 import map.tile.BuildData;
+import map.tile.BuildSector;
+import map.tile.Tile;
 
 public class StructureHandler {
 	//Have a list of all possible structures
@@ -109,7 +111,7 @@ public class StructureHandler {
 		boolean hasEnvTiles = data.hasEnvTiles();
 		
 		BuildData building = chunk.getBuilding();
-		int[][] envTiles = chunk.chunkProps.getTilemap();
+		Props[][] envTiles = chunk.chunkProps.getPropMap();
 		
 		for(int i = dx; i < width; i++) {
 			for(int j = dz; j < length; j++) {
@@ -123,13 +125,20 @@ public class StructureHandler {
 				if (hasBuildingTiles) {
 					for(int k = 0; k < data.getHeight(); k++) {
 						CompTileData tile = data.getBuildingTile(i, k, j);
-						if (tile != null)
-							building.setTile(i, k, j, tile.getWalls(), tile.getSlope(), tile.getMaterials(), tile.getFlags());
+						int sx = i/8;
+						int sy = k/8;
+						int sz = j/8;
+						BuildSector sector = building.getSector(sx, sy, sz);
+						if (sector == null) {
+							sector = building.addSector(sx, sy, sz);
+						}
+						
+						sector.addTile(new Tile(tile.getMaterials(), tile.getSlope(), tile.getFlags()), i - (sx*8), k - (sy*8), j - (sz*8));
 					}
 				}
 				
 				if (hasEnvTiles) {
-					envTiles[i][j] = data.getEnvTile(i, j);
+					envTiles[i][j] = data.getProp(i, j);
 				}
 			}
 		}

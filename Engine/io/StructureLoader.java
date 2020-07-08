@@ -39,10 +39,13 @@ public class StructureLoader {
 						if (tileWalls == 0)
 							continue;
 						int tileSlope = is.read();
-						int tileFlags = is.read();
+						
 						int[] mats = new int[6];
-						for (int s = 0; s < 6; s++)
+						byte[] tileFlags = new byte[6];
+						for (int s = 0; s < 6; s++) {
 							mats[s] = is.readShort();
+							tileFlags[s] = (byte) is.read();
+						}
 
 						sd.setBuildingTile(i, k, j, mats, tileWalls, tileSlope, tileFlags);
 					}

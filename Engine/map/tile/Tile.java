@@ -2,18 +2,15 @@ package map.tile;
 
 import org.joml.Vector3f;
 
-import dev.Console;
 import gl.Camera;
-import map.Chunk;
 import map.Material;
 import scene.overworld.inventory.Item;
 import util.MathUtil;
 
-public class BuildingTile {
-	private Chunk chunk;
-	private byte walls, slope;
-	private byte flags;		// For tiling...tiles, this represents the graphic offset, can have other uses
+public class Tile {
+	private byte slope;
 	public Material[] materials;
+	private byte[] flags;
 	
 	public static final int NUM_MATS = 7;
 	
@@ -26,45 +23,63 @@ public class BuildingTile {
 						FRONT = 16,
 						BACK = 32;
 	
-	public BuildingTile(Chunk chunk, Material materials, byte walls, byte slope, byte flags) {
-		this.chunk = chunk;
+	public Tile(Material material, byte walls, byte slope, byte flags) {
 		this.materials = new Material[NUM_MATS];
-		this.walls = walls;
+		this.flags = new byte[NUM_MATS];
 		this.slope = slope;
-		this.flags = flags;
 		
 		int val = 1;
 		for(int i = 0; i < NUM_MATS-1; i++) {
-			this.materials[i] = (walls & val) != 0 ? materials : Material.NONE;
+			this.materials[i] = (walls & val) != 0 ? material : Material.NONE;
+			if ((walls & val) != 0) {
+				this.materials[i] = material;
+				this.flags[i] = flags;
+			} else {
+				this.materials[i] = Material.NONE;
+				this.flags[i] = (byte)0;
+			}
 		
 			val *= 2;
 		}
 		
 		if (slope != 0) {
-			this.materials[NUM_MATS-1] = materials;
+			this.materials[NUM_MATS-1] = material;
+			this.flags[NUM_MATS-1] = flags;
 		} else {
 			this.materials[NUM_MATS-1] = Material.NONE;
+			this.flags[NUM_MATS-1] = (byte)0;
 		}
 	}
 	
-	public BuildingTile(Chunk chunk, Material[] id, byte walls, byte slope, byte flags) {
-		this.chunk = chunk;
+	public Tile(Material[] id, byte slope, byte[] flags) {
 		this.materials = id;
-		this.walls = walls;	
 		this.slope = slope;
 		this.flags = flags;
 	}
 	
 	public byte getWalls() {
+		byte walls = 0;
+		int val = 1;
+		for(int i = 0; i < NUM_MATS-1; i++) {
+			if (materials[i] != Material.NONE)
+				walls |= val;
+		
+			val *= 2;
+		}
 		return walls;
 	}
 
 	public boolean isActive() {
-		return (walls != 0);
+		for(int i = 0; i < NUM_MATS; i++) {
+			if (materials[i] != Material.NONE)
+				return true;
+		}
+		
+		return false;
 	}
 
-	public boolean isActive(byte wall) {
-		return (walls & wall) != wall;
+	public boolean isActive(int wall) {
+		return materials[wall] != Material.NONE;
 	}
 
 	/**
@@ -98,28 +113,25 @@ public class BuildingTile {
 
 	void append(byte wall, byte slope, Material mat, byte flags) {
 		if (mat == Material.NONE) {
-			walls = (byte) (walls - (walls & wall));
 			this.slope = (byte) (this.slope - (this.slope & slope));
 		} else {
-			walls |= wall;
 			this.slope |= slope;
 			
 			if (slope != 0) {
 				this.materials[NUM_MATS-1] = mat;
+				this.flags[NUM_MATS-1] = flags;
 			}
 		}
 		
-		this.flags = flags;
 		int val = 1;
 		for(int i = 0; i < NUM_MATS-1; i++) {
 			this.materials[i] = (wall & val) != 0 ? mat : this.materials[i];
-			
+			this.flags[i] = (wall & val) != 0 ? flags : this.flags[i];
 			val *= 2;
 		}
 	}
 	
-	void append(byte wall, byte slope, Material[] mat, byte flags) {
-		this.walls = wall;
+	void append(Material[] mat, byte slope, byte[] flags) {
 		this.materials = mat;
 		this.flags = flags;
 		this.slope = slope;
@@ -185,12 +197,12 @@ public class BuildingTile {
 		return materials[facing];
 	}
 
-	public byte getFlags() {
+	public byte[] getFlags() {
 		return flags;
 	}
 
-	public void setFlags(byte flags) {
-		this.flags = flags;
+	public void setFlags(int i, byte flags) {
+		this.flags[i] = flags;
 	}
 
 	public static byte getOpposingBytes(byte facingBytes) {

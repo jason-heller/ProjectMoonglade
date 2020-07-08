@@ -35,7 +35,7 @@ public class ControlsPanel extends GuiPanel {
 		
 		addSeparator();
 		add(new GuiLabel(x, y ,"#SInventory"));
-		for (; i < 15; i++) {
+		for (i = 0; i < 10; i++) {
 			addBind(iter.next());
 		}
 

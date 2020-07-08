@@ -2,15 +2,14 @@ package dev;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import org.joml.Vector3f;
 import org.lwjgl.input.Keyboard;
 
 import core.Application;
 import io.Input;
-import scene.entity.EntityData;
 import scene.overworld.inventory.Item;
 import ui.Font;
 import ui.Image;
@@ -398,7 +397,7 @@ public class Console {
 			String[] inputSpace = input.split(" ");
 			
 			if (input.indexOf("give") == 0 && inputSpace.length >= 1  && inputSpace.length < 3) {
-				predictEnum(inputSpace.length == 2 ? inputSpace[1] : "", Item.values());
+				predictEnum(inputSpace.length == 2 ? inputSpace[1] : "", Item.names());
 			}
 			
 			UI.drawString(Font.consoleFont, ">" + input + blinker, x + BORDER_WIDTH * 2,
@@ -442,16 +441,16 @@ public class Console {
 		}
 	}
 
-	private static void predictEnum(String string, Enum<?>[] values) {
+	private static void predictEnum(String string, Set<String> values) {
 		List<String> preds = new ArrayList<String>();
 		
 		if (string.equals("")) {
-			for(Enum<?> e : values) {
-				preds.add(e.name().toLowerCase());
+			for(String e : values) {
+				preds.add(e.toLowerCase());
 			}
 		} else {
-			for(Enum<?> e : values) {
-				String name = e.name().toLowerCase();
+			for(String e : values) {
+				String name = e.toLowerCase();
 				
 				if (name.indexOf(string) == 0) {
 					preds.add(name);

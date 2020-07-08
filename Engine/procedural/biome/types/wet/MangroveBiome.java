@@ -4,6 +4,7 @@ import java.util.Random;
 
 import map.Moisture;
 import map.Temperature;
+import map.prop.Props;
 import procedural.biome.Biome;
 import procedural.biome.types.BiomeColors;
 import procedural.structures.Structure;
@@ -37,15 +38,15 @@ public class MangroveBiome extends Biome {
 	}
 	
 	@Override
-	public int getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r, int[][] tileItems) {
+	public Props getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r, Props[][] tileItems) {
 		if (x % 6 == 0 && z % 6 == 0 && currentHeight > -1) {
 			int n = r.nextInt(5);
 			if (n == 0) {
-				return 10;
+				return Props.MANGROVE;
 			}
 		}
 		
-		return 0;
+		return null;
 	}
 	
 	@Override

@@ -1,13 +1,16 @@
 package map;
 
-import map.tile.BuildingTile;
+import java.util.Collection;
+
+import map.prop.Props;
+import map.tile.BuildSector;
 
 public class ChunkDataWrapper {
 	public int x, z, arrX, arrZ;
 	public float[][] heightmap;
-	public int[][] tilemap;
+	public Props[][] tilemap;
 	//public float[][] waterTable;
-	public BuildingTile[][][] tiles;
+	public BuildSector[] sectors;
 	public byte editFlags = 1;
 	
 	public byte state = 0;
@@ -19,8 +22,13 @@ public class ChunkDataWrapper {
 		this.arrZ = chunk.arrZ;
 		
 		this.heightmap = chunk.heightmap.clone();
-		this.tilemap = chunk.getChunkEntities().getTilemap().clone();
-		this.tiles = chunk.getBuilding().getTilemap().clone();
+		this.tilemap = chunk.getChunkEntities().getPropMap().clone();
+		Collection<BuildSector> sectorCollection = chunk.getBuilding().getSectors();
+		this.sectors = new BuildSector[sectorCollection.size()];
+		int i = 0;
+		for(BuildSector sector : sectorCollection) {
+			sectors[i++] = sector;
+		}
 	}
 
 	public void setState(byte state) {

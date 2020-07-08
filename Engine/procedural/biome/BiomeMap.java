@@ -13,6 +13,7 @@ import procedural.biome.types.average.PineForestBiome;
 import procedural.biome.types.average.SnowyPineForestBiome;
 import procedural.biome.types.average.TropicalForestBiome;
 import procedural.biome.types.dry.ButteBiome;
+import procedural.biome.types.dry.ChaparrelBiome;
 import procedural.biome.types.dry.ColdMountainBiome;
 import procedural.biome.types.dry.DesertBiome;
 import procedural.biome.types.dry.GrasslandBiome;
@@ -20,6 +21,7 @@ import procedural.biome.types.dry.TemperateMountainBiome;
 import procedural.biome.types.wet.FenBiome;
 import procedural.biome.types.wet.MangroveBiome;
 import procedural.biome.types.wet.OceanBiome;
+import procedural.biome.types.wet.SwampBiome;
 import procedural.biome.types.wet.TaigaBiome;
 
 public class BiomeMap {
@@ -40,6 +42,8 @@ public class BiomeMap {
 		addBiome(new TemperateMountainBiome());
 		addBiome(new OceanBiome());
 		addBiome(new ColdMountainBiome());
+		addBiome(new SwampBiome());
+		addBiome(new ChaparrelBiome());
 	}
 	
 	private void addBiome(Biome biome) {

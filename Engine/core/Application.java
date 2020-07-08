@@ -16,11 +16,12 @@ import io.Input;
 import io.Settings;
 import scene.MainMenu;
 import scene.Scene;
+import scene.overworld.inventory.Item;
 import ui.UI;
 
 public class Application {
 	
-	public static final String VERSION = "Engine Dev. 0.2.1";
+	public static final String VERSION = "Engine Dev. 0.2.2";
 	
 	public static Scene scene;
 	private static Class<?> nextScene;
@@ -61,6 +62,9 @@ public class Application {
 		Window.create();
 		Render.init();
 		Console.init();
+		
+		Item.init();
+		
 
 		Window.update();
 

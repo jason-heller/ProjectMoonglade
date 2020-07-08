@@ -89,7 +89,7 @@ public class FireflyEntity extends Entity {
 		position.z += velocity.z;
 		y += velocity.y;
 		
-		if (Enviroment.time > Enviroment.NIGHT) {
+		if (Enviroment.exactTime > Enviroment.NIGHT) {
 			destroy();
 		}
 	}
@@ -112,6 +112,6 @@ public class FireflyEntity extends Entity {
 		if (biome.getTemperature() != Temperature.TEMPERATE)
 			return false;
 		
-		return (Enviroment.time > Enviroment.DUSK && Enviroment.time < Enviroment.NIGHT);
+		return (Enviroment.exactTime > Enviroment.DUSK && Enviroment.exactTime < Enviroment.NIGHT);
 	}
 }

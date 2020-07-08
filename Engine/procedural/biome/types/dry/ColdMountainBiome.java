@@ -2,10 +2,9 @@ package procedural.biome.types.dry;
 
 import java.util.Random;
 
-import map.Chunk;
 import map.Moisture;
 import map.Temperature;
-import procedural.NoiseUtil;
+import map.prop.Props;
 import procedural.biome.Biome;
 import procedural.biome.types.BiomeColors;
 import procedural.structures.Structure;
@@ -35,9 +34,9 @@ public class ColdMountainBiome extends Biome {
 	}
 	
 	@Override
-	public int getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r, int[][] tileItems) {
+	public Props getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r, Props[][] tileItems) {
 		if (currentHeight > 29f) {
-			return 0;
+			return null;
 		}
 		
 		if (x % 2 == 0 && z % 2 == 0) {
@@ -45,11 +44,11 @@ public class ColdMountainBiome extends Biome {
 			
 			float n = r.nextFloat();
 			if (n < treeDensity) {
-				return 9;
+				return Props.PINE;
 			}
 		}
 		
-		return 0;
+		return null;
 	}
 	
 	@Override

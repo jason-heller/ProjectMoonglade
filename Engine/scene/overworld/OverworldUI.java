@@ -3,9 +3,9 @@ package scene.overworld;
 import org.joml.Vector3f;
 
 import audio.AudioHandler;
-import gl.Window;
 import io.Controls;
 import io.Input;
+import io.Settings;
 import scene.entity.PlayerHandler;
 import scene.menu.pause.OptionsPanel;
 import ui.UI;
@@ -26,9 +26,6 @@ public class OverworldUI {
 	private final int CROSSHAIR_THICKNESS = 1;
 	private final Vector3f CROSSHAIR_COLOR = new Vector3f(1, 1, 1);
 	
-	// TEMP
-	private float timer = 0f;
-	
 	private boolean paused;
 	
 	public OverworldUI(Overworld scene) {
@@ -47,8 +44,7 @@ public class OverworldUI {
 				
 				switch (index) {
 				case 0:
-					options.setFocus(false);
-					paused = false;
+					unpause();
 					break;
 				case 1:
 					options.setFocus(!options.isFocused());
@@ -72,12 +68,6 @@ public class OverworldUI {
 			return;
 		}
 		
-		if (timer < 10f) {
-			UI.drawString("NOTE 2 MAX:\nUse Tilde ( ` ) to open debug console\nthe \"give\" command can spawn items\n\"F\" is noclip", 1280/2, 720/2, true);
-		}
-		
-		timer += Window.deltaTime;
-		
 		picker.update();
 
 		UI.drawRect(640 - CROSSHAIR_THICKNESS, 360 - CROSSHAIR_SIZE, 2 * CROSSHAIR_THICKNESS, CROSSHAIR_SIZE,
@@ -94,16 +84,7 @@ public class OverworldUI {
 				AudioHandler.pause();
 				PlayerHandler.disable();
 			} else {
-				if (options.isFocused()) {
-					options.setFocus(false);
-				} else {
-					paused = false;
-					AudioHandler.unpause();
-					PlayerHandler.enable();
-					//if (!Console.isVisible()) {
-						Input.requestMouseGrab();
-					//}
-				}
+				unpause();
 			}
 		}
 		
@@ -117,6 +98,21 @@ public class OverworldUI {
 			}
 		}
 	
+	}
+
+	private void unpause() {
+		if (options.isFocused()) {
+			options.setFocus(false);
+			Settings.grabData();
+			Settings.save();
+		} else {
+			paused = false;
+			AudioHandler.unpause();
+			PlayerHandler.enable();
+			//if (!Console.isVisible()) {
+				Input.requestMouseGrab();
+			//}
+		}
 	}
 
 	public boolean isPaused() {

@@ -13,7 +13,7 @@ import map.Chunk;
 import map.Enviroment;
 import map.Terrain;
 import map.tile.BuildData;
-import map.tile.BuildingTile;
+import map.tile.Tile;
 import scene.overworld.Overworld;
 import scene.overworld.inventory.tool.EditorBoundsTool;
 
@@ -66,19 +66,20 @@ public class StructureExporter {
 					if (includeHeights)
 						dos.writeFloat(c.heightmap[dx][dz]);
 					if (includeEnvTiles)
-						dos.writeInt(c.getChunkEntities().getEntityId(dx, dz));
+						dos.writeInt(c.getChunkEntities().getProp(dx, dz).ordinal());
 
 					if (includeBuildings) {
 						for (int k = 0; k < h; k++) {
-							BuildingTile tile = b.get(dx, y + k, dz);
+							Tile tile = b.get(dx, y + k, dz);
 							if (tile == null) {
 								dos.write((byte)0);
 							} else {
 								dos.write(tile.getWalls());
 								dos.write(tile.getSlope());
-								dos.write(tile.getFlags());
+								
 								for(int s = 0; s < 6; s++) {
 									dos.writeShort(tile.getMaterial(s).ordinal());
+									dos.write(tile.getFlags()[s]);
 								}
 							}
 						}

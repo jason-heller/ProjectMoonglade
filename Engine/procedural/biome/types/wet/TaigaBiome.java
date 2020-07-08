@@ -4,6 +4,7 @@ import java.util.Random;
 
 import map.Moisture;
 import map.Temperature;
+import map.prop.Props;
 import procedural.NoiseUtil;
 import procedural.biome.Biome;
 import procedural.biome.types.BiomeColors;
@@ -32,7 +33,7 @@ public class TaigaBiome extends Biome {
 	}
 
 	@Override
-	public int getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r, int[][] tileItems) {
+	public Props getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r, Props[][] tileItems) {
 		if (currentHeight > -5 && x % 2 == 0 && z % 2 == 0) {
 			double treeDensity = .15f + NoiseUtil.interpNoise2d(x/64f, z/64f, subseed) * .1f;
 			
@@ -40,13 +41,13 @@ public class TaigaBiome extends Biome {
 			if (n < treeDensity) {
 				switch(r.nextInt() & 0x20) {
 				case 0:
-					return 2;
+					return Props.THIN_TREE;
 				default:
-					return 9;
+					return Props.PINE;
 				}
 			}
 		}
-		return 0;
+		return null;
 	}
 
 	@Override

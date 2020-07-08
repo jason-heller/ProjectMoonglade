@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -13,9 +14,11 @@ import java.util.Map;
 
 import dev.Console;
 import map.Chunk;
+import map.prop.Props;
 import map.prop.StaticPropProperties;
 import map.tile.BuildData;
-import map.tile.BuildingTile;
+import map.tile.BuildSector;
+import map.tile.Tile;
 import scene.entity.Entity;
 import scene.entity.EntityData;
 import scene.entity.EntityHandler;
@@ -63,46 +66,51 @@ public class RegionSaver implements Runnable {
 			}
 		}
 		
-		final int[][] items = chunk.chunkProps.getTilemap();
+		final Props[][] items = chunk.chunkProps.getPropMap();
 		final StaticPropProperties[][] tileProps = chunk.chunkProps.getEntityPropertyMap();
 		if ((flags & 0x02) != 0) {
 			for (int x = 0; x < items.length; x++) {
 				for (int z = 0; z < items.length; z++) {
-					data.writeShort(items[x][z]);
-					
-					if (tileProps[x][z] == null) {
-						data.writeByte(0);
+					if (items[x][z] == null) {
+						data.writeShort(Short.MAX_VALUE);
 					} else {
-						data.writeByte(1);
-						data.writeFloat(tileProps[x][z].dx);
-						data.writeFloat(tileProps[x][z].dz);
-						data.writeFloat(tileProps[x][z].scale);
-						data.writeByte(tileProps[x][z].damage);
+						data.writeShort(items[x][z].ordinal());
+						if (tileProps[x][z] == null) {
+							data.writeByte(0);
+						} else {
+							data.writeByte(1);
+							data.writeFloat(tileProps[x][z].dx);
+							data.writeFloat(tileProps[x][z].dz);
+							data.writeFloat(tileProps[x][z].scale);
+							data.writeByte(tileProps[x][z].damage);
+						}
 					}
 				}
 			}
 		}
 		
 		BuildData building = chunk.getBuilding();
-		BuildingTile[][][] tiles = building.getTilemap();
-
+		
 		if ((flags & 0x01) != 0) {
-			for (int x = 0; x < tiles.length; x++) {
-				for (int z = 0; z < tiles.length; z++) {
-					for (int y = 0; y < tiles[0].length; y++) {
-						
-						BuildingTile tile = tiles[x][y][z];
-						if (tile == null) {
-							for(int i = 0; i < BuildingTile.NUM_MATS + 3; i++) {
-								data.writeByte(0);
-							}
-						} else {
-							data.writeByte(tile.getWalls());
-							data.writeByte(tile.getSlope());
-							data.writeByte(tile.getFlags());
-							
-							for (int i = 0; i < BuildingTile.NUM_MATS ; i++) {
-								data.writeByte(tile.materials[i].ordinal());
+			Collection<BuildSector> sectors = building.getSectors();
+			data.writeShort(sectors.size());
+			for(BuildSector sector : sectors) {
+				data.writeByte(sector.getX() + (sector.getZ() << 4));
+				data.writeByte(sector.getY());
+				for(int x = 0; x < BuildSector.SIZE; x++) {
+					for(int z = 0; z < BuildSector.SIZE; z++) {
+						for(int y = 0; y < BuildSector.SIZE; y++) {
+							Tile tile = sector.get(x, y, z);
+							if (tile == null) {
+								for(int i = 0; i < Tile.NUM_MATS*2 + 1; i++) {
+									data.writeByte(0);
+								}
+							} else {
+								data.writeByte(tile.getSlope());
+								for (int i = 0; i < Tile.NUM_MATS ; i++) {
+									data.writeByte(tile.materials[i].ordinal());
+									data.writeByte(tile.getFlags()[i]);
+								}
 							}
 						}
 					}
@@ -139,6 +147,7 @@ public class RegionSaver implements Runnable {
 
 		if (file.exists()) {
 			append(file, map);
+			this.c.saveCallback();
 			return;
 		}
 		
@@ -153,7 +162,6 @@ public class RegionSaver implements Runnable {
 			chunkData.put(key, compressedData);
 			freespace += Math.ceil(compressedData.length / (double)SECTOR_SIZE);
 			chunk.setState(Chunk.UNLOADING);
-			this.c.saveCallback(chunk);
 		}
 		
 		try (DataOutputStream out = new DataOutputStream(new FileOutputStream(file))) {
@@ -205,6 +213,8 @@ public class RegionSaver implements Runnable {
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
+		
+		this.c.saveCallback();
 	}
 
 	private void append(File file, Map<Integer, Chunk> map) {

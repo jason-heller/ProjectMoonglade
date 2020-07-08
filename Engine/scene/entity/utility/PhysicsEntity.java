@@ -12,7 +12,7 @@ import geom.Manifold;
 import gl.Window;
 import map.Chunk;
 import map.Terrain;
-import map.tile.BuildingTile;
+import map.tile.Tile;
 import scene.Scene;
 import scene.entity.Entity;
 import scene.overworld.Overworld;
@@ -56,7 +56,6 @@ public abstract class PhysicsEntity extends Entity {
 		matrix = new Matrix4f();
 		this.model = model == null ? null : Resources.getModel(model);
 		this.diffuse = diffuse == null ? null : Resources.getTexture(diffuse);
-		persistency = 3;
 
 		aabb = new AABB(new Vector3f(), new Vector3f(width, height, width));
 	}
@@ -160,7 +159,7 @@ public abstract class PhysicsEntity extends Entity {
 	private void collideWithBuildings(Terrain t) {
 		aabb.setCenter(position.x, position.y + (height/2), position.z);
 
-		BuildingTile tile;
+		Tile tile;
 		
 		for(float i = position.x - 1f; i <= position.x + 1f; i += 1f) {
 			for(float j = position.z - 1f; j <= position.z + 1f; j += 1f) {
@@ -195,7 +194,7 @@ public abstract class PhysicsEntity extends Entity {
 		}*/
 	}
 	
-	protected void addTile(BuildingTile[] tiles, BuildingTile tileAt) {
+	protected void addTile(Tile[] tiles, Tile tileAt) {
 		if (tileAt == null) return;
 		for(int i = 0; i < 4; i++) {
 			if (tiles[i] == tileAt) {
@@ -209,7 +208,7 @@ public abstract class PhysicsEntity extends Entity {
 		}
 	}
 
-	private void testTile(BuildingTile tile, float px ,float py , float pz, float tx, float ty, float tz, boolean stick) {
+	private void testTile(Tile tile, float px ,float py , float pz, float tx, float ty, float tz, boolean stick) {
 		byte walls = tile.getWalls();
 		byte slope = tile.getSlope();
 		int slopeFactor = walls >> 6;

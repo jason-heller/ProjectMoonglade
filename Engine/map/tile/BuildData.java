@@ -1,45 +1,67 @@
 package map.tile;
 
-import static map.Chunk.VERTEX_COUNT;
-import static map.tile.BuildingTile.TILE_SIZE;
+import static map.tile.Tile.TILE_SIZE;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.joml.Vector3f;
 
 import gl.res.Model;
-import gl.res.TileModel;
 import map.Chunk;
 import map.Material;
 import util.ModelBuilder;
 
 public class BuildData {
-	private BuildingTile[][][] buildingTiles;
+	private Map<Integer, BuildSector> sectors;
 	private Chunk chunk;
 	private Model model;
 	
-	public final static int MIN_BUILD_HEIGHT = -32;
-	public final static int MAX_BUILD_HEIGHT = 128;
-	public final static int ARR_HEIGHT = 160;
+	public final static int MIN_BUILD_HEIGHT = -999;
+	public final static int MAX_BUILD_HEIGHT = 999;
+	//public final static int ARR_HEIGHT = 160;
 
 	public BuildData(Chunk chunk) {
 		this.chunk = chunk;
-		buildingTiles = new BuildingTile[VERTEX_COUNT * 2][ARR_HEIGHT][VERTEX_COUNT * 2];
+		sectors = new HashMap<Integer, BuildSector>();
 	}
 
+	
+	
 	// Use this to modify tile data internally
 	// See: setTile()
 	private void setData(int x, int y, int z, byte wall, byte slope, Material material, byte flags) {
-		BuildingTile tile = buildingTiles[x][y-MIN_BUILD_HEIGHT][z];
+		int rx = x - chunk.realX;
+		int rz = z - chunk.realZ;
+		
+		int tx = (int)Math.floor(x/8f);
+		int ty = (int)Math.floor(y/8f);
+		int tz = (int)Math.floor(z/8f);
+		BuildSector sector = getSector(tx, ty, tz);
+		if (sector == null) {
+			// Add new sector
+			sector = new BuildSector(tx, ty, tz);
+			sectors.put(getSectorId(tx, ty, tz), sector);
+		}
+		
+		tx = x - tx*8;
+		ty = y - ty*8;
+		tz = z - tz*8;
+		
+		Tile tile = sector.get(tx, ty, tz);
 		
 		if (material == Material.NONE) {
 			if (tile != null) {
 				if (tile.getWalls() == wall && tile.getSlope() == slope) {
-					buildingTiles[x][y-MIN_BUILD_HEIGHT][z] = null;
+					sector.removeTile(tx, ty, tz);
 				} else {
 					tile.append(wall, slope, material, flags);
 				}
 			}
 		} else if (tile == null) {
-			buildingTiles[x][y-MIN_BUILD_HEIGHT][z] = new BuildingTile(chunk, material, wall, slope, flags);
+			tile = new Tile(material, wall, slope, flags);
+			sector.addTile(tile, tx, ty, tz);
 		} else {
 			tile.append(wall, slope, material, flags);
 		}
@@ -49,37 +71,38 @@ public class BuildData {
 	// the occupying tile is transparent
 	// See: setTile()
 	private void setDataIfFree(int x, int y, int z, byte wall, byte slope, Material material, byte flags) {
-		BuildingTile tile = buildingTiles[x][y-MIN_BUILD_HEIGHT][z];
+		int rx = x - chunk.realX;
+		int rz = z - chunk.realZ;
+		
+		int tx = (int)Math.floor(x/8f);
+		int ty = (int)Math.floor(y/8f);
+		int tz = (int)Math.floor(z/8f);
+		
+		BuildSector sector = getSector(tx, ty, tz);
+		if (sector == null) {
+			// Add new sector
+			sector = new BuildSector(tx, ty, tz);
+			sectors.put(getSectorId(tx, ty, tz), sector);
+		}
+		
+		tx = x - tx*8;
+		ty = y - ty*8;
+		tz = z - tz*8;
+		
+		Tile tile = sector.get(tx, ty, tz);
 		
 		if (material == Material.NONE) {
 			if (tile != null) {
 				if (tile.getWalls() == wall && tile.getSlope() == slope) {
-					buildingTiles[x][y-MIN_BUILD_HEIGHT][z] = null;
+					sector.removeTile(tx, ty, tz);
 				} else {
 					tile.append(wall, slope, material, flags);
 				}
 			}
 		} else if (tile == null) {
-			buildingTiles[x][y-MIN_BUILD_HEIGHT][z] = new BuildingTile(chunk, material, wall, slope, flags);
+			tile = new Tile(material, wall, slope, flags);
+			sector.addTile(tile, tx, ty, tz);
 		} else if ((tile.getWalls() & wall) == 0 || material.isTransparent()) {
-			tile.append(wall, slope, material, flags);
-		}
-	}
-	
-	
-	/** Sets a tile within the build data
-	 * @param x local X position
-	 * @param y local Y position
-	 * @param z local Z position
-	 * @param wall flags to represent which walls to set (xxBFBTRL)
-	 * @param material array of material enums, corresponding to the wall flags
-	 * @param flags certain tiles can have specific flags, if the tile being set is using them, pass them here
-	 */
-	public void setTile(int x, int y, int z, byte wall, byte slope, Material[] material, byte flags) {
-		BuildingTile tile = buildingTiles[x][y-MIN_BUILD_HEIGHT][z];
-		if (tile == null) {
-			buildingTiles[x][y-MIN_BUILD_HEIGHT][z] = new BuildingTile(chunk, material, wall, slope, flags);
-		} else {
 			tile.append(wall, slope, material, flags);
 		}
 	}
@@ -93,52 +116,49 @@ public class BuildData {
 	 * @param flags certain tiles can have specific flags, if the tile being set is using them, pass them here
 	 */
 	public void setTile(int x, int y, int z, byte wall, byte slope, Material material, byte flags) {
-		int _x = (int)(Math.round(x / TILE_SIZE) * TILE_SIZE);
-		int _y = (int)(Math.round(y / TILE_SIZE) * TILE_SIZE);
-		int _z = (int)(Math.round(z / TILE_SIZE) * TILE_SIZE);
-		setData(_x, _y, _z, wall, slope, material, flags);
+		setData(x, y, z, wall, slope, material, flags);
 
 		switch(wall) {
 		case 1: 
-			if (_x == 0) {
+			if (x == 0) {
 				Chunk neighbor = chunk.getTerrain().get(chunk.arrX-1, chunk.arrZ);
-				_x = Chunk.VERTEX_COUNT - 2;
-				neighbor.getBuilding().setFromNeighbor(_x, _y, _z, (byte)2, (byte)0, material, flags);
+				x = Chunk.VERTEX_COUNT - 2;
+				neighbor.getBuilding().setFromNeighbor(x, y, z, (byte)2, (byte)0, material, flags);
 			} else {
-				setDataIfFree(_x-1,_y,_z, (byte)2, (byte)0, material, flags);
+				setDataIfFree(x-1,y,z, (byte)2, (byte)0, material, flags);
 			}
 			break;
 		case 2: 
-			if (_x == Chunk.VERTEX_COUNT-1) {
+			if (x == Chunk.VERTEX_COUNT-1) {
 				Chunk neighbor = chunk.getTerrain().get(chunk.arrX+1, chunk.arrZ);
-				_x = 0;
-				neighbor.getBuilding().setFromNeighbor(_x, _y, _z, (byte)1, (byte)0, material, flags);
+				x = 0;
+				neighbor.getBuilding().setFromNeighbor(x, y, z, (byte)1, (byte)0, material, flags);
 			} else {
-				setDataIfFree(_x+1,_y,_z, (byte)1, (byte)0, material, flags);
+				setDataIfFree(x+1,y,z, (byte)1, (byte)0, material, flags);
 			}
 			break;
 		case 4: 
-			setDataIfFree(_x,_y+1,_z, (byte)8, (byte)0, material, flags);
+			setDataIfFree(x,y+1,z, (byte)8, (byte)0, material, flags);
 			break;
 		case 8: 
-			setDataIfFree(_x,_y-1,_z, (byte)4, (byte)0, material, flags);
+			setDataIfFree(x,y-1,z, (byte)4, (byte)0, material, flags);
 			break;
 		case 16: 
-			if (_z == 0) {
+			if (z == 0) {
 				Chunk neighbor = chunk.getTerrain().get(chunk.arrX, chunk.arrZ-1);
-				_z = Chunk.VERTEX_COUNT - 2;
-				neighbor.getBuilding().setFromNeighbor(_x, _y, _z, (byte)32, (byte)0, material, flags);
+				z = Chunk.VERTEX_COUNT - 2;
+				neighbor.getBuilding().setFromNeighbor(x, y, z, (byte)32, (byte)0, material, flags);
 			} else {
-				setDataIfFree(_x,_y,_z-1, (byte)32, (byte)0, material, flags);
+				setDataIfFree(x,y,z-1, (byte)32, (byte)0, material, flags);
 			}
 			break;
 		case 32: 
-			if (_z == Chunk.VERTEX_COUNT-1) {
+			if (z == Chunk.VERTEX_COUNT-1) {
 				Chunk neighbor = chunk.getTerrain().get(chunk.arrX, chunk.arrZ+1);
-				_z = 0;
-				neighbor.getBuilding().setFromNeighbor(_x, _y, _z, (byte)16, (byte)0, material, flags);
+				z = 0;
+				neighbor.getBuilding().setFromNeighbor(x, y, z, (byte)16, (byte)0, material, flags);
 			} else {
-				setDataIfFree(_x,_y,_z+1, (byte)16, (byte)0, material, flags);
+				setDataIfFree(x,y,z+1, (byte)16, (byte)0, material, flags);
 			}
 			break;
 		}
@@ -156,10 +176,7 @@ public class BuildData {
 	 * @param flags tile specific flags
 	 */
 	private void setFromNeighbor(int x, int y, int z, byte wall, byte slope, Material material, byte flags) {
-		int _x = (int)(Math.round(x / TILE_SIZE) * TILE_SIZE);
-		int _y = (int)(Math.round(y / TILE_SIZE) * TILE_SIZE);
-		int _z = (int)(Math.round(z / TILE_SIZE) * TILE_SIZE);
-		setDataIfFree(_x, _y, _z, wall, slope, material, flags);
+		setDataIfFree(x, y, z, wall, slope, material, flags);
 		
 		buildModel();
 	}
@@ -176,103 +193,11 @@ public class BuildData {
 		
 		ModelBuilder builder = new ModelBuilder(true, true, false);
 		builder.addAttrib(3, 3);
-		//Vector3f p1 = new Vector3f(), p2 = new Vector3f(), p3 = new Vector3f(), p4 = new Vector3f();
-		//float s = TILE_SIZE;
 		
 		Vector3f tex = new Vector3f();
 		
-		for (int x = 0; x < buildingTiles.length; x++) {
-			for (int y = 0; y < ARR_HEIGHT; y++) {
-				for (int z = 0; z < buildingTiles.length; z++) {
-					BuildingTile tile = buildingTiles[x][y][z];
-					
-					if (tile == null) {
-						continue;
-					}
-					
-					float dx = chunk.realX + (x * TILE_SIZE);
-					float dy = ((y + MIN_BUILD_HEIGHT) * TILE_SIZE);
-					float dz = chunk.realZ + (z * TILE_SIZE);
-
-					byte walls = tile.getWalls();
-					byte flags = tile.getFlags();
-					byte slope = tile.getSlope();
-					int slantFactor = (tile.getWalls() >> 6);
-					
-					byte b = 1;
-					for(int f = 0; f < 6; f++ ) {
-						if ((walls & b) != 0) {
-							Material mat = tile.getMaterial(f);
-							TileModel model = mat.getTileModel();
-							tex = Material.getTexCoordData(tex, tile.materials[f], flags);
-							model.pass(dx,dy,dz, builder, tex, b, flags, (byte)-1, true);
-						}
-						
-						b *= 2;
-					}
-					
-					b = 1;
-
-					if (slantFactor == 0) {	// Gradual
-						for(int f = 0; f < 6; f++ ) {
-							if ((slope & b) != 0) {
-								TileModel model = tile.getMaterial(6).getTileModel();
-								tex = Material.getTexCoordData(tex, tile.materials[6], flags);
-								model.pass(dx,dy,dz, builder, tex, b, flags, (byte)slantFactor, tile.materials[6].isColorable());
-							}
-							
-							b *= 2;
-						}
-					} else if (slantFactor == 1) { // Steep
-						for(int f = 0; f < 4; f++ ) {
-							if ((slope & b) != 0) {
-								TileModel model = tile.getMaterial(6).getTileModel();
-								tex = Material.getTexCoordData(tex, tile.materials[6], flags);
-								model.pass(dx,dy,dz, builder, tex, b, flags, (byte)slantFactor, tile.materials[6].isColorable());
-							}
-							
-							b *= 2;
-						}
-					}
-					
-					/*tex = Material.getTexCoordData(tex, tile.materials[0], flags);
-					if ((walls & LEFT) != 0) {
-						p1.set(dx, dy + s, dz); p2.set(dx, dy + s, dz + s); p3.set(dx, dy, dz + s); p4.set(dx, dy, dz);
-						//if ()
-						builder.addQuad(p1, p2, p3, p4, tex);
-					}
-
-					tex = Material.getTexCoordData(tex, tile.materials[1], flags);
-					if ((walls & RIGHT) != 0) {
-						p1.set(dx + s, dy + s, dz + s); p2.set(dx + s, dy + s, dz); p3.set(dx + s, dy, dz); p4.set(dx + s, dy, dz + s);
-						builder.addQuad(p1, p2, p3, p4, tex);
-					}
-
-					tex = Material.getTexCoordData(tex, tile.materials[2], flags);
-					if ((walls & TOP) != 0) {
-						p1.set(dx + s, dy + s, dz + s); p2.set(dx, dy + s, dz + s); p3.set(dx, dy + s, dz); p4.set(dx + s, dy + s, dz);
-						builder.addQuad(p1, p2, p3, p4, tex);
-					}
-
-					tex = Material.getTexCoordData(tex, tile.materials[3], flags);
-					if ((walls & BOTTOM) != 0) {
-						p1.set(dx, dy, dz + s); p2.set(dx + s, dy, dz + s); p3.set(dx + s, dy, dz); p4.set(dx, dy, dz);
-						builder.addQuad(p1, p2, p3, p4, tex);
-					}
-
-					tex = Material.getTexCoordData(tex, tile.materials[4], flags);
-					if ((walls & FRONT) != 0) {
-						p1.set(dx + s, dy + s, dz); p2.set(dx, dy + s, dz); p3.set(dx, dy, dz); p4.set(dx + s, dy, dz);
-						builder.addQuad(p1, p2, p3, p4, tex);
-					}
-
-					tex = Material.getTexCoordData(tex, tile.materials[5], flags);
-					if ((walls & BACK) != 0) {
-						p1.set(dx, dy + s, dz + s); p2.set(dx + s, dy + s, dz + s); p3.set(dx + s, dy, dz + s); p4.set(dx, dy, dz + s);
-						builder.addQuad(p1, p2, p3, p4, tex);
-					}*/
-				}
-			}
+		for(BuildSector sector : sectors.values()) {
+			sector.draw(builder, chunk.realX, chunk.realZ, tex);
 		}
 		
 		model = builder.finish();
@@ -285,7 +210,7 @@ public class BuildData {
 		}
 		
 		model = null;
-		this.buildingTiles = null;
+		//this.sectors = null;
 		this.chunk = null;
 	}
 
@@ -293,25 +218,41 @@ public class BuildData {
 		return model;
 	}
 
-	public BuildingTile getTileAt(float rx, float ry, float rz) {
+	public Tile getTileAt(float rx, float ry, float rz) {
 		int dx = (int) (Math.floor(rx/TILE_SIZE));
-		int dy = (int) (Math.floor(ry/TILE_SIZE)) - MIN_BUILD_HEIGHT;
+		int dy = (int) (Math.floor(ry/TILE_SIZE));
 		int dz = (int) (Math.floor(rz/TILE_SIZE));
-		if (dy >= buildingTiles[0].length || dy < 0)
-			return null;
-
-		return buildingTiles[dx][dy][dz];
+		return get(dx, dy, dz);
 	}
 
-	public BuildingTile get(int i, int j, int k) {
-		return buildingTiles[i][j - MIN_BUILD_HEIGHT][k];
+	public Tile get(int x, int y, int z) {
+		int dx = x/8;
+		int dy = (int)Math.floor(y/8f);
+		int dz = z/8;
+		BuildSector sector = getSector(dx, dy, dz);
+		if (sector == null) return null;
+		dx *= 8;
+		dy *= 8;
+		dz *= 8;
+		
+		return sector.get(x-dx, y-dy, z-dz);//buildingTiles[i][j - MIN_BUILD_HEIGHT][k];
 	}
 
-	public BuildingTile[][][] getTilemap() {
-		return buildingTiles;
+	public BuildSector getSector(int x, int y, int z) {
+		return sectors.get(getSectorId(x, y, z));
 	}
 
-	public void setTilemap(BuildingTile[][][] tiles) {
-		this.buildingTiles = tiles;
+	private int getSectorId(int x, int y, int z) {
+		return x + y*4 + z*2;
+	}
+
+	public Collection<BuildSector> getSectors() {
+		return sectors.values();
+	}
+
+	public BuildSector addSector(int x, int y, int z) {
+		BuildSector sector = new BuildSector(x, y, z);
+		sectors.put(getSectorId(x, y, z), sector);
+		return sector;
 	}
 }

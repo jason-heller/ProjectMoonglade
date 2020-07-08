@@ -21,6 +21,7 @@ import scene.entity.EntityHandler;
 import scene.overworld.Overworld;
 import scene.overworld.inventory.Inventory;
 import scene.overworld.inventory.Item;
+import scene.overworld.inventory.ItemData;
 
 public class CommandMethods {
 	public static void logMessage(String msg) {
@@ -94,7 +95,7 @@ public class CommandMethods {
 		Terrain.size = distance;
 		if (Application.scene instanceof Overworld) {
 			Overworld scene = ((Overworld)Application.scene);
-			scene.getEnviroment().reloadTerrain();
+			scene.getEnviroment().getTerrain().reload();
 		}
 	}
 	
@@ -193,12 +194,9 @@ public class CommandMethods {
 		Overworld overworld = (Overworld) Application.scene;
 		Inventory inv = overworld.getInventory();
 		
-		for(int i = 0; i < Item.values().length; i++) {
-			Item current = Item.values()[i];
-			if (current.getName().toLowerCase().equals(item)) {
-				inv.addItem(current, amount);
-				break;
-			}
+		ItemData itemData = Item.get(item);
+		if (itemData != null) {
+			inv.addItem(itemData, amount);
 		}
 	}
 	

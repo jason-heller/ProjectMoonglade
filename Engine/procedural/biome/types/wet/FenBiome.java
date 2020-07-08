@@ -4,6 +4,7 @@ import java.util.Random;
 
 import map.Moisture;
 import map.Temperature;
+import map.prop.Props;
 import procedural.NoiseUtil;
 import procedural.biome.Biome;
 import procedural.biome.types.BiomeColors;
@@ -33,11 +34,11 @@ public class FenBiome extends Biome {
 	}
 	
 	@Override
-	public int getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r, int[][] tileItems) {
+	public Props getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r, Props[][] tileItems) {
 		if (currentHeight > -1 && currentHeight < 0.1f) {
 			int n = r.nextInt(10);
 			if (n == 1) {
-				return 5;
+				return Props.REED;
 			}
 		}
 		
@@ -47,21 +48,21 @@ public class FenBiome extends Biome {
 				if (noise > .87) {
 					int n = r.nextInt(20);
 					if (n == 1) {
-						return 2;
+						return Props.THIN_TREE;
 					}
 				}
-				return 1;
+				return Props.BUSH;
 			} else if (noise < -.9) {
 				if (r.nextInt(30) == 1) {
-					return 3;
+					return Props.DEAD_TREE;
 				}
 			} else {
 				if (r.nextInt(30) == 1) {
-					return 4;
+					return Props.ROCK;
 				}
 			}
 		}
-		return 0;
+		return null;
 	}
 	
 	@Override

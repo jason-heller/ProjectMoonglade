@@ -16,12 +16,11 @@ import procedural.biome.BiomeVoronoi;
 import procedural.terrain.GenTerrain;
 import scene.Scene;
 import scene.entity.EntityHandler;
+import scene.entity.skybox.RevolvingPlanetEntity;
 import scene.overworld.Overworld;
 import util.MathUtil;
 
 public class Enviroment {
-	public static int chunkArrSize = Terrain.size; // Keep odd
-
 	public static final int CYCLE_LENGTH = (Application.TICKS_PER_SECOND*60)*20;
 	private static final int DAY_START = 0;
 	private static final int DAY_SECTION_LENGTH  = CYCLE_LENGTH / 4;
@@ -33,8 +32,8 @@ public class Enviroment {
 
 	public static int biomeScale = 16*Chunk.CHUNK_SIZE;//8 for smaller
 	public static int timeSpeed = 1;
-	public static int time = 0;
-	private static float exactTime = 0f;
+	private static int time = 0;
+	public static float exactTime = 0f;
 	private static boolean toggleTime = true;
 	
 	private BiomeMap biomeMap;
@@ -61,6 +60,8 @@ public class Enviroment {
 		GenTerrain.init(terrain, (int)(seed & 0xff), (int)(seed & 0xff00), (int)(seed & 0xff0000), (int)(seed & 0xff000000));
 		
 		skybox = new Skybox();
+		skybox.addEntity(new RevolvingPlanetEntity(5, 45, 45, "sun"));
+		skybox.addEntity(new RevolvingPlanetEntity(-5, 45, 45, "moon"));
 		
 		terrainRender = new TerrainRender();
 		
@@ -71,10 +72,10 @@ public class Enviroment {
 		Vector3f c = scene.getCamera().getPosition();
 		
 		biomeMap = new BiomeMap();
-		biomeVoronoi = new BiomeVoronoi(this, chunkArrSize, biomeScale, c.x, c.z, (int)seed + 94823);
+		biomeVoronoi = new BiomeVoronoi(this, Terrain.size, biomeScale, c.x, c.z, (int)seed + 94823);
 		
 		weather = new Weather(seed, 3);
-		terrain = new Terrain(this, chunkArrSize);
+		terrain = new Terrain(this);
 		
 		final int chunkX = (int) Math.floor(c.x / Chunk.CHUNK_SIZE);
 		final int chunkZ = (int) Math.floor(c.z / Chunk.CHUNK_SIZE);
@@ -113,7 +114,7 @@ public class Enviroment {
 	public void render(Camera camera, Vector3f selectionPt, byte facing) {
 		Vector3f weatherColor = weather.determineSkyColor();
 		
-		skybox.render(camera, Enviroment.time, getClosestBiome().getSkyColor(), weatherColor);
+		skybox.render(camera, Enviroment.time, lightDirection, getClosestBiome().getSkyColor(), weatherColor);
 		terrainRender.render(camera, lightDirection, selectionPt, facing, terrain);
 
 		//EntityControl.render(camera, lightDirection);
@@ -127,23 +128,11 @@ public class Enviroment {
 		EntityHandler.setActivation(terrain);
 	}
 
-	public void resize() {
-		chunkArrSize = Terrain.size;
-		Console.log(Terrain.size);
-		Vector3f c = Application.scene.getCamera().getPosition();
-		x = (int) Math.floor(c.x / Chunk.CHUNK_SIZE);
-		z = (int) Math.floor(c.z / Chunk.CHUNK_SIZE);
-		terrain.cleanUp();
-		terrain = new Terrain(this, chunkArrSize);
-		terrain.populate(x, z);
-		Console.log(Terrain.size);
-	}
-
 	public void tick(Scene scene) {
 		final Camera camera = scene.getCamera();
 
-		final int camX = (int) Math.floor(camera.getPosition().x / Chunk.CHUNK_SIZE) - (chunkArrSize / 2);
-		final int camZ = (int) Math.floor(camera.getPosition().z / Chunk.CHUNK_SIZE) - (chunkArrSize / 2);
+		final int camX = (int) Math.floor(camera.getPosition().x / Chunk.CHUNK_SIZE) - (Terrain.size / 2);
+		final int camZ = (int) Math.floor(camera.getPosition().z / Chunk.CHUNK_SIZE) - (Terrain.size / 2);
 
 		spawner.tick();
 		
@@ -185,6 +174,7 @@ public class Enviroment {
 		
 		lightDirection.z = (float) Math.cos((DAY_START + time) * MathUtil.TAU / CYCLE_LENGTH);
 		lightDirection.y = (float) Math.sin((DAY_START + time) * MathUtil.TAU / CYCLE_LENGTH);
+		lightDirection.x = .3f;
 		
 		lightDirection.mul(weather.getLightingDim());
 
@@ -216,15 +206,6 @@ public class Enviroment {
 	
 	public int getTime() {
 		return time;
-	}
-
-	public void reloadTerrain() {
-		Vector3f pos = Application.scene.getCamera().getPosition();
-		chunkArrSize = Terrain.size; // Keep odd
-		int halfSize = chunkArrSize / 2;
-		terrain.cleanUp();
-		terrain = new Terrain(this, chunkArrSize);
-		terrain.populate((int)(pos.x/Chunk.CHUNK_SIZE) - halfSize, (int)(pos.z/Chunk.CHUNK_SIZE) - halfSize);
 	}
 	
 	public Vector3f getLightDirection() {

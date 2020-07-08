@@ -11,7 +11,7 @@ import gl.res.Model;
 import gl.res.Vbo;
 import map.Chunk;
 import map.Enviroment;
-import map.tile.BuildingTile;
+import map.tile.Tile;
 import procedural.biome.Biome;
 import procedural.biome.BiomeVoronoi;
 import procedural.biome.BiomeVoronoi.BiomeNode;
@@ -79,7 +79,7 @@ public class Debug {
 				+ "weather: "+weather+"\n"
 				+ "climate: "+GenTerrain.getTemperature(cp[0])+"/"+GenTerrain.getMoisture(cp[1])+"\n"
 				+ "dt: "+Window.deltaTime +"\n"
-				+ "time: " + Enviroment.time+"\n"
+				+ "time: " + (int)Enviroment.exactTime+"\n"
 				+ "facing: " + overworld.getCamFacingByte()
 				, 5, 5, .25f, false);
 	}

@@ -34,9 +34,9 @@ public class EntityHandler {
 		if (entities.containsKey(entity.getDiffuse())) {
 			entities.get(entity.getDiffuse()).add(entity);
 		} else {
-			final List<Entity> objs = new ArrayList<Entity>();
-			objs.add(entity);
-			entities.put(entity.getDiffuse(), objs);
+			final List<Entity> ents = new ArrayList<Entity>();
+			ents.add(entity);
+			entities.put(entity.getDiffuse(), ents);
 		}
 		
 	}
@@ -61,8 +61,10 @@ public class EntityHandler {
 		EntityData.init();
 	}
 
-	public static void removeEntity(Entity obj) {
-		removalQueue.add(obj);
+	public static void removeEntity(Entity entity) {
+		if (entity.persistency != 3) {
+			removalQueue.add(entity);
+		}
 	}
 
 	public static void render(Camera camera, Vector3f lightDir) {
@@ -132,7 +134,7 @@ public class EntityHandler {
 		shader.stop();
 	}
 	
-	public static void render(Camera camera, Vector3f lightDir, Entity object) {
+	public static void render(Camera camera, Vector3f lightDir, Entity entity) {
 		shader.start();
 		shader.projectionViewMatrix.loadMatrix(camera.getProjectionViewMatrix());
 		shader.lightDirection.loadVec3(lightDir);
@@ -140,10 +142,10 @@ public class EntityHandler {
 		GL20.glEnableVertexAttribArray(1);
 		GL20.glEnableVertexAttribArray(2);
 
-		object.getDiffuse().bind(0);
-		object.getModel().bind(0, 1, 2);
-		shader.modelMatrix.loadMatrix(object.getMatrix());
-		GL11.glDrawElements(GL11.GL_TRIANGLES, object.getModel().getIndexCount(), GL11.GL_UNSIGNED_INT, 0);
+		entity.getDiffuse().bind(0);
+		entity.getModel().bind(0, 1, 2);
+		shader.modelMatrix.loadMatrix(entity.getMatrix());
+		GL11.glDrawElements(GL11.GL_TRIANGLES, entity.getModel().getIndexCount(), GL11.GL_UNSIGNED_INT, 0);
 
 		GL20.glDisableVertexAttribArray(0);
 		GL20.glDisableVertexAttribArray(1);
@@ -245,9 +247,9 @@ public class EntityHandler {
 		if (byChunk.containsKey(chunk)) {
 			byChunk.get(chunk).add(entity);
 		} else {
-			final List<Entity> objs = new ArrayList<Entity>();
-			objs.add(entity);
-			byChunk.put(chunk, objs);
+			final List<Entity> ents = new ArrayList<Entity>();
+			ents.add(entity);
+			byChunk.put(chunk, ents);
 		}
 		chunk.editFlags |= 0x08;
 	}
