@@ -19,6 +19,10 @@ public class BiomeData {
 		this.secondaryBiomeId = secondaryBiomeId;
 		this.subseed = subseed;
 		this.terrainTransitionFactor = terrainTransitionFactor;
+		
+		if (this.secondaryBiomeId == -1) {
+			this.secondaryBiomeId = 0;
+		}
 	}
 	
 	public Biome[] getInfluencingBiomes() {

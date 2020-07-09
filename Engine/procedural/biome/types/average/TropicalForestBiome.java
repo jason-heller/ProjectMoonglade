@@ -2,6 +2,7 @@ package procedural.biome.types.average;
 
 import java.util.Random;
 
+import map.Chunk;
 import map.Moisture;
 import map.Temperature;
 import map.prop.Props;
@@ -16,8 +17,8 @@ public class TropicalForestBiome extends Biome {
 		this.name = "Tropical Forest";
 		this.temp = Temperature.WARM;
 		this.moisture = Moisture.AVERAGE;
-		this.terrainHeightFactor = 2f;
-		this.terrainRoughness = 11f;
+		this.terrainHeightFactor = 6f;
+		this.terrainRoughness = .3f;
 		
 		this.skyColor = BiomeColors.TROPIC_SKY;
 		this.groundColor = BiomeColors.TROPIC_GRASS_COLOR;
@@ -31,20 +32,44 @@ public class TropicalForestBiome extends Biome {
 	
 	@Override
 	public Props getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r, Props[][] tileItems) {
+		float n = r.nextFloat();
+		
+		if (currentHeight < -3f) {
+			if (n < .0001f) {
+				return Props.MANGROVE;
+			}
+			return null;
+		}
+		
+		int vc = Chunk.VERTEX_COUNT-1;
+		int tx = ((x % vc) + vc) % vc;
+		int tz = ((z % vc) + vc) % vc;
 		if (x % 8 == 0 && z % 8 == 0) {
-			double treeDensity = .1f + NoiseUtil.interpNoise2d(x/24f, z/24f, subseed) * .2f;
+			double treeDensity = .15f + NoiseUtil.interpNoise2d(x/24f, z/24f, subseed) * .2f;
 			
-			float n = r.nextFloat();
 			if (n < treeDensity) {
-				switch(r.nextInt() & 0x15) {
+				switch(r.nextInt(10)) {
 				case 0:
 					return Props.AGAVE;
 				case 1:
 					return Props.ROCK;
+				case 2:
+					return Props.MANGROVE;
 				default:
 					return Props.PALM;
 				}
+			} else if (n < treeDensity * 4) {
+				return Props.EVERGREEN;
 			}
+		} else if (tx != 0 && tileItems[tx-1][tz] == Props.EVERGREEN) {
+				n = r.nextFloat();
+				if (n < .2) {
+					return Props.VINE;
+				}
+			}
+		
+		if (n > .99) {
+			return Props.BIG_BUSH;
 		}
 		
 		return null;
@@ -52,7 +77,7 @@ public class TropicalForestBiome extends Biome {
 	
 	@Override
 	public float getWaterTable(int x, int z, float height, int subseed) {
-		return Float.MIN_VALUE;
+		return -3f;
 	}
 	
 	@Override

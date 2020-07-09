@@ -78,6 +78,10 @@ public class BiomeMap {
 	private Biome randomBiome(int x, int y, int seed) {
 		return allBiomes.get((int) (NoiseUtil.valueNoise2d(x, y, seed) * allBiomes.size()));
 	}
+
+	public List<Biome> getBiomes() {
+		return this.allBiomes;
+	}
 	
 	/*private int getNumBiomesInClimate(Temperature temp, Moisture wet) {
 		Map<Moisture, List<Biome>> section = biomeMap.get(temp);

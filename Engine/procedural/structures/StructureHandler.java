@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import dev.Console;
 import io.StructureLoader;
 import map.Chunk;
 import map.Terrain;
@@ -33,7 +34,7 @@ public class StructureHandler {
 		saveDataQueue = new HashMap<Integer, Map<Integer, List<StructPlacement>>>();
 		
 		structures = new HashMap<Structure, StructureData>();
-		structures.put(Structure.BUTTE, StructureLoader.read("butte.str"));
+		structures.put(Structure.PYLON, StructureLoader.read("pylon.str"));
 	}
 	
 	// TODO: On chunk generation, GenTerrain everything, THEN add a structure sweet of the chunks to add structures, then build the models
@@ -103,8 +104,8 @@ public class StructureHandler {
 		Structure struct = structPlacement.struct;
 		StructureData data = structures.get(struct);
 		
-		int width = Math.min(Chunk.CHUNK_SIZE-dx, data.getWidth());
-		int length = Math.min(Chunk.CHUNK_SIZE-dz, data.getLength());
+		//int width = Math.min(Chunk.CHUNK_SIZE-dx, data.getWidth());
+		//int length = Math.min(Chunk.CHUNK_SIZE-dz, data.getLength());
 		
 		boolean hasTerrain = data.hasTerrain();
 		boolean hasBuildingTiles = data.hasBuildingTiles();
@@ -112,11 +113,15 @@ public class StructureHandler {
 		
 		BuildData building = chunk.getBuilding();
 		Props[][] envTiles = chunk.chunkProps.getPropMap();
+		int tileX = 0, tileZ = 0;
 		
-		for(int i = dx; i < width; i++) {
-			for(int j = dz; j < length; j++) {
+		for(int i = dx; i <  dx+data.getWidth(); i++) {
+			for(int j = dz; j < dz+data.getLength(); j++) {
 				//int realX = i + chunk.realX;
 				//int relaZ = j + chunk.realZ;
+				
+				tileX = i - dx;
+				tileZ = j - dz;
 				
 				if (hasTerrain) {
 					chunk.heightmap[i][j] = data.getTerrain(i, j);
@@ -124,16 +129,18 @@ public class StructureHandler {
 				
 				if (hasBuildingTiles) {
 					for(int k = 0; k < data.getHeight(); k++) {
-						CompTileData tile = data.getBuildingTile(i, k, j);
-						int sx = i/8;
-						int sy = k/8;
-						int sz = j/8;
-						BuildSector sector = building.getSector(sx, sy, sz);
-						if (sector == null) {
-							sector = building.addSector(sx, sy, sz);
+						CompTileData tile = data.getBuildingTile(tileX, k, tileZ);
+						if (tile != null) {
+							int sx = i/8;
+							int sy = k/8;
+							int sz = j/8;
+							BuildSector sector = building.getSector(sx, sy, sz);
+							if (sector == null) {
+								sector = building.addSector(sx, sy, sz);
+							}
+							
+							sector.addTile(new Tile(tile.getMaterials(), tile.getSlope(), tile.getFlags()), i - (sx*8), k - (sy*8), j - (sz*8));
 						}
-						
-						sector.addTile(new Tile(tile.getMaterials(), tile.getSlope(), tile.getFlags()), i - (sx*8), k - (sy*8), j - (sz*8));
 					}
 				}
 				

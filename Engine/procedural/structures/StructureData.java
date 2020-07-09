@@ -131,13 +131,14 @@ class CompTileData {
 	
 	public Material[] getMaterials() {
 		final Material[] mats = Material.values();
-		final Material[] materials = new Material[6];
+		final Material[] materials = new Material[7];
 		materials[0] = mats[this.materials[0]];
 		materials[1] = mats[this.materials[1]];
 		materials[2] = mats[this.materials[2]];
 		materials[3] = mats[this.materials[3]];
 		materials[4] = mats[this.materials[4]];
 		materials[5] = mats[this.materials[5]];
+		materials[6] = mats[this.materials[6]];
 		
 		return materials;
 	}

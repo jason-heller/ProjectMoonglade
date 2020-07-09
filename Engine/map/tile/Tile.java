@@ -92,8 +92,8 @@ public class Tile {
 	 *               (true = floors/ceilings)
 	 * @return the byte value for the wall/floor facing the player
 	 */
-	public static byte getFacingByte(Camera camera, boolean floors) {
-		if (floors) {
+	public static byte getFacingByte(Camera camera, boolean floors, boolean slope) {
+		if (floors && !slope) {
 			return camera.getPitch() > 0 ? BOTTOM : TOP;
 		}
 		
@@ -264,5 +264,24 @@ public class Tile {
 		}
 		
 		return new Vector3f();
+	}
+
+	public static int getFacingIndex(byte wall) {
+		switch(wall) {
+		case LEFT:
+			return 0;
+		case RIGHT:
+			return 1;
+		case TOP:
+			return 2;
+		case BOTTOM:
+			return 3;
+		case FRONT:
+			return 4;
+		case BACK:
+			return 5;
+		}
+		
+		return 0;
 	}
 }

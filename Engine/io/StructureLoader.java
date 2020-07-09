@@ -36,13 +36,16 @@ public class StructureLoader {
 				if (readBuilds) {
 					for (int k = 0; k < h; k++) {
 						int tileWalls = is.read();
-						if (tileWalls == 0)
+						
+						if (tileWalls == 255) {
 							continue;
+						}
+						
 						int tileSlope = is.read();
 						
-						int[] mats = new int[6];
-						byte[] tileFlags = new byte[6];
-						for (int s = 0; s < 6; s++) {
+						int[] mats = new int[7];
+						byte[] tileFlags = new byte[7];
+						for (int s = 0; s < 7; s++) {
 							mats[s] = is.readShort();
 							tileFlags[s] = (byte) is.read();
 						}

@@ -27,18 +27,11 @@ public class EntityHandler {
 	private static ItemRender itemRender;
 	private static Map<Texture, List<Entity>> entities;
 	private static Map<Chunk, List<Entity>> byChunk;
-	private static LinkedList<Entity> removalQueue;
+	private static LinkedList<Entity> removalQueue, addQueue;
 	public static int entityRadius = 3;
 
 	public static void addEntity(Entity entity) {
-		if (entities.containsKey(entity.getDiffuse())) {
-			entities.get(entity.getDiffuse()).add(entity);
-		} else {
-			final List<Entity> ents = new ArrayList<Entity>();
-			ents.add(entity);
-			entities.put(entity.getDiffuse(), ents);
-		}
-		
+		addQueue.add(entity);
 	}
 
 	public static void cleanUp() {
@@ -56,6 +49,7 @@ public class EntityHandler {
 		entities = new HashMap<Texture, List<Entity>>();
 		byChunk = new HashMap<Chunk, List<Entity>>();
 		removalQueue = new LinkedList<Entity>();
+		addQueue = new LinkedList<Entity>();
 		itemRender = new ItemRender();
 		
 		EntityData.init();
@@ -155,21 +149,30 @@ public class EntityHandler {
 	}
 	
 	public static void update(Terrain terrain) {
-		for(Entity e : removalQueue) {
-			if (entities.containsKey(e.getDiffuse())) {
-				entities.get(e.getDiffuse()).remove(e);
+		for(Entity entity : removalQueue) {
+			if (entities.containsKey(entity.getDiffuse())) {
+				entities.get(entity.getDiffuse()).remove(entity);
 			}
 			
-			if (e.getChunk() != null) {
-				List<Entity> list = byChunk.get(e.getChunk());
+			if (entity.getChunk() != null) {
+				List<Entity> list = byChunk.get(entity.getChunk());
 				if (list != null) {
-					list.remove(e);
+					list.remove(entity);
 				}
 			}
 		}
 		removalQueue.clear();
 		
-		
+		for(Entity entity : addQueue) {
+			if (entities.containsKey(entity.getDiffuse())) {
+				entities.get(entity.getDiffuse()).add(entity);
+			} else {
+				final List<Entity> ents = new ArrayList<Entity>();
+				ents.add(entity);
+				entities.put(entity.getDiffuse(), ents);
+			}
+		}
+		addQueue.clear();
 		
 		for (final Texture texture : entities.keySet()) {
 			final List<Entity> batch = entities.get(texture);

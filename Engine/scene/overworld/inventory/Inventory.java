@@ -54,15 +54,8 @@ public class Inventory {
 		Resources.addTexture("tools", "item/tools.png");
 
 		if (Debug.structureMode) {
-			/*addItem(Item.SPADE, 1);
 			addItem(Item.AXE, 1);
 			//addItem(Item.PLANK, 1);
-			addItem(Item.STONE, 1);
-			addItem(Item.GLASS, 1);
-			addItem(Item.BRICKS, 1);
-			addItem(Item.DRYWALL, 1);
-			addItem(Item.THATCH, 1);
-			addItem(Item.STICKS, 1);*/
 		}
 
 		Texture texture = Resources.addTexture("items", "item/items.png");

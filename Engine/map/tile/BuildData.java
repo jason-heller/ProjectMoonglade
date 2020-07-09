@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.joml.Vector3f;
 
+import dev.Console;
 import gl.res.Model;
 import map.Chunk;
 import map.Material;
@@ -32,8 +33,8 @@ public class BuildData {
 	// Use this to modify tile data internally
 	// See: setTile()
 	private void setData(int x, int y, int z, byte wall, byte slope, Material material, byte flags) {
-		int rx = x - chunk.realX;
-		int rz = z - chunk.realZ;
+		//int rx = x - chunk.realX;
+		//int rz = z - chunk.realZ;
 		
 		int tx = (int)Math.floor(x/8f);
 		int ty = (int)Math.floor(y/8f);
@@ -71,8 +72,8 @@ public class BuildData {
 	// the occupying tile is transparent
 	// See: setTile()
 	private void setDataIfFree(int x, int y, int z, byte wall, byte slope, Material material, byte flags) {
-		int rx = x - chunk.realX;
-		int rz = z - chunk.realZ;
+		//int rx = x - chunk.realX;
+		//int rz = z - chunk.realZ;
 		
 		int tx = (int)Math.floor(x/8f);
 		int ty = (int)Math.floor(y/8f);
@@ -102,7 +103,7 @@ public class BuildData {
 		} else if (tile == null) {
 			tile = new Tile(material, wall, slope, flags);
 			sector.addTile(tile, tx, ty, tz);
-		} else if ((tile.getWalls() & wall) == 0 || material.isTransparent()) {
+		} else if ((tile.getWalls() & wall) == 0 || material.isTransparent() || tile.getMaterial(Tile.getFacingIndex(wall)).isTransparent()) {
 			tile.append(wall, slope, material, flags);
 		}
 	}
@@ -117,7 +118,7 @@ public class BuildData {
 	 */
 	public void setTile(int x, int y, int z, byte wall, byte slope, Material material, byte flags) {
 		setData(x, y, z, wall, slope, material, flags);
-
+		
 		switch(wall) {
 		case 1: 
 			if (x == 0) {
@@ -126,6 +127,7 @@ public class BuildData {
 				neighbor.getBuilding().setFromNeighbor(x, y, z, (byte)2, (byte)0, material, flags);
 			} else {
 				setDataIfFree(x-1,y,z, (byte)2, (byte)0, material, flags);
+				
 			}
 			break;
 		case 2: 

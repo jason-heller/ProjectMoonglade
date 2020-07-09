@@ -3,8 +3,10 @@ package scene.menu;
 import java.io.File;
 
 import core.Application;
+import procedural.biome.BiomeData;
 import scene.overworld.Overworld;
 import ui.menu.GuiButton;
+import ui.menu.GuiDropdown;
 import ui.menu.GuiPanel;
 import ui.menu.GuiTextbox;
 import ui.menu.layout.GuiFlowLayout;
@@ -49,6 +51,7 @@ public class NewGameMenu extends GuiPanel {
 				Overworld.worldSeed = worldSeed.getValue().equals("") ? System.currentTimeMillis() + ""
 						: worldSeed.getValue();
 				new File("saves/" + Overworld.worldFileName).mkdir();
+				
 				Application.changeScene(Overworld.class);
 			}
 

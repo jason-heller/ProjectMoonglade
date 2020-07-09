@@ -43,7 +43,7 @@ public class ChaparrelBiome extends Biome {
 		
 		switch(r.nextInt() % 24) {
 		case 0: return Props.CHAPARREL_FLOWER;
-		case 1: return Props.DEAD_TALL_GRASS;
+		case 1: return Props.DEAD_GRASS;
 		case 2: return Props.ROCK;
 		}
 		

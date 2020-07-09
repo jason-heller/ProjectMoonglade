@@ -72,6 +72,13 @@ public class Enviroment {
 		Vector3f c = scene.getCamera().getPosition();
 		
 		biomeMap = new BiomeMap();
+		
+		for(Biome biome : biomeMap.getBiomes()) {
+			if (Overworld.worldSeed.toLowerCase().equals(biome.getName().toLowerCase())) {
+				BiomeVoronoi.singularBiome = biome;
+				break;
+			}
+		}
 		biomeVoronoi = new BiomeVoronoi(this, Terrain.size, biomeScale, c.x, c.z, (int)seed + 94823);
 		
 		weather = new Weather(seed, 3);

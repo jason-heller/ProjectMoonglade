@@ -38,7 +38,7 @@ public class DeciduousForestBiome extends Biome {
 		int tz = ((z % vc) + vc) % vc;
 		
 		if (x % 2 == 0 && z % 2 == 0) {
-			double treeDensity = .1f + NoiseUtil.interpNoise2d(x/24f, z/24f, subseed) * .2f;
+			double treeDensity = .09f + NoiseUtil.interpNoise2d(x/24f, z/24f, subseed) * .2f;
 			
 			float n = r.nextFloat();
 			if (n < treeDensity) {
@@ -54,7 +54,20 @@ public class DeciduousForestBiome extends Biome {
 			if (n < .1) {
 				return Props.VINE;
 			}
+		} else {
+			float n = r.nextFloat();
+			if (n > .999f) {
+				return Props.BIG_BUSH;
+			}
+			if (n < .005f) {
+				return Props.BUSH;
+			}
+			else if (n < .01f) {
+				return Props.GRASS;
+			}
 		}
+		
+		
 		
 		return null;
 	}

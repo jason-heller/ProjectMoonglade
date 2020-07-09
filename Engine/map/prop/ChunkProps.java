@@ -68,7 +68,9 @@ public class ChunkProps {
 					}
 				
 					//if (tiledModel.getNumSubmodels() == 1) {
-						builder.addPropMdesh(rx+i, ry, rz+j, scale, tiledModel);
+					int flipX = r.nextBoolean() ? 1 : -1;
+					int flipZ = r.nextBoolean() ? 1 : -1;
+						builder.addPropMesh(rx+i, ry, rz+j, scale, tiledModel, flipX, flipZ);
 					/*} else {
 						byte flags = 0;
 						if (i > 0 && tilemap[i-1][j] != tile)

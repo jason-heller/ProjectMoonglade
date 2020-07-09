@@ -8,6 +8,7 @@ import org.lwjgl.input.Mouse;
 import core.Application;
 import core.Resources;
 import dev.Debug;
+import dev.tracers.LineRender;
 import gl.Camera;
 import gl.Window;
 import gl.particle.Particle;
@@ -88,6 +89,12 @@ public class Overworld implements Scene {
 		EntityHandler.addEntity(player);
 		
 		load();
+		
+		if (Debug.structureMode) {
+			LineRender.init();
+			EditorBoundsTool.init();
+			Enviroment.exactTime = Enviroment.DAY;
+		}
 	}
 
 	@Override
@@ -105,7 +112,7 @@ public class Overworld implements Scene {
 			Mouse.setCursorPosition(Window.getWidth()/2, Window.getHeight()/2);
 		}
 		
-		cameraFacing = Tile.getFacingByte(camera, wallSetting == 1);
+		cameraFacing = Tile.getFacingByte(camera, wallSetting == 1, slopeSetting == 1);
 		selectionPt = null;
 		exactSelectionPt = null;
 		
@@ -192,8 +199,8 @@ public class Overworld implements Scene {
 			default:
 				tile = chunkPtr.getBuilding().get(_x, _y, _z);
 				
-				byte facing = Tile.getFacingByte(camera, wallSetting == 1);
-				if (lmb && tile != null) {
+				byte facing = Tile.getFacingByte(camera, wallSetting == 1, slopeSetting == 1);
+				if (lmb && tile != null && tile.getMaterial(facingIndex) != Material.NONE) {
 					if (tile.getMaterial(facingIndex).isTiling()) {
 						final float rx = (_x * TILE_SIZE) + cx;
 						final float ry = (_y * TILE_SIZE);
@@ -345,7 +352,6 @@ public class Overworld implements Scene {
 		
 		ui.update();
 		inventory.update();
-		
 	}
 
 	private Vector3f getTileDropPos(Vector3f pos) {
@@ -389,6 +395,11 @@ public class Overworld implements Scene {
 		
 		enviroment.render(camera, selectionPt, cameraFacing);
 		EntityHandler.render(camera, enviroment.getLightDirection());	
+		if (Debug.structureMode) {
+			LineRender.render(camera);
+		}
+		
+		
 	}
 
 	public Enviroment getEnviroment() {

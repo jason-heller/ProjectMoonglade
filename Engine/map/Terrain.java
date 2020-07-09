@@ -149,19 +149,23 @@ public class Terrain {
 				
 	        	if (output != null) {
 	        		// Check for collision within a tile space
-	        		if (snapFlags == 0) {
+	        		/*if (snapFlags == 0) {
 	        			byte potentialFacingEntrance = Tile.getFacingByte(MathUtil.rayBoxEscapeNormal(point, Vector3f.negate(dir), x, y, z, TILE_SIZE));
 	        			Vector3f out = testInTileConnection(ow, output, side, potentialFacingEntrance, normal, snapFlags, tx, ty, tz);
 	        			if (out != null && placeableInTile(output.getWalls(), output.getSlope(), side, snapFlags)) return out;
-	        		}
+	        		}*/
 
-	        		Vector3f out = testInTileConnection(ow, output, side, potentialFacingByte, normal, snapFlags, tx, ty, tz);
-	        		if (out != null) return out;
+	        		if (snapFlags != 2) {
+	        			Vector3f out = testInTileConnection(ow, output, side, potentialFacingByte, normal, snapFlags, tx, ty, tz);
+		        		if (out != null) return out;
+	        		}
 	        		
 	        		// Check for direct collision
 	        		if ((side = Tile.checkRay(point, dir, x, y, z, output.getWalls())) != 0
 	 	        			&& placeableInTile(output.getWalls(), output.getSlope(), side, snapFlags)) {
-	 	        		return new Vector3f(tx, ty, tz);
+	        			
+	        			return new Vector3f(tx, ty, tz);
+	 	        		
 	 	        	}
 	        	}
 	        		
@@ -187,22 +191,38 @@ public class Terrain {
 						//ow.setCamFacingByte(potentialFacingByte);
 						return new Vector3f(tx, ty, tz);
 					}
+					
+					// Slopes
+					if ((output = getTileAt(tx + 1, ty, tz)) != null && output.getSlope() != 0) {
+						return new Vector3f(tx, ty, tz);
+					}
+					if ((output = getTileAt(tx - 1, ty, tz)) != null && output.getSlope() != 0) {
+						return new Vector3f(tx, ty, tz);
+					}
+					if ((output = getTileAt(tx, ty , tz + 1)) != null && output.getSlope() != 0) {
+						return new Vector3f(tx, ty, tz);
+					}
+					if ((output = getTileAt(tx, ty, tz - 1)) != null && output.getSlope() != 0) {
+						return new Vector3f(tx, ty, tz);
+					}
         		} else if (snapFlags == 2) {	// Do slopes ( steep )
         			float dx = ((facing & 3) == 0) ? TILE_SIZE : 0;
 					float dz = TILE_SIZE - dx;
 					if ((facing & 1) != 0) dz *= -1;
 					if ((facing & 32) != 0) dx *= -1;
 					
-        			if ((output = getTileAt(tx-dx, ty, tz-dz)) != null && (output.getSlope() & 0x04) == 0 &&
-							(facing & output.getSlope()) != 0 && Tile.checkRay(normal, output.getSlope()) != 0) {
-						ow.setCamFacingByte(potentialFacingByte);
+        			if ((output = getTileAt(tx-dx, ty, tz-dz)) != null/* && (output.getSlope() & 0x04) == 0 &&*/
+							/*(facing & output.getSlope()) != 0 && Tile.checkRay(normal, output.getSlope()) != 0*/) {
+						//ow.setCamFacingByte(potentialFacingByte);
 						return new Vector3f(tx, ty, tz);
 					}
-					if ((output = getTileAt(tx+dx, ty, tz+dz)) != null && (output.getSlope() & 0x04) == 0 && 
-							(facing & output.getSlope()) != 0 && Tile.checkRay(normal, output.getSlope()) != 0) {
-						ow.setCamFacingByte(potentialFacingByte);
+					if ((output = getTileAt(tx+dx, ty, tz+dz)) != null/* && (output.getSlope() & 0x04) == 0 && */
+							/*(facing & output.getSlope()) != 0 && Tile.checkRay(normal, output.getSlope()) != 0*/) {
+						//ow.setCamFacingByte(potentialFacingByte);
 						return new Vector3f(tx, ty, tz);
 					}
+					
+					// Other slopes
 					if ((output = getTileAt(tx, ty+TILE_SIZE, tz)) != null && (output.getSlope() & 0x04) == 0 && 
 							(facing & output.getSlope()) != 0 && Tile.checkRay(normal, output.getSlope()) != 0) {
 						ow.setCamFacingByte(potentialFacingByte);
@@ -213,15 +233,17 @@ public class Terrain {
 						ow.setCamFacingByte(potentialFacingByte);
 						return new Vector3f(tx+dz, ty, tz-dx);
 					}
-					if ((output = getTileAt(tx, ty-TILE_SIZE, tz)) != null && (output.getWalls() & 0x04) == 0 && 
+					
+					// Top of walls
+					if ((output = getTileAt(tx, ty-TILE_SIZE, tz)) != null/* && (output.getWalls() & 0x04) == 0 */&& 
 							(facing & output.getWalls()) != 0 && Tile.checkRay(normal, output.getWalls()) != 0) {
 						ow.setCamFacingByte(potentialFacingByte);
-						return new Vector3f(tx, ty, tz);
+						return new Vector3f(tx+dz, ty, tz-dx);
 					}
 					
-        		} else if (snapFlags == 4) {	// Do slopes ( gradual )
+        		/*} else if (snapFlags == 4) {	// Do slopes ( gradual )
         			// TODO
-        		} else {	// Do walls
+        		*/} else {	// Do walls
 				
         			float dx = ((facing & 3) == 0) ? TILE_SIZE : 0;
 					float dz = TILE_SIZE - dx;
@@ -287,7 +309,7 @@ public class Terrain {
 			illegal = 51;
 			break;
 		case 2: // Steep slope
-			return true;
+			illegal |= 12;
 		default:
 			illegal |= 12;
 		}
@@ -410,15 +432,14 @@ public class Terrain {
 	}
 	
 	public Chunk getChunkAt(float x, float z) {
-		final float relx = x - data[0][0].realX;
-		final float relz = z - data[0][0].realZ;
+		final float relx = x - enviroment.x*Chunk.CHUNK_SIZE;
+		final float relz = z - enviroment.z*Chunk.CHUNK_SIZE;
 		final int tx = (int) Math.floor(relx / Chunk.CHUNK_SIZE);
 		final int tz = (int) Math.floor(relz / Chunk.CHUNK_SIZE);
 		
-		if (tx < 0 || tz < 0 || tx >= data.length || tz >= data[0].length) {
+		if (tx < 0 || tz < 0 || tx >= data.length || tz >= data.length)
 			return null;
-		}
-
+		
 		return data[tx][tz];
 	}
 	

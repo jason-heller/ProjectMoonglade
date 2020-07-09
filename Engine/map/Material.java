@@ -179,13 +179,13 @@ public enum Material {
 			mimicOnFlipside(terrain, originator, rx, ry, rz, facingIndex);
 			
 			if (iterations == 0) {
-				if (l != null)
+				if (l != null && l.getMaterial(facingIndex) == mat)
 					setTilingFlags(l, terrain, rx - dx, ry, rz - dz, dx, dz, mat, facingIndex, iterations + 1);
-				if (r != null)
+				if (r != null && r.getMaterial(facingIndex) == mat)
 					setTilingFlags(r, terrain, rx + dx, ry, rz + dz, dx, dz, mat, facingIndex, iterations + 1);
-				if (t != null)
+				if (t != null && t.getMaterial(facingIndex) == mat)
 					setTilingFlags(t, terrain, rx,  ry + Tile.TILE_SIZE,  rz, dx, dz, mat, facingIndex, iterations + 1);
-				if (b != null)
+				if (b != null && b.getMaterial(facingIndex) == mat)
 					setTilingFlags(b, terrain, rx,  ry - Tile.TILE_SIZE,  rz, dx, dz, mat, facingIndex, iterations + 1);
 			}
 		} else {
@@ -206,6 +206,7 @@ public enum Material {
 		for(int i = 0; i < 6; i++) {
 			originator.materials[i] = Material.NONE;
 		}
+		
 		mimicOnFlipside(terrain, originator, rx, ry, rz, facingIndex);
 		
 		if (iterations == 0) {
@@ -223,31 +224,31 @@ public enum Material {
 	private static void mimicOnFlipside(Terrain terrain, Tile tile, float x, float y, float z, int facingIndex) {
 		byte specialFlags = flipUvOffset(tile.getFlags()[facingIndex]);
 		Tile flipTile = null;
-		//TODO: This igores the flip tile possibly having more sides to it
+		
 		switch(tile.getWalls()) {
 		case 1:
 			if ((flipTile = terrain.getTileAt(x-Tile.TILE_SIZE, y, z)) != null)
-				flipTile.setFlags(facingIndex, specialFlags);
+				flipTile.setFlags(1, specialFlags);
 			break;
 		case 2:
 			if ((flipTile = terrain.getTileAt(x+Tile.TILE_SIZE, y, z)) != null)
-				flipTile.setFlags(facingIndex, specialFlags);
+				flipTile.setFlags(0, specialFlags);
 			break;
 		case 4:
 			if ((flipTile = terrain.getTileAt(x, y+Tile.TILE_SIZE, z)) != null)
-				flipTile.setFlags(facingIndex, specialFlags);
+				flipTile.setFlags(3, specialFlags);
 			break;
 		case 8:
 			if ((flipTile = terrain.getTileAt(x, y-Tile.TILE_SIZE, z)) != null)
-				flipTile.setFlags(facingIndex, specialFlags);
+				flipTile.setFlags(2, specialFlags);
 			break;
 		case 16:
 			if ((flipTile = terrain.getTileAt(x, y, z-Tile.TILE_SIZE)) != null)
-				flipTile.setFlags(facingIndex, specialFlags);
+				flipTile.setFlags(5, specialFlags);
 			break;
 		case 32:
 			if ((flipTile = terrain.getTileAt(x, y, z+Tile.TILE_SIZE)) != null)
-				flipTile.setFlags(facingIndex, specialFlags);
+				flipTile.setFlags(4, specialFlags);
 			break;
 		}
 	}

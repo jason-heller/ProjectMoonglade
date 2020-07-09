@@ -8,11 +8,12 @@ import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 
+import dev.Console;
 import dev.Debug;
 import gl.Camera;
 import gl.res.Model;
 
-public class LineRenderer {
+public class LineRender {
 	private static LineShader shader;
 	private static List<Vector3f> points;
 	private static List<Vector3f> colors;
@@ -56,6 +57,7 @@ public class LineRenderer {
 	}
 
 	public static void render(Camera cam) {
+		if (points.size() == 0) return;
 		// GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
 		GL11.glDisable(GL11.GL_CULL_FACE);
 		shader.start();
@@ -121,9 +123,6 @@ public class LineRenderer {
 	}
 
 	public static void render(Camera camera, Vector4f p1, Vector4f p2) {
-		if (!Debug.debugMode) {
-			return;
-		}
 		// GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
 		GL11.glDisable(GL11.GL_CULL_FACE);
 		shader.start();
@@ -139,5 +138,10 @@ public class LineRenderer {
 		GL20.glDisableVertexAttribArray(0);
 		line.unbind();
 		shader.stop();
+	}
+
+	public static void clearPoints() {
+		points.clear();
+		colors.clear();
 	}
 }

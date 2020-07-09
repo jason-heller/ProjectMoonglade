@@ -32,6 +32,8 @@ public class BiomeVoronoi {
 	private float scale;
 	private final float spread = .5f;
 	
+	public static Biome singularBiome = null;
+	
 	public BiomeVoronoi(Enviroment enviroment, int terrainArrSize, float scale, float px, float py, int seed) {
 		this.enviroment = enviroment;
 		this.scale = scale;
@@ -244,12 +246,16 @@ public class BiomeVoronoi {
 		node.subseed = (int) (NoiseUtil.valueNoise2d(nx, ny, NoiseUtil.szudzik(seed, -seed))*65535);// Wtf am i doin
 				
 		float[] climateProperties = GenTerrain.getClimateProperties(node.x, node.z);
+		if (singularBiome == null) {
+			node.biome = enviroment.calcBiome(nx, ny, seed,
+					GenTerrain.getTemperature(climateProperties[0]),
+					GenTerrain.getMoisture(climateProperties[1]),
+					climateProperties[2]
+					);
+		} else {
 		
-		node.biome = enviroment.calcBiome(nx, ny, seed,
-				GenTerrain.getTemperature(climateProperties[0]),
-				GenTerrain.getMoisture(climateProperties[1]),
-				climateProperties[2]
-				);
+			node.biome = singularBiome;
+		}
 		points[i][j] = node;
 	}
 	

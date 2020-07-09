@@ -33,13 +33,13 @@ public class StructureExporter {
 		flags |= (includeBuildings) ? 2 : 0;
 		flags |= (includeEnvTiles) ? 4 : 0;
 		
-		int x = (int) min.x;
+		int x = (int) min.x - 1;
 		int y = (int) min.y;
-		int z = (int) min.z;
+		int z = (int) min.z - 1;
 
-		int w = (int) (max.x - min.x);
+		int w = (int) (max.x - min.x) + 2;
 		int h = (int) (max.y - min.y);
-		int l = (int) (max.z - min.z);
+		int l = (int) (max.z - min.z) + 2;
 
 		Enviroment env = ow.getEnviroment();
 		Terrain t = env.getTerrain();
@@ -57,7 +57,7 @@ public class StructureExporter {
 			for (int i = 0; i < w; i++) {
 				for (int j = 0; j < l; j++) {
 					int rx = x + i;
-					int rz = x + j;
+					int rz = z + j;
 					Chunk c = t.getChunkAt(rx, rz);
 					BuildData b = c.getBuilding();
 					int dx = rx - c.realX;
@@ -72,12 +72,12 @@ public class StructureExporter {
 						for (int k = 0; k < h; k++) {
 							Tile tile = b.get(dx, y + k, dz);
 							if (tile == null) {
-								dos.write((byte)0);
+								dos.write((byte)-1);
 							} else {
 								dos.write(tile.getWalls());
 								dos.write(tile.getSlope());
 								
-								for(int s = 0; s < 6; s++) {
+								for(int s = 0; s < 7; s++) {
 									dos.writeShort(tile.getMaterial(s).ordinal());
 									dos.write(tile.getFlags()[s]);
 								}

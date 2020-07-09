@@ -18,7 +18,7 @@ import scene.overworld.inventory.Item;
 public enum Props {
 
 	PLANE, BUSH, THIN_TREE, DEAD_TREE, ROCK, REED, OAK, AGAVE, CACTUS, PINE, MANGROVE, PALM, VINE, CYPRESS, JOSHUA_TREE,
-	CHAPARREL_BUSH, DEAD_TALL_GRASS, CHAPARREL_FLOWER;
+	CHAPARREL_BUSH, DEAD_GRASS, CHAPARREL_FLOWER, BIG_BUSH, BERRY_BUSH, PURPLE_FLOWERS, GRASS, EVERGREEN;
 
 	private static Map<Props, StaticProp> props;
 	private static final String path = "terrain/tile/";
@@ -44,10 +44,16 @@ public enum Props {
 		add(VINE, "vine", THATCH, "vine", 8, WEAK, true, Item.AIR);
 		add(CYPRESS, "cypress", PLANKS, "air", 8, STRONG, false, Item.AXE);
 		add(JOSHUA_TREE, "joshuatree", STICK, "stick", 8, DEF_STRENGTH, false, Item.AXE);
+		add(BIG_BUSH, "big_bush", STICK, "stick", 1, DEF_STRENGTH, false, Item.AIR);
+		add(BERRY_BUSH, BUSH, 12, 0, STICK, "stick", 1, DEF_STRENGTH, false, Item.AIR);
 
 		add(CHAPARREL_BUSH, BUSH, 14, 0, STICK, "stick", 8, DEF_STRENGTH, false, Item.AXE);
-		add(DEAD_TALL_GRASS, BUSH, 13, 0, STICK, "stick", 8, DEF_STRENGTH, false, Item.AIR);
+		add(DEAD_GRASS, BUSH, 13, 0, STICK, "stick", 8, DEF_STRENGTH, false, Item.AIR);
+		add(GRASS, BUSH, 11, 1, STICK, "stick", 8, DEF_STRENGTH, false, Item.AIR);
 		add(CHAPARREL_FLOWER, PLANE, 14, 1, STICK, "stick", 8, DEF_STRENGTH, false, Item.AIR);
+		add(PURPLE_FLOWERS, PLANE, 13, 1, STICK, "stick", 8, DEF_STRENGTH, false, Item.AIR);
+		
+		add(EVERGREEN, "evergreen", PLANKS, "planks", 12, DEF_STRENGTH, false, Item.AXE);
 
 	}
 

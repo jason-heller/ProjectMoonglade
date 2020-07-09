@@ -257,6 +257,16 @@ public class ModelBuilderOld {
 		indexRel += jump;
 	}
 	
+	public void addRelativeIndicesReverse(int jump, int... inds) {
+		for (int i = 0; i < inds.length; i += 3) {
+			indices.add(indexRel+inds[i+2]);
+			indices.add(indexRel+inds[i+1]);
+			indices.add(indexRel+inds[i]);
+		}
+		
+		indexRel += jump;
+	}
+	
 	public void addRelativeIndices(int jump, byte... inds) {
 		for (final byte i : inds) {
 			indices.add(indexRel+i);
@@ -349,7 +359,7 @@ public class ModelBuilderOld {
 		addRelativeIndices(4, 0, 1, 3, 3, 1, 2);
 	}
 
-	public void addPropMdesh(float rx, float ry, float rz, float scale, PropModel tiledModel) {
+	public void addPropMesh(float rx, float ry, float rz, float scale, PropModel tiledModel, int flipX, int flipZ) {
 		int len = tiledModel.getVertices(0).length / 3;
 		float[] vertices = tiledModel.getVertices(0);
 		float[] uvs = tiledModel.getUvs(0);
@@ -363,7 +373,11 @@ public class ModelBuilderOld {
 		}
 		
 		int[] indices = tiledModel.getIndices(0);
-		addRelativeIndices(len, indices);
+		//if (flipX != 1 || flipZ != 1 && (flipX != flipZ)) {
+		//	addRelativeIndicesReverse(len, indices);
+		//} else {
+			addRelativeIndices(len, indices);
+		//}
 
 		/*this.addQuad(new Vector3f(rx,ry,rz-1),
 				new Vector3f(rx-1,ry,rz),

@@ -431,17 +431,17 @@ public class Chunk {
 	}
 
 	public Polygon getPolygon(float x, float z) {
-		final float relx = x - this.dataX * Chunk.CHUNK_SIZE;
-		final float relz = z - this.dataZ * Chunk.CHUNK_SIZE;
-		int terrainx = (int) Math.floor(relx / Chunk.POLYGON_SIZE);
-		int terrainz = (int) Math.floor(relz / Chunk.POLYGON_SIZE);
+		final float relx = x - this.realX;
+		final float relz = z - this.realZ;
+		int terrainx = (int) relx;
+		int terrainz = (int) relz;
 
 		final float trueX = this.dataX * Chunk.CHUNK_SIZE + terrainx * Chunk.POLYGON_SIZE;
 		final float trueZ = this.dataZ * Chunk.CHUNK_SIZE + terrainz * Chunk.POLYGON_SIZE;
 
 		if (terrainx < 0 || terrainz < 0 || terrainx >= heightmap.length - 1 || terrainz >= heightmap.length - 1) {
-			System.err.println(relx + "," + terrainx + "," + this.dataX * Chunk.CHUNK_SIZE);
-			System.err.println(relz + "," + terrainz + "," + this.dataZ * Chunk.CHUNK_SIZE);
+			System.err.println(relx + "," + terrainx + "," + this.realX);
+			System.err.println(relz + "," + terrainz + "," + this.realZ);
 			System.err.println();
 			return null;
 		}
