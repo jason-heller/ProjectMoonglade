@@ -31,7 +31,7 @@ public class PineForestBiome extends Biome {
 
 	@Override
 	public Props getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r, Props[][] tileItems) {
-		float n = r.nextFloat();
+		/*float n = r.nextFloat();
 		if (x % 2 == 0 && z % 2 == 0) {
 			final float treeDensity = .08f;
 			
@@ -53,7 +53,7 @@ public class PineForestBiome extends Biome {
 		if (n < .01f) {
 			return Props.GRASS;
 		}
-		
+		*/
 		return null;
 	}
 
@@ -63,7 +63,7 @@ public class PineForestBiome extends Biome {
 	}
 	@Override
 	public Structure getTerrainStructures(int x, int z, float currentHeight, int subseed, Random r) {
-		if (r.nextInt(45000) == 0) {
+		if (r.nextInt(300) == 0) {
 			return Structure.PYLON;
 		}
 		

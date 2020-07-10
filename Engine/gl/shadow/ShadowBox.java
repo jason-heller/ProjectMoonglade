@@ -226,7 +226,7 @@ public class ShadowBox {
 	 */
 	public void updateFrustumParams() {
 		int fov = Math.min(Camera.fov, 89);
-		farWidth = (float) (shadowDistance * Math.tan(Math.toRadians(fov)));
+		farWidth = 2f * (float) (shadowDistance * Math.tan(Math.toRadians(fov/2f)));
 		nearWidth = (float) (Camera.NEAR_PLANE
 				* Math.tan(Math.toRadians(fov)));
 		farHeight = farWidth / getAspectRatio();

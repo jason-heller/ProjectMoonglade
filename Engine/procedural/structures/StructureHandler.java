@@ -37,36 +37,43 @@ public class StructureHandler {
 		structures.put(Structure.PYLON, StructureLoader.read("pylon.str"));
 	}
 	
-	// TODO: On chunk generation, GenTerrain everything, THEN add a structure sweet of the chunks to add structures, then build the models
 	
+	/** Adds a structure to the map
+	 * @param chunk
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @param struct
+	 */
 	public void addStructure(Chunk chunk, int x, int y, int z, Structure struct) {
 		StructureData data = structures.get(struct);
-		final int width = data.getWidth();
-		final int length = data.getLength();
+		final int width = (int) Math.ceil(data.getWidth() / (float)Chunk.CHUNK_SIZE);
+		final int length = (int) Math.ceil(data.getLength() / (float)Chunk.CHUNK_SIZE);
 		
-		for(int i = 0; i < width; i += Chunk.CHUNK_SIZE) {
-			for(int j = 0; j < length; j += Chunk.CHUNK_SIZE) {
-				int arrX = chunk.arrX + i;
-				int arrZ = chunk.arrZ + j;
+		for(int i = 0; i <= width; i ++) {
+			for(int j = 0; j <= length; j ++) {
+				int dataX = chunk.dataX + i;// * Chunk.CHUNK_SIZE;
+				int dataZ = chunk.dataZ + j;// * Chunk.CHUNK_SIZE;
 				List<StructPlacement> list;
 				
 				//if (arrX > Terrain.size || arrZ > Terrain.size) {
-					Map<Integer, List<StructPlacement>> batch = saveDataQueue.get(arrX);
+					Map<Integer, List<StructPlacement>> batch = saveDataQueue.get(dataX);
 					if (batch == null) {
 						batch = new HashMap<Integer, List<StructPlacement>>();
 						list = new ArrayList<StructPlacement>();
-						batch.put(arrZ, list);
-						saveDataQueue.put(arrX, batch);
+						batch.put(dataZ, list);
+						saveDataQueue.put(dataX, batch);
 					} else {
-						list = batch.get(arrZ);
+						list = batch.get(dataZ);
 						
 						if (list == null) {
 							list = new ArrayList<StructPlacement>();
 						}
-						batch.put(arrZ, list);
+						batch.put(dataZ, list);
 					}
 					
 					list.add(new StructPlacement(x, y, z, struct));
+					Console.log("added structure to ",dataX,dataZ);
 					/* }else {
 					buildStructurePartial(terrain.get(arrX, arrZ), x, y, z, struct);
 				}*/
@@ -75,13 +82,13 @@ public class StructureHandler {
 	}
 	
 	public void checkForStructure(Chunk chunk) {
-		Map<Integer, List<StructPlacement>> batch = saveDataQueue.get(chunk.arrX);
+		Map<Integer, List<StructPlacement>> batch = saveDataQueue.get(chunk.dataX);
 		
 		if (batch == null) {
 			return;
 		}
 		
-		List<StructPlacement> structPlacements = batch.get(chunk.arrZ);
+		List<StructPlacement> structPlacements = batch.get(chunk.dataZ);
 		
 		if (structPlacements != null) {
 			Iterator<StructPlacement> iter = structPlacements.iterator();
@@ -92,6 +99,7 @@ public class StructureHandler {
 				final int z = structPlacement.z;
 				buildStructurePartial(chunk, x, y, z, structPlacement);
 				iter.remove();
+				Console.log("removed",chunk.dataX,chunk.dataZ);
 			}
 		}
 	}
@@ -100,12 +108,18 @@ public class StructureHandler {
 		// X, Y, Z, should be within chunk bounds!!
 		int dx = x - chunk.realX;
 		int dz = z - chunk.realZ;
+		
+		int offsetX = -Math.min(dx, 0);
+		int offsetZ = -Math.min(dz, 0);
+		
+		dx += offsetX;
+		dz += offsetZ;
 
 		Structure struct = structPlacement.struct;
 		StructureData data = structures.get(struct);
 		
-		//int width = Math.min(Chunk.CHUNK_SIZE-dx, data.getWidth());
-		//int length = Math.min(Chunk.CHUNK_SIZE-dz, data.getLength());
+		int width = Math.min(Chunk.CHUNK_SIZE-dx, data.getWidth()-offsetX);
+		int length = Math.min(Chunk.CHUNK_SIZE-dz, data.getLength()-offsetZ);
 		
 		boolean hasTerrain = data.hasTerrain();
 		boolean hasBuildingTiles = data.hasBuildingTiles();
@@ -115,8 +129,8 @@ public class StructureHandler {
 		Props[][] envTiles = chunk.chunkProps.getPropMap();
 		int tileX = 0, tileZ = 0;
 		
-		for(int i = dx; i <  dx+data.getWidth(); i++) {
-			for(int j = dz; j < dz+data.getLength(); j++) {
+		for(int i = dx; i <  dx+width; i++) {
+			for(int j = dz; j < dz+length; j++) {
 				//int realX = i + chunk.realX;
 				//int relaZ = j + chunk.realZ;
 				
@@ -129,7 +143,7 @@ public class StructureHandler {
 				
 				if (hasBuildingTiles) {
 					for(int k = 0; k < data.getHeight(); k++) {
-						CompTileData tile = data.getBuildingTile(tileX, k, tileZ);
+						CompTileData tile = data.getBuildingTile(tileX + offsetX, k, tileZ + offsetZ);
 						if (tile != null) {
 							int sx = i/8;
 							int sy = k/8;
