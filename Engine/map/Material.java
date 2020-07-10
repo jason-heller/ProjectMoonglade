@@ -27,7 +27,11 @@ public enum Material {
 	FENCE("fence", 0, 16, null, true, true),
 	VINE("vine", 0, 16, "vine", false, true),
 	SHINGLES("shingles", 1, 1, null, TileModels.FILLED, false, false, true, true, 14),
-	METAL_MESH("metal_mesh", 7, 0, TileModels.FILLED);
+	METAL_MESH("metal_mesh", 7, 0, TileModels.FILLED),
+	PALM_PLANKS("palm_planks", 9, 0, null, TileModels.FILLED, false, false, true, true, 0),
+	CYPRESS_PLANKS("cypress_planks", 10, 0, null, TileModels.FILLED, false, false, true, true, 0),
+	HEDGE("hedge", 11, 0, null, TileModels.DEFAULT, false, false, false, false, 0)
+	;
 	
 	private String name;
 	private int tx, ty;

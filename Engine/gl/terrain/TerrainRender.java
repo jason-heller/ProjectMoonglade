@@ -29,6 +29,8 @@ public class TerrainRender {
 	
 	public static float FLORA_TEX_ATLAS_SIZE;
 	
+	public static boolean renderProps = true;
+	
 	private ShadowRender shadowRender;
 
 	public TerrainRender() {
@@ -109,21 +111,24 @@ public class TerrainRender {
 			}
 		}
 		
-		flora.bind(0);
-		//shader.shadowDistance.loadFloat(0.0f);
+		if (renderProps) {
 		
-		for (final Chunk[] chunkBatch : terrain.get()) {
-			for (final Chunk chunk : chunkBatch) {
-				if (chunk == null || chunk.isCulled()) {
-					continue;
-				}
-				
-				final Model model = chunk.getChunkEntities().getModel();
-				if (model != null) {
-					model.bind(0, 1, 2, 3);
-					model.getIndexVbo().bind();
-					GL11.glDrawElements(GL11.GL_TRIANGLES, model.getIndexCount(), GL11.GL_UNSIGNED_INT, 0);
-					model.unbind(0, 1, 2, 3);
+			flora.bind(0);
+			//shader.shadowDistance.loadFloat(0.0f);
+			
+			for (final Chunk[] chunkBatch : terrain.get()) {
+				for (final Chunk chunk : chunkBatch) {
+					if (chunk == null || chunk.isCulled()) {
+						continue;
+					}
+					
+					final Model model = chunk.getChunkEntities().getModel();
+					if (model != null) {
+						model.bind(0, 1, 2, 3);
+						model.getIndexVbo().bind();
+						GL11.glDrawElements(GL11.GL_TRIANGLES, model.getIndexCount(), GL11.GL_UNSIGNED_INT, 0);
+						model.unbind(0, 1, 2, 3);
+					}
 				}
 			}
 		}

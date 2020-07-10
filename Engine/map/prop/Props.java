@@ -1,9 +1,6 @@
 package map.prop;
 
-import static map.Material.PLANKS;
-import static map.Material.STICK;
-import static map.Material.STONE_BRICK;
-import static map.Material.THATCH;
+import static map.Material.*;
 
 import static gl.terrain.TerrainRender.FLORA_TEX_ATLAS_SIZE;
 
@@ -18,7 +15,7 @@ import scene.overworld.inventory.Item;
 public enum Props {
 
 	PLANE, BUSH, THIN_TREE, DEAD_TREE, ROCK, REED, OAK, AGAVE, CACTUS, PINE, MANGROVE, PALM, VINE, CYPRESS, JOSHUA_TREE,
-	CHAPARREL_BUSH, DEAD_GRASS, CHAPARREL_FLOWER, BIG_BUSH, BERRY_BUSH, PURPLE_FLOWERS, GRASS, EVERGREEN;
+	CHAPARREL_BUSH, DEAD_GRASS, CHAPARREL_FLOWER, BIG_BUSH, BERRY_BUSH, PURPLE_FLOWERS, GRASS, EVERGREEN, PINE_SNOWY;
 
 	private static Map<Props, StaticProp> props;
 	private static final String path = "terrain/tile/";
@@ -36,14 +33,15 @@ public enum Props {
 		add(ROCK, "rock", STONE_BRICK, "stone", 1, STRONG, true, Item.AIR);
 		add(REED, "reed", THATCH, "air", 12, DEF_STRENGTH, false, Item.SPADE);
 		add(OAK, "oak", PLANKS, "planks", 12, DEF_STRENGTH, false, Item.AXE);
-		add(AGAVE, "agave", THATCH, "air", 0, DEF_STRENGTH, false, Item.AIR);
+		add(AGAVE, "agave", THATCH, "plant_fibers", 3, DEF_STRENGTH, false, Item.AIR);
 		add(CACTUS, "cactus", THATCH,  "air", 0, DEF_STRENGTH, false, Item.SPADE);
 		add(PINE, "pine", PLANKS, "planks", 0, DEF_STRENGTH, false, Item.AXE);
+		add(PINE_SNOWY, PINE, 0, 4, PLANKS, "planks", 0, DEF_STRENGTH, false, Item.AXE);
 		add(MANGROVE, "mangrove", STICK, "stick", 0, STRONG, false, Item.AXE);
-		add(PALM, "palm", STICK, "thatch", 0, STRONG, false, Item.AXE);
+		add(PALM, "palm", PALM_PLANKS, "palm_planks", 0, STRONG, false, Item.AXE);
 		add(VINE, "vine", THATCH, "vine", 8, WEAK, true, Item.AIR);
-		add(CYPRESS, "cypress", PLANKS, "air", 8, STRONG, false, Item.AXE);
-		add(JOSHUA_TREE, "joshuatree", STICK, "stick", 8, DEF_STRENGTH, false, Item.AXE);
+		add(CYPRESS, "cypress", CYPRESS_PLANKS, "cypress_planks", 8, STRONG, false, Item.AXE);
+		add(JOSHUA_TREE, "joshuatree", STICK, "plant_fibers", 8, DEF_STRENGTH, false, Item.AXE);
 		add(BIG_BUSH, "big_bush", STICK, "stick", 1, DEF_STRENGTH, false, Item.AIR);
 		add(BERRY_BUSH, BUSH, 12, 0, STICK, "stick", 1, DEF_STRENGTH, false, Item.AIR);
 

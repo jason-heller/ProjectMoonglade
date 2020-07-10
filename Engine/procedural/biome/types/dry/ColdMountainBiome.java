@@ -44,7 +44,7 @@ public class ColdMountainBiome extends Biome {
 			
 			float n = r.nextFloat();
 			if (n < treeDensity) {
-				return Props.PINE;
+				return Props.PINE_SNOWY;
 			}
 		}
 		

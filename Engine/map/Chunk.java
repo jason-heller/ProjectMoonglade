@@ -21,6 +21,7 @@ import procedural.terrain.TerrainMeshBuilder;
 import procedural.terrain.WaterMeshBuilder;
 import scene.entity.EntityHandler;
 import scene.entity.utility.FallingTreeEntity;
+import scene.entity.utility.ItemEntity;
 import scene.overworld.Overworld;
 import util.ModelBuilderOld;
 
@@ -192,8 +193,11 @@ public class Chunk {
 		final StaticProp tile = Props.get(id);
 		
 		if (tile != null) {
-			((Overworld) Application.scene).getInventory().addItem(tile.getDrop(), tile.getNumDrops());
-
+			//((Overworld) Application.scene).getInventory().addItem(tile.getDrop(), tile.getNumDrops());
+			Vector3f pos = new Vector3f(realX + relX, heightLookup(relX, relZ), realZ + relZ);
+			pos.add(.5f, .5f, .5f);
+			EntityHandler.addEntity(new ItemEntity(pos, tile.getDrop(), tile.getNumDrops()));
+			
 			chunkProps.removeEntity(relX, relZ);
 			chunkProps.buildModel();
 			return true;

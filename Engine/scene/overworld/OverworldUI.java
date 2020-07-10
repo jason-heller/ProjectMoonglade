@@ -8,6 +8,9 @@ import io.Input;
 import io.Settings;
 import scene.entity.PlayerHandler;
 import scene.menu.pause.OptionsPanel;
+import scene.overworld.inventory.Inventory;
+import scene.overworld.inventory.crafting.CraftingUI;
+import scene.overworld.inventory.crafting.RecipeHandler;
 import ui.UI;
 import ui.menu.GuiMenu;
 import ui.menu.listener.MenuListener;
@@ -22,6 +25,9 @@ public class OverworldUI {
 	
 	private final Overworld scene;
 	
+	private final RecipeHandler recipeHandler;
+	private final CraftingUI craftingUI;
+	
 	private final int CROSSHAIR_SIZE = 8;
 	private final int CROSSHAIR_THICKNESS = 1;
 	private final Vector3f CROSSHAIR_COLOR = new Vector3f(1, 1, 1);
@@ -34,6 +40,9 @@ public class OverworldUI {
 		mainMenu.setFocus(true);
 		mainMenu.setBordered(true);
 		options = new OptionsPanel(null);
+		
+		recipeHandler = new RecipeHandler();
+		craftingUI = new CraftingUI(recipeHandler);
 		
 		picker = new TileShapePicker(scene);
 
@@ -67,6 +76,10 @@ public class OverworldUI {
 			UI.drawString("Loading", 720, 360);
 			return;
 		}
+		
+		Inventory inventory = scene.getInventory();
+		recipeHandler.update(inventory);
+		craftingUI.update(inventory);
 		
 		picker.update();
 

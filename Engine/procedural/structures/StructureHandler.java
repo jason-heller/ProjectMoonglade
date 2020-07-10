@@ -55,7 +55,7 @@ public class StructureHandler {
 				int dataX = chunk.dataX + i;// * Chunk.CHUNK_SIZE;
 				int dataZ = chunk.dataZ + j;// * Chunk.CHUNK_SIZE;
 				List<StructPlacement> list;
-				
+
 				//if (arrX > Terrain.size || arrZ > Terrain.size) {
 					Map<Integer, List<StructPlacement>> batch = saveDataQueue.get(dataX);
 					if (batch == null) {
@@ -72,8 +72,10 @@ public class StructureHandler {
 						batch.put(dataZ, list);
 					}
 					
+					y = (int)Math.floor(terrain.getHeightAt(x, z)-.5f);
+					
 					list.add(new StructPlacement(x, y, z, struct));
-					Console.log("added structure to ",dataX,dataZ);
+					//Console.log("added structure to ",dataX,dataZ);
 					/* }else {
 					buildStructurePartial(terrain.get(arrX, arrZ), x, y, z, struct);
 				}*/
@@ -94,20 +96,17 @@ public class StructureHandler {
 			Iterator<StructPlacement> iter = structPlacements.iterator();
 			while(iter.hasNext()) {
 				StructPlacement structPlacement = iter.next();
-				final int x = structPlacement.x;
-				final int y = structPlacement.y;
-				final int z = structPlacement.z;
-				buildStructurePartial(chunk, x, y, z, structPlacement);
+				buildStructurePartial(chunk, structPlacement);
 				iter.remove();
-				Console.log("removed",chunk.dataX,chunk.dataZ);
+				//Console.log("removed",chunk.dataX,chunk.dataZ);
 			}
 		}
 	}
 
-	private void buildStructurePartial(Chunk chunk, int x, int y, int z, StructPlacement structPlacement) {
+	private void buildStructurePartial(Chunk chunk, StructPlacement structPlacement) {
 		// X, Y, Z, should be within chunk bounds!!
-		int dx = x - chunk.realX;
-		int dz = z - chunk.realZ;
+		int dx = structPlacement.x - chunk.realX;
+		int dz = structPlacement.z - chunk.realZ;
 		
 		int offsetX = -Math.min(dx, 0);
 		int offsetZ = -Math.min(dz, 0);
@@ -129,7 +128,9 @@ public class StructureHandler {
 		Props[][] envTiles = chunk.chunkProps.getPropMap();
 		int tileX = 0, tileZ = 0;
 		
-		for(int i = dx; i <  dx+width; i++) {
+		int offsetY = structPlacement.y;
+		
+		for(int i = dx; i < dx+width; i++) {
 			for(int j = dz; j < dz+length; j++) {
 				//int realX = i + chunk.realX;
 				//int relaZ = j + chunk.realZ;
@@ -145,15 +146,14 @@ public class StructureHandler {
 					for(int k = 0; k < data.getHeight(); k++) {
 						CompTileData tile = data.getBuildingTile(tileX + offsetX, k, tileZ + offsetZ);
 						if (tile != null) {
-							int sx = i/8;
-							int sy = k/8;
-							int sz = j/8;
+							int sx = Math.floorDiv(i, 8);
+							int sy = Math.floorDiv(k+offsetY, 8);
+							int sz = Math.floorDiv(j, 8);
 							BuildSector sector = building.getSector(sx, sy, sz);
 							if (sector == null) {
 								sector = building.addSector(sx, sy, sz);
 							}
-							
-							sector.addTile(new Tile(tile.getMaterials(), tile.getSlope(), tile.getFlags()), i - (sx*8), k - (sy*8), j - (sz*8));
+							sector.addTile(new Tile(tile.getMaterials(), tile.getSlope(), tile.getFlags()), i - (sx*8), (k+offsetY) - (sy*8), j - (sz*8));
 						}
 					}
 				}

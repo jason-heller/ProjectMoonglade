@@ -61,7 +61,8 @@ public enum ItemAction {
 			tile.setFlags(facingIndex, (byte) 12);
 			break;
 		default:
-			tile.setFlags(facingIndex, (byte) 0);
+			byte flags = tile.getMaterial(facingIndex).getInitialFlags();
+			tile.setFlags(facingIndex, flags);
 		}
 	}
 }

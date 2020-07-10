@@ -1,6 +1,5 @@
 package scene.overworld.inventory.crafting;
 
-import map.Material;
 import scene.overworld.inventory.Item;
 
 public class ItemStack {
@@ -11,6 +10,12 @@ public class ItemStack {
 		this.item = item;
 		this.quantity = quantity;
 	}
+	
+	public ItemStack(String item, int quantity) {
+		this.item = Item.getId(item);
+		this.quantity = quantity;
+	}
+
 
 	public int getItem() {
 		return item;

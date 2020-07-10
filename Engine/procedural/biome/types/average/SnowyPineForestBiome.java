@@ -16,8 +16,9 @@ public class SnowyPineForestBiome extends Biome {
 		this.name = "Snowy Pine Forest";
 		this.temp = Temperature.COLD;
 		this.moisture = Moisture.AVERAGE;
-		this.terrainHeightFactor = 4f;
-		this.terrainRoughness = 1.0f;
+		this.terrainHeightFactor = 15f;
+		this.terrainRoughness = .8f;
+		this.terrainTransitionScale = 3.0f;
 		
 		this.soilQuality = .3f;
 		
@@ -34,11 +35,11 @@ public class SnowyPineForestBiome extends Biome {
 	@Override
 	public Props getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r, Props[][] tileItems) {
 		if (x % 2 == 0 && z % 2 == 0) {
-			final float treeDensity = .03f;
+			final float treeDensity = .04f;
 			
 			float n = r.nextFloat();
 			if (n < treeDensity) {
-				return Props.PINE;
+				return Props.PINE_SNOWY;
 			}
 		}
 		

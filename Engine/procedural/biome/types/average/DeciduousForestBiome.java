@@ -18,8 +18,8 @@ public class DeciduousForestBiome extends Biome {
 		this.name = "Deciduous Forest";
 		this.temp = Temperature.TEMPERATE;
 		this.moisture = Moisture.AVERAGE;
-		this.terrainHeightFactor = 4f;
-		this.terrainRoughness = 1.0f;
+		this.terrainHeightFactor = 10f;
+		this.terrainRoughness = 1f;
 		
 		this.skyColor = BiomeColors.DEFAULT_SKY;
 		this.groundColor = BiomeColors.DECIDUOUSFOREST_GRASS;

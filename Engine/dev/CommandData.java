@@ -6,6 +6,7 @@ import static dev.CommandType.SETTER;
 import core.Application;
 import gl.Camera;
 import gl.Window;
+import gl.terrain.TerrainRender;
 import io.Controls;
 import map.Enviroment;
 import ui.UI;
@@ -38,7 +39,8 @@ enum CommandData {
 	debug("debugMode", Debug.class, SETTER, false),
 	cam_speed("cameraSpeed", Camera.class, SETTER, true),
 	time_speed("timeSpeed", Enviroment.class, SETTER, false),
-	terrain_wireframe("terrainWireframe", Debug.class, SETTER, true);
+	terrain_wireframe("terrainWireframe", Debug.class, SETTER, true),
+	render_props("renderProps", TerrainRender.class, SETTER, true);
 	
 	Command command;
 	

@@ -65,7 +65,6 @@ public class Application {
 		
 		Item.init();
 		
-
 		Window.update();
 
 		scene = new MainMenu();

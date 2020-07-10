@@ -28,8 +28,8 @@ public class Inventory {
 	public static float itemAtlasSize;
 
 	// private Texture itemTexture;
-	private final int itemTexSize = 32;
-	private final int padding = 2;
+	private static final int itemTexSize = 32;
+	private static final int padding = 2;
 	public static float scale = 1.4f;
 
 	private Viewmodel viewmodel;
@@ -80,7 +80,7 @@ public class Inventory {
 		}
 
 		// Hotbar
-		final int imgSize = (int) (itemTexSize * scale);
+		
 		int size = (int) ((itemTexSize + padding) * scale);
 		int slotSize = (padding * 2) + size;
 
@@ -96,15 +96,7 @@ public class Inventory {
 
 				if (items[id] != 0) {
 					ItemData data = Item.get(items[id]);
-					if (data.isUsingMaterialTexture()) {
-						Image img = UI.drawImage("materials", dx + padding + 8, dy + padding + 8, imgSize - 16, imgSize - 16);
-						img.setUvOffset(data.getTX() * BuildingRender.materialAtlasSize, data.getTY() * BuildingRender.materialAtlasSize,
-								(data.getTX() + 1) * BuildingRender.materialAtlasSize, (data.getTY() + 1) * BuildingRender.materialAtlasSize);
-					} else {
-						Image img = UI.drawImage("items", dx + padding, dy + padding, imgSize, imgSize);
-						img.setUvOffset(data.getTX() * itemAtlasSize, data.getTY() * itemAtlasSize,
-								(data.getTX() + 1) * itemAtlasSize, (data.getTY() + 1) * itemAtlasSize);
-					}
+					drawItem(data, dx, dy, 1f);
 					
 				}
 
@@ -176,15 +168,7 @@ public class Inventory {
 				}
 				
 				ItemData data = Item.get(heldItem);
-				if (data.isUsingMaterialTexture()) {
-					Image img = UI.drawImage("materials", mx, my, imgSize, imgSize);
-					img.setUvOffset(data.getTX() * BuildingRender.materialAtlasSize, data.getTY() * BuildingRender.materialAtlasSize,
-							(data.getTX() + 1) * BuildingRender.materialAtlasSize, (data.getTY() + 1) * BuildingRender.materialAtlasSize);
-				} else {
-					Image img = UI.drawImage("items", mx, my, imgSize, imgSize);
-					img.setUvOffset(data.getTX() * itemAtlasSize, data.getTY() * itemAtlasSize,
-							(data.getTX() + 1) * itemAtlasSize, (data.getTY() + 1) * itemAtlasSize);
-				}
+				drawItem(data, mx, my, 1f);
 			}
 		}
 
@@ -211,6 +195,20 @@ public class Inventory {
 			viewmodel.set(getSelected());
 		}
 		viewmodel.update();
+	}
+
+	public static void drawItem(ItemData data, int dx, int dy, float s) {
+		final int imgSize = (int) (itemTexSize * scale * s);
+		
+		if (data.isUsingMaterialTexture()) {
+			Image img = UI.drawImage("materials", dx + padding + 8, dy + padding + 8, imgSize - 16, imgSize - 16);
+			img.setUvOffset(data.getTX() * BuildingRender.materialAtlasSize, data.getTY() * BuildingRender.materialAtlasSize,
+					(data.getTX() + 1) * BuildingRender.materialAtlasSize, (data.getTY() + 1) * BuildingRender.materialAtlasSize);
+		} else {
+			Image img = UI.drawImage("items", dx + padding, dy + padding, imgSize, imgSize);
+			img.setUvOffset(data.getTX() * itemAtlasSize, data.getTY() * itemAtlasSize,
+					(data.getTX() + 1) * itemAtlasSize, (data.getTY() + 1) * itemAtlasSize);
+		}
 	}
 
 	public int getSelected() {

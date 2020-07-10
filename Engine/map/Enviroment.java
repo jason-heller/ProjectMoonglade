@@ -57,7 +57,7 @@ public class Enviroment {
 	public Enviroment(Scene scene) {
 		
 		seed = Overworld.worldSeed.hashCode();
-		GenTerrain.init(terrain, (int)(seed & 0xff), (int)(seed & 0xff00), (int)(seed & 0xff0000), (int)(seed & 0xff000000));
+		GenTerrain.init((int)(seed & 0xff), (int)(seed & 0xff00), (int)(seed & 0xff0000), (int)(seed & 0xff000000));
 		
 		skybox = new Skybox();
 		skybox.addEntity(new RevolvingPlanetEntity(5, 45, 45, "sun"));
@@ -83,6 +83,7 @@ public class Enviroment {
 		
 		weather = new Weather(seed, 3);
 		terrain = new Terrain(this);
+		GenTerrain.initStructureHandler(terrain);
 		
 		final int chunkX = (int) Math.floor(c.x / Chunk.CHUNK_SIZE);
 		final int chunkZ = (int) Math.floor(c.z / Chunk.CHUNK_SIZE);

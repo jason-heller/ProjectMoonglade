@@ -23,9 +23,11 @@ public class Item {
 		addItem("stone", 1, 0, Material.STONE_WALL);
 		addItem("stick", 9, 0, Material.STICK);
 		addItem("stick_bundle", 2, 0, Material.STICK_BUNDLE);
-		addItem("vine", 8, 0, Material.VINE);
+		addItem("vine", 8, 0, Material.NONE);
+		addItem("plant_fibers", 6, 0, Material.NONE);
+		addItem("rope", 5, 0, Material.NONE);
 		
-		addItem("door", 9, 0, 3);
+		addItem("door", 4, 0, 3);
 		
 		addItem("red_paint", 1, 1, ItemAction.PAINT);
 		addItem("orange_paint", 2, 1, ItemAction.PAINT);
@@ -35,6 +37,7 @@ public class Item {
 		addItem("blue_paint", 6, 1, ItemAction.PAINT);
 		addItem("indigo_paint", 7, 1, ItemAction.PAINT);
 		addItem("violet_paint", 8, 1, ItemAction.PAINT);
+		addItem("paint_scraper", 15, 1, ItemAction.PAINT);
 		
 		addItem("dark_grey_paint", 9, 1, ItemAction.PAINT);
 		addItem("light_grey_paint", 10, 1, ItemAction.PAINT);
