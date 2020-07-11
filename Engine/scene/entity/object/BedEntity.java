@@ -15,12 +15,12 @@ import util.RunLengthInputStream;
 import util.RunLengthOutputStream;
 
 public class BedEntity extends Entity {
-	private AABB aabb;
 	private float swingForce = 0f;
 	
-	public BedEntity(Vector3f position) {
+	public BedEntity(Vector3f position, float rot) {
 		super();
 		this.position.set(position);
+		this.rotation.y = rot;
 		this.persistency = 2;
 
 		this.setModel(Resources.getModel("bed"));

@@ -18,20 +18,32 @@ import gl.entity.GenericMeshShader;
 import gl.entity.item.ItemRender;
 import gl.res.Model;
 import gl.res.Texture;
+import io.Input;
 import map.Chunk;
 import map.Terrain;
+import scene.Scene;
+import scene.overworld.Overworld;
+import scene.overworld.inventory.Inventory;
 
 public class EntityHandler {
 
 	private static GenericMeshShader shader;
 	private static ItemRender itemRender;
+	
 	private static Map<Texture, List<Entity>> entities;
 	private static Map<Chunk, List<Entity>> byChunk;
-	private static LinkedList<Entity> removalQueue, addQueue;
+	private static LinkedList<Entity> removalQueue;
+	
 	public static int entityRadius = 3;
 
 	public static void addEntity(Entity entity) {
-		addQueue.add(entity);
+		if (entities.containsKey(entity.getDiffuse())) {
+			entities.get(entity.getDiffuse()).add(entity);
+		} else {
+			final List<Entity> ents = new ArrayList<Entity>();
+			ents.add(entity);
+			entities.put(entity.getDiffuse(), ents);
+		}
 	}
 
 	public static void cleanUp() {
@@ -49,7 +61,6 @@ public class EntityHandler {
 		entities = new HashMap<Texture, List<Entity>>();
 		byChunk = new HashMap<Chunk, List<Entity>>();
 		removalQueue = new LinkedList<Entity>();
-		addQueue = new LinkedList<Entity>();
 		itemRender = new ItemRender();
 		
 		EntityData.init();
@@ -148,7 +159,10 @@ public class EntityHandler {
 		shader.stop();
 	}
 	
-	public static void update(Terrain terrain) {
+	public static void update(Scene scene, Inventory inventory) {
+		Vector3f playerPos = ((Overworld)Application.scene).getPlayer().position;
+		final int reachSqr = Overworld.PLAYER_REACH * Overworld.PLAYER_REACH;
+		
 		for(Entity entity : removalQueue) {
 			if (entities.containsKey(entity.getDiffuse())) {
 				entities.get(entity.getDiffuse()).remove(entity);
@@ -163,17 +177,6 @@ public class EntityHandler {
 		}
 		removalQueue.clear();
 		
-		for(Entity entity : addQueue) {
-			if (entities.containsKey(entity.getDiffuse())) {
-				entities.get(entity.getDiffuse()).add(entity);
-			} else {
-				final List<Entity> ents = new ArrayList<Entity>();
-				ents.add(entity);
-				entities.put(entity.getDiffuse(), ents);
-			}
-		}
-		addQueue.clear();
-		
 		for (final Texture texture : entities.keySet()) {
 			final List<Entity> batch = entities.get(texture);
 			for (int j = 0, m = batch.size(); j < m; j++) {
@@ -182,6 +185,16 @@ public class EntityHandler {
 					continue;
 				
 				entity.update(Application.scene);
+
+				if (entity.isClickable()) {
+					if (Input.isPressed(Input.KEY_LMB)
+							&& entity.getAabb().collide(playerPos, scene.getCamera().getDirectionVector()) < reachSqr) {
+						entity.onClick(true, inventory);
+					} else if (Input.isPressed(Input.KEY_RMB)
+							&& entity.getAabb().collide(playerPos, scene.getCamera().getDirectionVector()) < reachSqr) {
+						entity.onClick(false, inventory);
+					}
+				}
 			}
 		}
 	}
@@ -327,5 +340,14 @@ public class EntityHandler {
 
 	public static ItemRender getItemRender() {
 		return itemRender;
+	}
+
+	public static float entRotationFromFacing(byte facing) {
+		switch(facing) {
+		case 2: return 270;
+		case 1: return 90;
+		case 32: return 180;
+		}
+		return 0;
 	}
 }

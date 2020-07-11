@@ -17,6 +17,12 @@ public class RecipeHandler {
 		addRecipe("stick_bundle", 4, new String[] {"stick", "rope"}, new int[] {8, 4});
 		addRecipe("door", new String[] {"planks"}, new int[] {4});
 		addRecipe("axe", new String[] {"stone", "stick"}, new int[] {1, 1});
+		
+		addRecipe("stone_bricks", 2, new String[] {"stone"}, new int[] {2});
+		addRecipe("stone_wall", 2, new String[] {"stone"}, new int[] {2});
+		
+		addRecipe("forge", new String[] {"stone"}, new int[] {4});
+		addRecipe("sheet_metal", new String[] {"reclaimed_metal"}, new int[] {1});
 	}
 	
 	public RecipeHandler() {
@@ -53,7 +59,7 @@ public class RecipeHandler {
 	}
 
 	public void craft(Inventory inv, Recipe recipe, int amt) {
-		possibleRecipes.remove(recipe);
+		//possibleRecipes.remove(recipe);
 		int recipeIndex = 0;
 		int count = recipe.getAmounts()[recipeIndex];
 		int[] items = inv.getItems();

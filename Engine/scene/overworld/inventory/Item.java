@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import map.Material;
+import scene.entity.EntityData;
 
 public class Item {
 	private static List<ItemData> items = new ArrayList<ItemData>();
@@ -27,7 +28,9 @@ public class Item {
 		addItem("plant_fibers", 6, 0, Material.NONE);
 		addItem("rope", 5, 0, Material.NONE);
 		
-		addItem("door", 4, 0, 3);
+		addItem("door", 4, 0, "DoorEntity");
+		addItem("forge", 11, 0, "ForgeEntity");
+		addItem("reclaimed_metal", 10, 0, Material.NONE);
 		
 		addItem("red_paint", 1, 1, ItemAction.PAINT);
 		addItem("orange_paint", 2, 1, ItemAction.PAINT);
@@ -69,9 +72,9 @@ public class Item {
 		nameMap.put(name, id);
 	}
 
-	private static void addItem(String name, int tx, int ty, int entityId) {
+	private static void addItem(String name, int tx, int ty, String entityName) {
 		int id = items.size();
-		items.add(new ItemData(id, name, tx, ty, entityId));
+		items.add(new ItemData(id, name, tx, ty, EntityData.getId(entityName)));
 		nameMap.put(name, id);
 	}
 	

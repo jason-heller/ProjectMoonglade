@@ -63,8 +63,6 @@ public class Application {
 		Render.init();
 		Console.init();
 		
-		Item.init();
-		
 		Window.update();
 
 		scene = new MainMenu();

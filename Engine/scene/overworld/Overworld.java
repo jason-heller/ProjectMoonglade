@@ -42,7 +42,7 @@ import scene.overworld.inventory.tool.Trowel;
 
 public class Overworld implements Scene {
 	
-	private static final int PLAYER_REACH = Chunk.POLYGON_SIZE * 6;
+	public static final int PLAYER_REACH = Chunk.POLYGON_SIZE * 6;
 	public static String worldName;
 	public static String worldSeed;
 	public static String worldFileName;
@@ -68,6 +68,7 @@ public class Overworld implements Scene {
 
 		Enviroment.exactTime = 0f;
 		EntityHandler.init();
+		Item.init();
 		
 		camera = new Camera();
 		camera.setControlStyle(Camera.FIRST_PERSON);
@@ -117,7 +118,7 @@ public class Overworld implements Scene {
 		exactSelectionPt = null;
 		
 		camera.move();
-		EntityHandler.update(enviroment.getTerrain());
+		EntityHandler.update(this, inventory);
 	
 		if (Debug.debugMode) {
 			Debug.uiDebugInfo(this);
@@ -288,8 +289,9 @@ public class Overworld implements Scene {
 						
 						if (mat == Material.NONE) {
 							if (selected.getEntityId() != -1) {
-								Entity entity = EntityData.instantiate(selected.getEntityId());
-								entity.position.set(selectionPt);
+								float rotation = EntityHandler.entRotationFromFacing(facing);
+								Entity entity = EntityData.instantiate(selected.getEntityId(), selectionPt, rotation);
+								//entity.position.set(selectionPt);
 								EntityHandler.addEntity(entity);
 								
 							} else {
@@ -303,10 +305,10 @@ public class Overworld implements Scene {
 							return;
 						}
 						
-						if (tile != null && (tile.getWalls() & facing) != 0) {
+						//if (tile != null && (tile.getWalls() & facing) != 0) {
 							//TODO: CRASHES
 							//EntityHandler.addEntity(new ItemEntity(getTileDropPos(selectionPt), tile.getMaterial(facingIndex).getDrop(), 1));
-						}
+						//}
 						
 						byte wallFlags = cameraFacing;
 						byte slopeFlags = 0;

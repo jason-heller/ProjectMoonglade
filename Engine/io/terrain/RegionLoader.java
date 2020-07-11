@@ -3,6 +3,8 @@ package io.terrain;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.zip.DataFormatException;
 
@@ -17,7 +19,6 @@ import map.tile.BuildSector;
 import map.tile.Tile;
 import scene.entity.Entity;
 import scene.entity.EntityData;
-import scene.entity.EntityHandler;
 import scene.overworld.Overworld;
 import util.RunLengthInputStream;
 import util.ZLibUtil;  
@@ -37,6 +38,7 @@ public class RegionLoader implements Runnable {
 	private Map<Integer, Chunk> map;
 	private ChunkCallbackInterface c;
 	boolean ignoreTimeDifference = false;
+	private List<Entity> entities = new LinkedList<Entity>();
 	//private Enviroment enviroment;
 	
 	public RegionLoader(ChunkCallbackInterface c, String filename, Map<Integer, Chunk> map, Enviroment enviroment) {
@@ -48,14 +50,16 @@ public class RegionLoader implements Runnable {
 
 	@Override
 	public void run() {
+		
 		load(filename, map, ignoreTimeDifference);
-		this.c.loadCallback();
+		this.c.loadCallback(entities);
 	}
 
 	private void readChunk(Chunk chunk, RunLengthInputStream data, boolean ignoreTimeDifference) {
 		float[][] heights = chunk.heightmap;
 		Props[][] items = chunk.chunkProps.getPropMap();
 		StaticPropProperties[][] props = chunk.chunkProps.getEntityPropertyMap();
+		entities.clear();
 		
 		byte editFlags = data.readByte();
 		long timestamp = data.readLong();
@@ -136,7 +140,7 @@ public class RegionLoader implements Runnable {
 			e.load(data);
 			
 			if (persistency != 1 || timeDifference < ENTITY_EXPIRATION_TIME) {
-				EntityHandler.addEntity(e);
+				entities.add(e);
 			}
 			
 			

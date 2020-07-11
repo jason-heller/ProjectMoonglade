@@ -1,16 +1,17 @@
 package io.terrain;
 
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.joml.Vector3f;
 
 import core.Application;
 import map.Chunk;
 import map.Enviroment;
+import scene.entity.Entity;
+import scene.entity.EntityHandler;
 
 public class ChunkStreamer {
 	
@@ -112,7 +113,10 @@ class ChunkCallback implements ChunkCallbackInterface {
 	}
 	
 	@Override
-	public void loadCallback() {
+	public void loadCallback(List<Entity> entities) {
 		ChunkStreamer.loadThread = null;
+		for(Entity entity : entities) {
+			EntityHandler.addEntity(entity);
+		}
 	}
 }

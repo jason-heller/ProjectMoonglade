@@ -2,26 +2,28 @@ package scene.entity.object;
 
 import org.joml.Vector3f;
 
+import core.Application;
 import core.Resources;
-import dev.Console;
 import geom.AABB;
 import geom.Plane;
 import scene.Scene;
 import scene.entity.Entity;
 import scene.entity.PlayerEntity;
 import scene.overworld.Overworld;
+import scene.overworld.inventory.Inventory;
 import util.MathUtil;
 import util.RunLengthInputStream;
 import util.RunLengthOutputStream;
 
 public class DoorEntity extends Entity {
-	private AABB aabb;
-	private float swingForce = 0f;
+	private float swingForce = 0f, initPos = 0, endPos = 90;
 	
 	public DoorEntity(Vector3f position, float rotation) {
 		super();
 		this.position.set(position);
 		this.rotation.y = rotation;
+		this.initPos = rotation;
+		this.endPos = rotation + 90;
 		this.persistency = 2;
 
 		this.setModel(Resources.getModel("door"));
@@ -29,7 +31,25 @@ public class DoorEntity extends Entity {
 		
 		id = 3;
 		
-		aabb = new AABB(position.x, position.y+1f, position.z, .75f, 1f, .75f);
+		aabb = new AABB(position.x, position.y+1f, position.z, .75f, 2f, .75f);
+		
+		clickable = true;
+	}
+	
+	@Override
+	public void onClick(boolean lmb, Inventory inv) {
+		Overworld ow = (Overworld)Application.scene;
+		PlayerEntity player = ow.getPlayer();
+		Vector3f playerPos = player.position;
+		
+		Plane plane = new Plane(position, MathUtil.eulerToVectorDeg(this.rotation.y, 0f));
+		float dist = (float) plane.signedDistanceTo(playerPos)*4f;
+		/*if (dist >= 0) {
+			swingForce = 2;
+		} else {
+			swingForce = -2;
+		}*/
+		swingForce = dist;
 	}
 	
 	@Override
@@ -48,11 +68,11 @@ public class DoorEntity extends Entity {
 			swingForce = (float) plane.signedDistanceTo(playerPos)*4f;
 		}
 		
-		if (rotation.y < 0) {
+		if (rotation.y < initPos) {
 			swingForce = Math.abs(swingForce/2f);
 		}
 		
-		if (rotation.y > 90) {
+		if (rotation.y > endPos) {
 			swingForce = -Math.abs(swingForce/2f);
 		}
 		

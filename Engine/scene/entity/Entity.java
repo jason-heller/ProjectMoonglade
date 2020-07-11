@@ -7,12 +7,14 @@ import anim.Animator;
 import audio.AudioHandler;
 import audio.Source;
 import core.Resources;
+import geom.AABB;
 import gl.res.Model;
 import gl.res.Texture;
 import map.Chunk;
 import map.Enviroment;
 import map.Terrain;
 import scene.Scene;
+import scene.overworld.inventory.Inventory;
 import util.RunLengthInputStream;
 import util.RunLengthOutputStream;
 
@@ -24,11 +26,14 @@ public abstract class Entity {
 	protected Animator animator;
 	
 	protected Source source;
+	protected AABB aabb;
 	
 	protected int id = 0;
 	
 	protected Chunk chunk;
 	protected float scale;
+	
+	protected boolean clickable = false;
 	
 	protected boolean deactivated = false; // If deactivated, still exists in-game, but does not update or render
 	protected int persistency = 0;	// 0 = despawn as soon as can, 1 = despawn at range or after period of time saved in chunk data(todo)
@@ -126,5 +131,15 @@ public abstract class Entity {
 	
 	public int getSpawnGroupVariation() {
 		return this.spawnGroupVariation;
+	}
+	
+	public boolean isClickable() {
+		return clickable;
+	}
+
+	protected void onClick(boolean lmb, Inventory inv) {}
+
+	public AABB getAabb() {
+		return aabb;
 	}
 }

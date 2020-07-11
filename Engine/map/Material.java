@@ -30,7 +30,8 @@ public enum Material {
 	METAL_MESH("metal_mesh", 7, 0, TileModels.FILLED),
 	PALM_PLANKS("palm_planks", 9, 0, null, TileModels.FILLED, false, false, true, true, 0),
 	CYPRESS_PLANKS("cypress_planks", 10, 0, null, TileModels.FILLED, false, false, true, true, 0),
-	HEDGE("hedge", 11, 0, null, TileModels.DEFAULT, false, false, false, false, 0)
+	HEDGE("hedge", 11, 0, null, TileModels.DEFAULT, false, false, false, false, 0),
+	SHEET_METAL("sheet_metal", 7, 1, TileModels.FILLED),
 	;
 	
 	private String name;
