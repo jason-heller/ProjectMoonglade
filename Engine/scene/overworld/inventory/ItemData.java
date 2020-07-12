@@ -2,7 +2,9 @@ package scene.overworld.inventory;
 
 import map.Chunk;
 import map.Material;
+import map.TerrainIntersection;
 import map.tile.Tile;
+import scene.overworld.Overworld;
 
 public class ItemData {
 	private final int tx, ty;
@@ -63,8 +65,8 @@ public class ItemData {
 		return entity;
 	}
 
-	public boolean doAction(Tile tile, int facingIndex, Chunk chunk) {
-		return action.doAction(this.id, facingIndex, tile, chunk);
+	public boolean doAction(Overworld overworld, TerrainIntersection ti, Tile tile, Chunk chunk, int facingIndex, boolean lmb) {
+		return action.doAction(overworld, ti, tile, chunk, this.id, facingIndex, lmb);
 	}
 
 	public void useMaterialTexture(boolean b) {

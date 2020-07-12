@@ -25,6 +25,9 @@ public class WaveShader extends PostShader {
 
 	@Override
 	public void loadUniforms() {
+		if (!(Application.scene instanceof Overworld)) {
+			return;
+		}
 		Overworld ow = (Overworld)Application.scene;
 		Vector3f waterColor = ow.getEnviroment().getClosestBiome().waterColor;		// God is dead, my global variables killed him
 		this.timer.loadFloat(PostProcessing.getPostProcessingTimer());

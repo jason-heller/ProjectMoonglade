@@ -14,10 +14,6 @@ public class EditorBoundsTool {
 	public static Vector3f p2 = new Vector3f();
 	private static MarkerEntity m1, m2;
 	
-	public static void init() {
-		
-	}
-	
 	public static void interact(Vector3f selectionPt, boolean lmb, boolean rmb) {
 		
 		

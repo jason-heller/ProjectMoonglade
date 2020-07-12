@@ -1,6 +1,7 @@
 package scene.entity;
 
 import org.joml.Vector3f;
+import org.lwjgl.input.Keyboard;
 
 import gl.Camera;
 import gl.Window;
@@ -173,7 +174,7 @@ public class PlayerHandler {
 		}
 		
 		if (JUMP) {
-			Vector3f dir = MathUtil.getDirection(scene.getCamera().getViewMatrix());
+			Vector3f dir = new Vector3f(scene.getCamera().getDirectionVector());
 			entity.velocity.x = dir.x * entity.velocity.y;
 			entity.velocity.z = dir.z * entity.velocity.y;
 			entity.jump(jumpVelocity);
@@ -181,57 +182,57 @@ public class PlayerHandler {
 	}
 	
 	private static void waterPhysics(Scene scene) {
-		float speed = 0;
-		Vector3f dir = MathUtil.getDirection(scene.getCamera().getViewMatrix());
+		float forwardSpeed = 0, strafeSpeed = 0;
 		
 		boolean A = Input.isDown("walk_left"),
 				D = Input.isDown("walk_right"),
 				W = Input.isDown("walk_forward"),
 				S = Input.isDown("walk_backward"),
-				JUMP = Input.isDown("jump");
+				JUMP = Input.isDown("jump"),
+				CROUCH = Input.isDown("sneak");
+		
+		if (A && D) {
+			if (!entity.velocity.isZero()) {
+				entity.velocity.mul(.92f);
+			}
+		} else if (A && !D) {
+			strafeSpeed = 60;
+		} else if (!A && D) {
+			strafeSpeed = -60;
+		}
 		
 		if (W && S) {
 			if (!entity.velocity.isZero()) {
 				entity.velocity.mul(.92f);
 			}
 		} else if (W && !S) {
-			speed = 70;
-			dir.negate();
+			forwardSpeed = -60;
+			
 		} else if (!W && S) {
-			speed = 70;
+			forwardSpeed = 60;
 		}
 		
-		
-		
-		float direction = scene.getCamera().getYaw();
-		if (A && D) {
-			if (!entity.velocity.isZero()) {
-				entity.velocity.mul(.92f);
-			}
-		} else if (A && !D) {
-			speed = waterAccel;
-			direction += 90;
-		} else if (!A && D) {
-			speed = waterAccel;
-			direction -= 90;
+		if (Input.isPressed(Keyboard.KEY_R) && entity.isFullySubmerged()) {
+			forwardSpeed = -4000;
 		}
 		
-		if (JUMP) {
-			speed = 40;
-			dir.set(0,1,0);
+		if (JUMP && !CROUCH) {
+			entity.accelerate(Vector3f.Y_AXIS, 60);
+		} else if (!JUMP && CROUCH) {
+			entity.accelerate(Vector3f.Y_AXIS, -60);
 		}
 		
-		if (speed != 0) {
-			if (direction != scene.getCamera().getYaw()) {
-				direction *= Math.PI / 180f;
-				entity.accelerate(new Vector3f(-(float)Math.sin(direction),0,(float)Math.cos(direction)), speed);
-			} else {
-				entity.accelerate(dir, speed);
-				if (entity.isGrounded() && dir.y > 0.15 && speed > 0) {
-					entity.position.y++;
-				}
-			}
+		final Vector3f forward = MathUtil.getDirection(scene.getCamera().getViewMatrix());
+		final float yawRad = (float) Math.toRadians(scene.getCamera().getYaw());
+		final Vector3f strafe = new Vector3f(-(float) Math.sin(yawRad), 0, (float) Math.cos(yawRad)).perpindicular();
+		
+		if (!entity.isFullySubmerged()) {
+			forward.y = Math.max(forward.y, 0f);
+			strafe.y = Math.max(strafe.y, 0f);
 		}
+		
+		entity.accelerate(forward, forwardSpeed);
+		entity.accelerate(strafe, strafeSpeed);
 	}
 	
 	public static void disable() {

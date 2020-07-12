@@ -1,25 +1,126 @@
 package scene.overworld.inventory;
 
-import dev.Console;
+import org.joml.Vector3f;
+
+import core.Resources;
+import dev.Debug;
+import gl.Camera;
+import gl.particle.ParticleHandler;
+import io.Input;
 import map.Chunk;
+import map.TerrainIntersection;
+import map.prop.Props;
+import map.prop.StaticProp;
 import map.tile.Tile;
+import scene.entity.PlayerEntity;
+import scene.overworld.Overworld;
+import scene.overworld.inventory.tool.EditorBoundsTool;
 
 public enum ItemAction {
-	NONE, PAINT;
+	NONE, PAINT, DIG, CHOP;
 
-	public boolean doAction(int id, int facingIndex, Tile tile, Chunk chunk) {
-		switch(this) {
-		case PAINT:
-			if (tile != null && tile.getMaterial(facingIndex).isColorable()) {
-				paint(Item.get(id).getName(), facingIndex, tile);
-				chunk.getBuilding().buildModel();
+	public boolean doAction(Overworld overworld, TerrainIntersection ti, Tile tile, Chunk chunk, int id, int facingIndex, boolean lmb) {
+		Camera camera = overworld.getCamera();
+		Vector3f selectionPt = overworld.getSelectionPoint();
+		Vector3f exactSelectionPt = overworld.getExactSelectionPoint();
+		final int cx = chunk.realX;
+		final int cz = chunk.realZ;
+		PlayerEntity player = overworld.getPlayer();
+		
+		if (lmb) {
+			switch(this) {
+			case DIG:
+				return dig(ti, chunk, cx, cz, selectionPt);
+				
+			case CHOP:
+				if (Debug.structureMode) {
+					EditorBoundsTool.interact(exactSelectionPt, true, false);
+					return true;
+				}
+				return chop(player, camera, ti, exactSelectionPt, exactSelectionPt, chunk, cx, cz);
+				
+			default:
 				return true;
 			}
-			return false;
+		} else {
+			switch(this) {
+			case DIG:
+				return makeMound(chunk, cx, cz, selectionPt);
 			
-		default:
-			return false;
+			case CHOP:
+				if (Debug.structureMode) {
+					EditorBoundsTool.interact(exactSelectionPt, true, false);
+				}
+				return true;
+				
+			case PAINT:
+				if (tile != null && tile.getMaterial(facingIndex).isColorable()) {
+					paint(Item.get(id).getName(), facingIndex, tile);
+					chunk.getBuilding().buildModel();
+					return true;
+				}
+				return false;
+				
+			default:
+				return true;
+			}
 		}
+	}
+
+	private boolean chop(PlayerEntity player, Camera camera, TerrainIntersection ti, Vector3f selectionPt,
+			Vector3f exactSelectionPt, Chunk chunk, int cx, int cz) {
+		if (ti == null) {
+			
+			return true;
+		}
+		
+		StaticProp propTile = Props.get(ti.getProp());
+		if (propTile == null || !propTile.isDestroyableBy(Item.AXE)) {
+			player.getSource().play(Resources.getSound("swing"));
+			return false;
+		} else {
+			player.getSource().play(Resources.getSound("chop_bark"));
+		}
+		
+		Vector3f splashDir = new Vector3f(camera.getDirectionVector()).negate().normalize();
+		ParticleHandler.addSplash(propTile.getMaterial(), exactSelectionPt, splashDir);
+		//ParticleHandler.addBurst(Resources.getTexture("materials"), 0, 0, selectionPt);
+		
+		int relX = (int)(selectionPt.x - cx)/Chunk.POLYGON_SIZE;
+		int relZ = (int)(selectionPt.z - cz)/Chunk.POLYGON_SIZE;
+		chunk.damangeProp(relX, relZ, (byte)15);
+		return true;
+	}
+
+	private boolean makeMound(Chunk chunk, int cx, int cz, Vector3f selectionPt) {
+		int relX = (int) (selectionPt.x - cx) / Chunk.POLYGON_SIZE;
+		int relZ = (int) (selectionPt.z - cz) / Chunk.POLYGON_SIZE;
+
+		if (Input.isDown("sneak")) {
+			chunk.setHeight(relX, relZ, (int) selectionPt.y / Chunk.POLYGON_SIZE);
+		} else {
+			chunk.addHeight(relX, relZ, Chunk.DIG_SIZE);
+		}
+
+		chunk.destroyProp(relX, relZ);
+		return true;
+	}
+
+	private boolean dig(TerrainIntersection ti, Chunk chunk, int cx, int cz, Vector3f selectionPt) {
+		StaticProp prop = Props.get(ti.getProp());
+		if (prop != null && prop.isDestroyableBy(Item.SPADE))
+			return false;
+
+		int relX = (int) (selectionPt.x - cx) / Chunk.POLYGON_SIZE;
+		int relZ = (int) (selectionPt.z - cz) / Chunk.POLYGON_SIZE;
+		if (!chunk.destroyProp(relX, relZ)) {
+			if (Input.isDown("sneak")) {
+				chunk.smoothHeight(relX, relZ);
+			} else {
+				chunk.addHeight(relX, relZ, -Chunk.DIG_SIZE);
+			}
+		}
+		return true;
 	}
 
 	private void paint(String item, int facingIndex, Tile tile) {

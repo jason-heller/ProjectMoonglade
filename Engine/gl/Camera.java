@@ -154,7 +154,7 @@ public class Camera {
 
 		// WASD movement
 		if (controlStyle == SPECTATOR && !Console.isVisible()) {
-			final Vector3f foward = MathUtil.getDirection(viewMatrix);
+			final Vector3f forward = MathUtil.getDirection(viewMatrix);
 			final float yawRad = (float) Math.toRadians(yaw);
 			final Vector3f strafe = new Vector3f(-(float) Math.sin(yawRad), 0, (float) Math.cos(yawRad))
 					.perpindicular();
@@ -162,11 +162,11 @@ public class Camera {
 			final float speed = Input.isDown(Keyboard.KEY_LCONTROL) ? cameraSpeed / 4f : cameraSpeed;
 
 			if (Input.isDown("walk_forward")) {
-				foward.mul(-speed);
+				forward.mul(-speed);
 			} else if (Input.isDown("walk_backward")) {
-				foward.mul(speed);
+				forward.mul(speed);
 			} else {
-				foward.zero();
+				forward.zero();
 			}
 
 			if (Input.isDown("walk_right")) {
@@ -177,7 +177,7 @@ public class Camera {
 				strafe.zero();
 			}
 
-			position.add(foward).add(strafe);
+			position.add(forward).add(strafe);
 		}
 	}
 

@@ -94,7 +94,7 @@ public abstract class PhysicsEntity extends Entity {
 	private void collide(Terrain terrain) {
 		Chunk chunk = terrain.getChunkAt(position.x, position.z);
 		
-		//if (chunk == null) return;
+		if (chunk == null) return;
 		
 		final float relx = position.x - chunk.realX;
 		final float relz = position.z - chunk.realZ;
@@ -165,6 +165,7 @@ public abstract class PhysicsEntity extends Entity {
 			for(float j = position.z - 1f; j <= position.z + 1f; j += 1f) {
 				for(float k = position.y + height; k >= position.y-1; k -= 1f) {
 					Chunk chunkPtr = t.getChunkAt(i, j);
+					if (chunkPtr == null) continue;
 					
 					float tx = (float)Math.floor(i);
 					float tz = (float)Math.floor(j);

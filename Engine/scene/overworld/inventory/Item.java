@@ -17,9 +17,9 @@ public class Item {
 	
 	public static void init() {
 		addItem("air", 0, 0, Material.NONE);
-		addItem("spade", 1, 1, Material.NONE);
-		addItem("trowel", 2, 1, Material.NONE);
-		addItem("axe", 0, 1, Material.NONE);
+		addItem("spade", 1, 1, ItemAction.DIG);
+		addItem("trowel", 2, 1, ItemAction.DIG);
+		addItem("axe", 0, 1, ItemAction.CHOP);
 		
 		addItem("stone", 1, 0, Material.STONE_WALL);
 		addItem("stick", 9, 0, Material.STICK);

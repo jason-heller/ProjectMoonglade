@@ -131,7 +131,7 @@ public class BuildData {
 			}
 			break;
 		case 2: 
-			if (x == Chunk.VERTEX_COUNT-1) {
+			if (x == Chunk.VERTEX_COUNT-2) {
 				Chunk neighbor = chunk.getTerrain().get(chunk.arrX+1, chunk.arrZ);
 				x = 0;
 				neighbor.getBuilding().setFromNeighbor(x, y, z, (byte)1, (byte)0, material, flags);
@@ -155,7 +155,7 @@ public class BuildData {
 			}
 			break;
 		case 32: 
-			if (z == Chunk.VERTEX_COUNT-1) {
+			if (z == Chunk.VERTEX_COUNT-2) {
 				Chunk neighbor = chunk.getTerrain().get(chunk.arrX, chunk.arrZ+1);
 				z = 0;
 				neighbor.getBuilding().setFromNeighbor(x, y, z, (byte)16, (byte)0, material, flags);

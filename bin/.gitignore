@@ -1,12 +1,5 @@
 /map/
-/util/
 /scene/
+/procedural/
 /res/
 /gl/
-/geom/
-/io/
-/procedural/
-/core/
-/dev/
-/ui/
-/opengl/

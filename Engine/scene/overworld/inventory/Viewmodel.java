@@ -64,7 +64,7 @@ public class Viewmodel {
 		
 		if (swingAnim) {
 			if (xRotTarget < xRot) {
-				xRot -= 5000*Window.deltaTime;
+				xRot -= 1000*Window.deltaTime;
 				
 				if (xRot < xRotTarget) {
 					xRotTarget = 0;

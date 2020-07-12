@@ -35,10 +35,6 @@ import scene.entity.utility.ItemEntity;
 import scene.overworld.inventory.Inventory;
 import scene.overworld.inventory.Item;
 import scene.overworld.inventory.ItemData;
-import scene.overworld.inventory.tool.Axe;
-import scene.overworld.inventory.tool.EditorBoundsTool;
-import scene.overworld.inventory.tool.Spade;
-import scene.overworld.inventory.tool.Trowel;
 
 public class Overworld implements Scene {
 	
@@ -56,13 +52,16 @@ public class Overworld implements Scene {
 	private final OverworldUI ui;
 	
 	private Vector3f selectionPt, exactSelectionPt;
-	private byte cameraFacing;
+	private byte facing;
 
 	protected boolean returnToMenu;
 	
 	private byte slopeSetting = 0, wallSetting = 0;
 	
 	private float actionDelay = 0f;
+	
+	private int cx, cz, _x, _y, _z;
+	private float dx, dz;
 	
 	public Overworld() {
 
@@ -93,7 +92,6 @@ public class Overworld implements Scene {
 		
 		if (Debug.structureMode) {
 			LineRender.init();
-			EditorBoundsTool.init();
 			Enviroment.exactTime = Enviroment.DAY;
 		}
 	}
@@ -113,7 +111,7 @@ public class Overworld implements Scene {
 			Mouse.setCursorPosition(Window.getWidth()/2, Window.getHeight()/2);
 		}
 		
-		cameraFacing = Tile.getFacingByte(camera, wallSetting == 1, slopeSetting == 1);
+		facing = Tile.getFacingByte(camera, wallSetting == 1, slopeSetting == 1);
 		selectionPt = null;
 		exactSelectionPt = null;
 		
@@ -124,8 +122,9 @@ public class Overworld implements Scene {
 			Debug.uiDebugInfo(this);
 		}
 		
-		boolean facingTile = false;
+		boolean isFacingTile = false;
 		
+		// Check for terrain intersection (of pointer)
 		TerrainIntersection terrainIntersection = null;
 		if (!inventory.isOpen()) {
 			terrainIntersection = enviroment.getTerrain().terrainRaycast(camera.getPosition(),
@@ -137,223 +136,214 @@ public class Overworld implements Scene {
 			if (inventory.getSelected() != 0) {
 				byte snapFlags = (byte) ((wallSetting == 1) ? 1 : 0);
 				snapFlags = (byte) ((slopeSetting == 1) ? 2 : snapFlags);
-				Vector3f pt = enviroment.getTerrain().buildingRaycast(this, camera.getPosition(), camera.getDirectionVector(), PLAYER_REACH, cameraFacing, snapFlags);
+				Vector3f pt = enviroment.getTerrain().buildingRaycast(this, camera.getPosition(), camera.getDirectionVector(), PLAYER_REACH, facing, snapFlags);
 
 				
 				if (pt != null && (selectionPt == null || Vector3f.distanceSquared(camera.getPosition(), pt) <
 				Vector3f.distanceSquared(camera.getPosition(), selectionPt))) {
 					selectionPt = pt;
-					facingTile = true;
+					isFacingTile = true;
 				}
 			}
 		}
 		actionDelay = Math.max(actionDelay - Window.deltaTime, 0f);
 		
+		// Pointer interactions
 		if (selectionPt != null && Input.isMouseGrabbed() && actionDelay == 0f) {
+			
 			exactSelectionPt = new Vector3f(selectionPt);
-			selectionPt.set((float) Math.floor(selectionPt.x), (float) Math.floor(selectionPt.y),
-					(float) Math.floor(selectionPt.z));
-
+			selectionPt.set((float) Math.floor(selectionPt.x), (float) Math.floor(selectionPt.y), (float) Math.floor(selectionPt.z));
 			selectionPt.y = Math.min(Math.max(selectionPt.y, BuildData.MIN_BUILD_HEIGHT+1), BuildData.MAX_BUILD_HEIGHT-1);
 			
-			float dx = camera.getPosition().x - selectionPt.x;
-			float dy = camera.getPosition().y - selectionPt.y;
-			float dz = camera.getPosition().z - selectionPt.z;
-			
-			boolean withinRange = (dx*dx + dy*dy + dz*dz <= PLAYER_REACH * PLAYER_REACH);
-			
-			final boolean lmb = Input.isPressed(Input.KEY_LMB), rmb = Input.isPressed(Input.KEY_RMB);
+			final boolean lmb = Input.isPressed(Input.KEY_LMB);
+			final boolean rmb = Input.isPressed(Input.KEY_RMB);
 			
 			final Terrain terrain = enviroment.getTerrain();
 			Chunk chunkPtr = terrain.getChunkAt(selectionPt.x, selectionPt.z);
+			cx = chunkPtr.realX;
+			cz = chunkPtr.realZ;
+			_x = (int) ((selectionPt.x - cx) / TILE_SIZE);
+			_y = (int) (selectionPt.y / TILE_SIZE);
+			_z = (int) ((selectionPt.z - cz) / TILE_SIZE);
+			dx = camera.getPosition().x - selectionPt.x;
+			dz = camera.getPosition().z - selectionPt.z;
 			
-			final int cx = chunkPtr.realX;
-			final int cz = chunkPtr.realZ;
-			int _x = (int) ((selectionPt.x - cx) / TILE_SIZE);
-			int _y = (int) (selectionPt.y / TILE_SIZE);
-			int _z = (int) ((selectionPt.z - cz) / TILE_SIZE);
+			Tile tile = chunkPtr.getBuilding().get(_x, _y, _z);
+			//byte facing = Tile.getFacingByte(camera, wallSetting == 1, slopeSetting == 1);
+			final int facingIndex = facing == 1 ? 0 : (int)Math.sqrt(facing);
+			final ItemData selected = Item.get(inventory.getSelected());
 			
-			final int facingIndex = cameraFacing == 1 ? 0 : (int)Math.sqrt(cameraFacing);
-			
-			Tile tile;
-			
-			if (lmb || rmb) {
+			if (lmb) {
 				actionDelay = .05f;
+				lmbAction(chunkPtr, tile, selected, terrainIntersection, facingIndex, isFacingTile);
 			}
 			
-			//TODO: Refactor this
-			switch(inventory.getSelected()) {
-			case Item.SPADE:
-				Spade.interact(chunkPtr, terrain, terrainIntersection, exactSelectionPt, cx, cz, facingTile, withinRange, lmb, rmb);
-				break;
-			case Item.TROWEL:
-				Trowel.interact(chunkPtr, terrain, terrainIntersection, exactSelectionPt, cx, cz, facingTile, withinRange, lmb, rmb);
-				break;
-			case Item.AXE:
-				if (Debug.structureMode) {
-					EditorBoundsTool.interact(selectionPt, lmb, rmb);
-				} else {
-					Axe.interact(chunkPtr, terrain, terrainIntersection, player, camera, selectionPt, exactSelectionPt, cx, cz, facingTile, withinRange, lmb, rmb);
-				}
-				break;
-				
-			default:
-				tile = chunkPtr.getBuilding().get(_x, _y, _z);
-				
-				byte facing = Tile.getFacingByte(camera, wallSetting == 1, slopeSetting == 1);
-				if (lmb && tile != null && tile.getMaterial(facingIndex) != Material.NONE) {
-					if (tile.getMaterial(facingIndex).isTiling()) {
-						final float rx = (_x * TILE_SIZE) + cx;
-						final float ry = (_y * TILE_SIZE);
-						final float rz = (_z * TILE_SIZE) + cz;
-						dx = ((cameraFacing & 3) == 0) ? TILE_SIZE : 0;
-						dz = TILE_SIZE - dx;
-						if ((cameraFacing & 1) != 0) dz *= -1;
-						if ((cameraFacing & 32) != 0) dx *= -1;
-						Material.removeTilingFlags(tile, enviroment.getTerrain(), rx, ry, rz, dx, dz, facingIndex, 0);
-					}
-					
-					if ((tile.getWalls() & facing) != 0) {
-						EntityHandler.addEntity(new ItemEntity(getTileDropPos(selectionPt), tile.getMaterial(facingIndex).getDrop(), 1));
-					}
-					
-					if (slopeSetting != 0) {
-						chunkPtr.setTile(_x, _y, _z, (byte) 0, facing,
-								Material.NONE, (byte) 0);
-					} else {
-						chunkPtr.setTile(_x, _y, _z, facing, (byte) 0,
-								Material.NONE, (byte) 0);
-					}
-				}
-				
-				if (!facingTile && chunkPtr != null && lmb) {
-					StaticProp envTile = Props.get(terrainIntersection.getTile());
-					
-					if (envTile != null) {
-						int relX = (int)(selectionPt.x - cx)/Chunk.POLYGON_SIZE;
-						int relZ = (int)(selectionPt.z - cz)/Chunk.POLYGON_SIZE;
-						
-						int tool = envTile.getTool();
-						if (tool == Item.AIR) {
-							ParticleHandler.addBurst("materials", 0, 0, exactSelectionPt);
-							chunkPtr.destroyProp(relX, relZ);
-						}
-						
-						if (envTile.getMaterial() == Material.PLANKS) {
-							
-							StaticPropProperties props = chunkPtr.getChunkPropProperties(relX, relZ);
-							if (props.damage % 5 != 2) {
-								props.damage--;
-								
-								for (int i = 0; i < 12; i++) {
-									Vector3f pos = new Vector3f(exactSelectionPt);
-									pos.y += envTile.getBounds().y;
-									pos.x += -2f + (Math.random() * 4f);
-									pos.z += -2f + (Math.random() * 4f);
-									
-									if (Math.random() < .1) {
-										EntityHandler.addEntity(new ItemEntity(pos, "stick", 1));
-									} else {
-										new Particle(Resources.getTexture("particles"), pos, new Vector3f(), .005f, 100,
-												(float) Math.random() * 360f, 1f, .5f + (float) (Math.random() * .5f), 3, 3);
-									}
-								}
-							}
-						}
-					}
-				}
-				
-				final ItemData selected = Item.get(inventory.getSelected());
-				if (rmb && inventory.getSelected() != Item.AIR) {
-
-					if (chunkPtr != null) {
-						tile = chunkPtr.getBuilding().get(_x, _y, _z);
-						
-						if (_x < 0) {
-							chunkPtr = terrain.get(chunkPtr.arrX-1, chunkPtr.arrZ);
-							_x += Chunk.VERTEX_COUNT*2;
-						} else if (_x > Chunk.VERTEX_COUNT*2) {
-							chunkPtr = terrain.get(chunkPtr.arrX+1, chunkPtr.arrZ);
-							_x -= Chunk.VERTEX_COUNT*2;
-						}
-						
-						if (_z < 0) {
-							chunkPtr = terrain.get(chunkPtr.arrX, chunkPtr.arrZ-1);
-							_z += Chunk.VERTEX_COUNT*2;
-						} else if (_z > Chunk.VERTEX_COUNT*2) {
-							chunkPtr = terrain.get(chunkPtr.arrX, chunkPtr.arrZ+1);
-							_z += Chunk.VERTEX_COUNT*2;
-						}
-						
-						final Material mat = selected.getMaterial();
-						
-						if (mat == Material.NONE) {
-							if (selected.getEntityId() != -1) {
-								float rotation = EntityHandler.entRotationFromFacing(facing);
-								Entity entity = EntityData.instantiate(selected.getEntityId(), selectionPt, rotation);
-								//entity.position.set(selectionPt);
-								EntityHandler.addEntity(entity);
-								
-							} else {
-								if (tile != null/* && (tile.getWalls() & facing) != 0*/) {
-									selected.doAction(tile, facingIndex, chunkPtr);
-								} else {
-									selected.doAction(null, facingIndex, chunkPtr);
-								}
-							}
-							
-							return;
-						}
-						
-						//if (tile != null && (tile.getWalls() & facing) != 0) {
-							//TODO: CRASHES
-							//EntityHandler.addEntity(new ItemEntity(getTileDropPos(selectionPt), tile.getMaterial(facingIndex).getDrop(), 1));
-						//}
-						
-						byte wallFlags = cameraFacing;
-						byte slopeFlags = 0;
-						if (slopeSetting == 1) {
-							wallFlags = 0;
-							slopeFlags = cameraFacing;
-						} else if (slopeSetting == 2) {
-							// TODO: This
-						}
-						
-						byte specialFlags = mat.getInitialFlags();
-						if (mat.isTiling()) {
-							final float rx = (_x * TILE_SIZE) + cx;
-							final float ry = (_y * TILE_SIZE);
-							final float rz = (_z * TILE_SIZE) + cz;
-							dx = ((cameraFacing & 3) == 0) ? TILE_SIZE : 0;
-							dz = TILE_SIZE - dx;
-							if ((cameraFacing & 1) != 0) dz *= -1;
-							if ((cameraFacing & 32) != 0) dx *= -1;
-							
-							chunkPtr.setTile(_x, _y, _z, wallFlags, slopeFlags, mat, (byte) 0);
-							tile = chunkPtr.getBuilding().get(_x,_y,_z);
-							Material.setTilingFlags(tile, terrain, rx, ry, rz, dx, dz, mat, facingIndex, 0);
-							chunkPtr.getBuilding().buildModel();
-						} else {
-							chunkPtr.setTile(_x, _y, _z, wallFlags, slopeFlags, mat, specialFlags);
-						}
-						
-						if ((wallFlags & 12) != 0 && Math.abs(chunkPtr.heightLookup(_x, _z) - _y) <= .1f) {
-							chunkPtr.setHeight(_x, _z, _y - .025f);
-						}
-	
-						inventory.consume(inventory.getSelectionPos());
-						chunkPtr.rebuildWalls();
-					}
-				}
-			}
-		} else {
-			if (Input.isPressed(Input.KEY_LMB) && inventory.getSelected() != Item.AIR && Item.get(inventory.getSelected()).getMaterial() == Material.NONE) {
-				player.getSource().play(Resources.getSound("swing"));
+			if (rmb && inventory.getSelected() != Item.AIR) {
+				actionDelay = .05f;
+				rmbAction(chunkPtr, tile, selected, terrainIntersection, facingIndex, isFacingTile);
 			}
 		}
 		
 		ui.update();
 		inventory.update();
+	}
+
+	private void rmbAction(Chunk chunkPtr, Tile tile, ItemData selected, TerrainIntersection terrainIntersection,
+			int facingIndex, boolean isFacingTile) {
+		
+		final Terrain terrain = enviroment.getTerrain();
+		
+		if (chunkPtr != null) {
+			tile = chunkPtr.getBuilding().get(_x, _y, _z);
+			
+			if (_x < 0) {
+				chunkPtr = terrain.get(chunkPtr.arrX-1, chunkPtr.arrZ);
+				_x += Chunk.VERTEX_COUNT*2;
+			} else if (_x > Chunk.VERTEX_COUNT*2) {
+				chunkPtr = terrain.get(chunkPtr.arrX+1, chunkPtr.arrZ);
+				_x -= Chunk.VERTEX_COUNT*2;
+			}
+			
+			if (_z < 0) {
+				chunkPtr = terrain.get(chunkPtr.arrX, chunkPtr.arrZ-1);
+				_z += Chunk.VERTEX_COUNT*2;
+			} else if (_z > Chunk.VERTEX_COUNT*2) {
+				chunkPtr = terrain.get(chunkPtr.arrX, chunkPtr.arrZ+1);
+				_z += Chunk.VERTEX_COUNT*2;
+			}
+			
+			final Material mat = selected.getMaterial();
+			
+			if (mat == Material.NONE) {
+				if (selected.getEntityId() != -1) {
+					float rotation = EntityHandler.entRotationFromFacing(facing);
+					Entity entity = EntityData.instantiate(selected.getEntityId(), selectionPt, rotation);
+					//entity.position.set(selectionPt);
+					EntityHandler.addEntity(entity);
+					
+				} else {
+					if (tile != null/* && (tile.getWalls() & facing) != 0*/) {
+						selected.doAction(this, terrainIntersection, tile, chunkPtr, facingIndex, false);
+					} else {
+						selected.doAction(this, terrainIntersection, null, chunkPtr, facingIndex, false);
+					}
+				}
+				
+				return;
+			}
+			
+			//if (tile != null && (tile.getWalls() & facing) != 0) {
+				//TODO: CRASHES
+				//EntityHandler.addEntity(new ItemEntity(getTileDropPos(selectionPt), tile.getMaterial(facingIndex).getDrop(), 1));
+			//}
+			
+			byte wallFlags = facing;
+			byte slopeFlags = 0;
+			if (slopeSetting == 1) {
+				wallFlags = 0;
+				slopeFlags = facing;
+			} else if (slopeSetting == 2) {
+				// TODO: This
+			}
+			
+			byte specialFlags = mat.getInitialFlags();
+			if (mat.isTiling()) {
+				final float rx = (_x * TILE_SIZE) + cx;
+				final float ry = (_y * TILE_SIZE);
+				final float rz = (_z * TILE_SIZE) + cz;
+				dx = ((facing & 3) == 0) ? TILE_SIZE : 0;
+				dz = TILE_SIZE - dx;
+				if ((facing & 1) != 0) dz *= -1;
+				if ((facing & 32) != 0) dx *= -1;
+				
+				chunkPtr.setTile(_x, _y, _z, wallFlags, slopeFlags, mat, (byte) 0);
+				tile = chunkPtr.getBuilding().get(_x,_y,_z);
+				Material.setTilingFlags(tile, terrain, rx, ry, rz, dx, dz, mat, facingIndex, 0);
+				chunkPtr.getBuilding().buildModel();
+			} else {
+				chunkPtr.setTile(_x, _y, _z, wallFlags, slopeFlags, mat, specialFlags);
+			}
+			
+			if ((wallFlags & 12) != 0 && Math.abs(chunkPtr.heightLookup(_x, _z) - _y) <= .1f) {
+				chunkPtr.setHeight(_x, _z, _y - .025f);
+			}
+
+			inventory.consume(inventory.getSelectionPos());
+			chunkPtr.rebuildWalls();
+		}
+	}
+
+	private void lmbAction(Chunk chunkPtr, Tile tile, ItemData selected, TerrainIntersection terrainIntersection,
+			int facingIndex, boolean facingTile) {
+
+		// Breaking tiles (lmb + tile)
+		if (tile != null && tile.getMaterial(facingIndex) != Material.NONE) {
+			
+			boolean performedAction = selected.doAction(this, terrainIntersection, tile, chunkPtr, facingIndex, true);
+			
+			if (performedAction) {
+				if (tile.getMaterial(facingIndex).isTiling()) {
+					final float rx = (_x * TILE_SIZE) + cx;
+					final float ry = (_y * TILE_SIZE);
+					final float rz = (_z * TILE_SIZE) + cz;
+					dx = ((facing & 3) == 0) ? TILE_SIZE : 0;
+					dz = TILE_SIZE - dx;
+					if ((facing & 1) != 0) dz *= -1;
+					if ((facing & 32) != 0) dx *= -1;
+					Material.removeTilingFlags(tile, enviroment.getTerrain(), rx, ry, rz, dx, dz, facingIndex, 0);
+				}
+				
+				if ((tile.getWalls() & facing) != 0) {
+					EntityHandler.addEntity(new ItemEntity(getTileDropPos(selectionPt), tile.getMaterial(facingIndex).getDrop(), 1));
+				}
+				
+				if (slopeSetting != 0) {
+					chunkPtr.setTile(_x, _y, _z, (byte) 0, facing,
+							Material.NONE, (byte) 0);
+				} else {
+					chunkPtr.setTile(_x, _y, _z, facing, (byte) 0,
+							Material.NONE, (byte) 0);
+				}
+			}
+		}
+		
+		// Hitting props (lmb + prop/nothing)
+		if (!facingTile && chunkPtr != null) {
+			StaticProp prop = Props.get(terrainIntersection.getProp());
+			
+			boolean performedAction = selected.doAction(this, terrainIntersection, tile, chunkPtr, facingIndex, true);
+			
+			if (prop != null && performedAction) {
+				int tool = prop.getTool();
+				if (tool == Item.AIR) {
+					ParticleHandler.addBurst("materials", 0, 0, exactSelectionPt);
+					chunkPtr.destroyProp(terrainIntersection.getPropX(), terrainIntersection.getPropZ());
+					
+				}
+				
+				if (prop.getMaterial() == Material.PLANKS) {
+					
+					StaticPropProperties props = chunkPtr.getChunkPropProperties(terrainIntersection.getPropX(), terrainIntersection.getPropZ());
+					if (props != null && props.damage % 5 != 2) {
+						props.damage--;
+						
+						for (int i = 0; i < 12; i++) {
+							Vector3f pos = new Vector3f(exactSelectionPt);
+							pos.y += prop.getBounds().y;
+							pos.x += -2f + (Math.random() * 4f);
+							pos.z += -2f + (Math.random() * 4f);
+							
+							if (Math.random() < .1) {
+								EntityHandler.addEntity(new ItemEntity(pos, "stick", 1));
+							} else {
+								new Particle(Resources.getTexture("particles"), pos, new Vector3f(), .005f, 100,
+										(float) Math.random() * 360f, 1f, .5f + (float) (Math.random() * .5f), 3, 3);
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	private Vector3f getTileDropPos(Vector3f pos) {
@@ -395,7 +385,7 @@ public class Overworld implements Scene {
 	public void render() {
 		if (returnToMenu) return;
 		
-		enviroment.render(camera, selectionPt, cameraFacing);
+		enviroment.render(camera, selectionPt, facing);
 		EntityHandler.render(camera, enviroment.getLightDirection());	
 		if (Debug.structureMode) {
 			LineRender.render(camera);
@@ -417,11 +407,11 @@ public class Overworld implements Scene {
 	}
 
 	public void setCamFacingByte(byte cameraFacing) {
-		this.cameraFacing = cameraFacing;
+		this.facing = cameraFacing;
 	}
 
 	public byte getCamFacingByte() {
-		return this.cameraFacing;
+		return this.facing;
 	}
 
 	public Vector3f getSelectionPoint() {
@@ -431,5 +421,9 @@ public class Overworld implements Scene {
 	public void setTileShape(int wall, int slope) {
 		this.slopeSetting = (byte)slope;
 		this.wallSetting = (byte)wall;
+	}
+
+	public Vector3f getExactSelectionPoint() {
+		return exactSelectionPt;
 	}
 }

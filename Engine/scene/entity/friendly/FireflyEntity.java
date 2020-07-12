@@ -3,7 +3,6 @@ package scene.entity.friendly;
 import org.joml.Vector3f;
 
 import core.Resources;
-import dev.Console;
 import gl.Window;
 import gl.particle.Particle;
 import map.Chunk;

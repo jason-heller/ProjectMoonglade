@@ -8,7 +8,6 @@ import geom.AABB;
 import gl.res.Model;
 import gl.res.PropModel;
 import map.Chunk;
-import map.Terrain;
 import map.TerrainIntersection;
 import util.ModelBuilderOld;
 
@@ -123,18 +122,18 @@ public class ChunkProps {
 	}
 	
 	public TerrainIntersection testCollision(Vector3f origin, Vector3f dir, float tileX, float tileY, float tileZ) {
-		final int tileArrX = (int) (tileX - chunk.realX);
-		final int tileArrZ = (int) (tileZ - chunk.realZ);
+		final int propX = (int) (tileX - chunk.realX);
+		final int propZ = (int) (tileZ - chunk.realZ);
 
-		final Props tileId = propMap[tileArrX][tileArrZ];
+		final Props prop = propMap[propX][propZ];
 		
-		if (tileId == null) return null;
+		if (prop == null) return null;
 		
-		final StaticPropProperties tileProps = properties[tileArrX][tileArrZ];
+		final StaticPropProperties tileProps = properties[propX][propZ];
 		final float x = tileProps.dx + (tileX + .5f);
 		final float z = tileProps.dz + (tileZ + .5f);
 		
-		final StaticProp tile = Props.get(tileId);
+		final StaticProp tile = Props.get(prop);
 		Vector3f bounds = tile.getBounds();
 
 		final float y = tileY + (tileProps.scale * bounds.y) / 2f;
@@ -143,7 +142,7 @@ public class ChunkProps {
 
 		final float hitDistance = aabb.collide(origin, dir);
 		if (!Float.isNaN(hitDistance)) {
-			return new TerrainIntersection(Vector3f.add(origin, Vector3f.mul(dir, hitDistance)), tileId, chunk);
+			return new TerrainIntersection(Vector3f.add(origin, Vector3f.mul(dir, hitDistance)), prop, propX, propZ, chunk);
 		}
 
 		return null;

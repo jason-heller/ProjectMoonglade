@@ -19,7 +19,7 @@ public class ChaparrelBiome extends Biome {
 		this.moisture = Moisture.DRY;
 		this.terrainHeightFactor = 19f;
 		this.terrainRoughness = .5f;
-		this.terrainTransitionScale = 3f;
+		this.terrainTransitionScale = 2.75f;
 		
 		this.skyColor = BiomeColors.DEFAULT_SKY;
 		this.groundColor = BiomeColors.CHAPARREL_GRASS;

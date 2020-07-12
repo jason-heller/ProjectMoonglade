@@ -65,7 +65,7 @@ public class RecipeHandler {
 		int[] items = inv.getItems();
 		int[] amounts = inv.getQuantities();
 		for(int i = 0; i < items.length; i++) {
-			if (items[i] == recipe.getItems()[recipeIndex]) {
+			if (isRequiredItem(items[i], recipe)) {
 				if (amounts[i] <= count) {
 					items[i] = 0;
 					count -= amounts[i];
@@ -86,5 +86,15 @@ public class RecipeHandler {
 				}
 			}
 		}
+	}
+
+	private boolean isRequiredItem(int item, Recipe recipe) {
+		for(int recipeItem : recipe.getItems()) {
+			if (item == recipeItem) {
+				return true;
+			}
+		}
+		
+		return false;
 	}
 }

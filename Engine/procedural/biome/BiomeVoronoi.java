@@ -3,9 +3,9 @@ package procedural.biome;
 import java.util.ArrayList;
 import java.util.List;
 
-import dev.Console;
 import map.Enviroment;
 import procedural.NoiseUtil;
+import procedural.SimplexVectorField;
 import procedural.biome.types.BlankEditorBiome;
 import procedural.terrain.GenTerrain;
 
@@ -14,8 +14,9 @@ public class BiomeVoronoi {
 	private static final int TRANSITON_SIZE = 8;
 	private static final int TRANSITION_SQR = TRANSITON_SIZE * TRANSITON_SIZE;
 	
-	private static final float TERRAIN_TRANSITION_SIZE = 1.5f;
 	private static final float BIOME_HEIGHT_INTENSITY_FACTOR = 1f;
+	private static final float BIOME_DISTORTION_FREQ = 5f;
+	private static final float BIOME_DISTORTION_SCALE = 10f;
 	
 	public static BiomeData DEFAULT_DATA = new BiomeData(new Biome[] {new BlankEditorBiome()}, new float[] {1}, 0f, 0, 0, 0);
 
@@ -34,6 +35,8 @@ public class BiomeVoronoi {
 	
 	public static Biome singularBiome = null;
 	
+	private SimplexVectorField biomeDeformNoise;
+	
 	public BiomeVoronoi(Enviroment enviroment, int terrainArrSize, float scale, float px, float py, int seed) {
 		this.enviroment = enviroment;
 		this.scale = scale;
@@ -42,6 +45,8 @@ public class BiomeVoronoi {
 		this.points = new BiomeNode[arrSize][arrSize];
 		
 		this.seed = seed;
+		
+		biomeDeformNoise = new SimplexVectorField(seed << 3);
 		
 		buildArray(0, 0);
 		//update(px, py);
@@ -119,6 +124,10 @@ public class BiomeVoronoi {
 		px /= scale;
 		py /= scale;
 		
+		float[] noise = biomeDeformNoise.noise2f(px*BIOME_DISTORTION_FREQ, py*BIOME_DISTORTION_FREQ);
+		px += noise[0]/BIOME_DISTORTION_SCALE;
+		py += noise[1]/BIOME_DISTORTION_SCALE;
+		
 		for(int i = 0; i < arrSize; i++) {
 			for(int j = 0; j < arrSize; j++) {
 				float dx = px - points[i][j].x;
@@ -148,8 +157,8 @@ public class BiomeVoronoi {
 		}
 		
 		influence[mainBiome] = 1f;
-
-		terrainDistanceFactor = (secondClosestDist - distances[mainBiome]) * influencingBiomes[mainBiome].terrainTransitionScale;
+		
+		terrainDistanceFactor = (secondClosestDist - distances[mainBiome]) * (influencingBiomes[mainBiome].terrainTransitionScale);
 		terrainDistanceFactor = Math.min(terrainDistanceFactor, BIOME_HEIGHT_INTENSITY_FACTOR);
 		//terrainDistanceFactor = ((float)Math.sqrt(secondClosestDist) - (float)Math.sqrt(distances[mainBiome])) * TERRAIN_TRANSITION_SIZE;
 		terrainDistanceFactor -= influencingBiomes[mainBiome].shoreSize;

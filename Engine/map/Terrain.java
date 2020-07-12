@@ -160,35 +160,38 @@ public class Terrain {
 		        		if (out != null) return out;
 	        		}
 	        		
-	        		// Check for direct collision
-	        		if ((side = Tile.checkRay(point, dir, x, y, z, output.getWalls())) != 0
-	 	        			&& placeableInTile(output.getWalls(), output.getSlope(), side, snapFlags)) {
-	        			
+	        		if (snapFlags == 1) {
+	        			Vector3f out;
+	        			if (facing == 4) {
+	        				out = testInTileConnection(ow, output, side, (byte)8, normal, snapFlags, tx, ty, tz);
+	        			} else {
+	        				out = testInTileConnection(ow, output, side, (byte)4, normal, snapFlags, tx, ty, tz);
+	        			}
+	        			if (out != null) return out;
+	        		}
+	        		
+	        		if ((output = getTileAt(tx, ty, tz)) != null && 
+        					(facing & output.getWalls()) != 0 && Tile.checkRay(normal, output.getWalls()) != 0) {
 	        			return new Vector3f(tx, ty, tz);
-	 	        		
-	 	        	}
+	        		}
 	        	}
 	        		
         		// Check neighbors
         		if (snapFlags == 1) {	// Do Floors
         			if ((output = getTileAt(tx + TILE_SIZE, ty, tz)) != null && 
         					(facing & output.getWalls()) != 0 && Tile.checkRay(normal, output.getWalls()) != 0) {
-        				//ow.setCamFacingByte(potentialFacingByte);
 						return new Vector3f(tx, ty, tz);
         			}
 					if ((output = getTileAt(tx - TILE_SIZE, ty, tz)) != null && 
 							(facing & output.getWalls()) != 0 && Tile.checkRay(normal, output.getWalls()) != 0) {
-						//ow.setCamFacingByte(potentialFacingByte);
 						return new Vector3f(tx, ty, tz);
 					}
 					if ((output = getTileAt(tx, ty, tz + TILE_SIZE)) != null && 
 							(facing & output.getWalls()) != 0 && Tile.checkRay(normal, output.getWalls()) != 0) {
-						//ow.setCamFacingByte(potentialFacingByte);
 						return new Vector3f(tx, ty, tz);
 					}
 					if ((output = getTileAt(tx, ty, tz - TILE_SIZE)) != null && 
 							(facing & output.getWalls()) != 0 && Tile.checkRay(normal, output.getWalls()) != 0) {
-						//ow.setCamFacingByte(potentialFacingByte);
 						return new Vector3f(tx, ty, tz);
 					}
 					
@@ -342,7 +345,7 @@ public class Terrain {
 			
 			if (hit.x < point[0] + 1 && hit.x >= point[0] && hit.z < point[1] + 1 && hit.z >= point[1]) {
 				hit.y += .25f;
-				return new TerrainIntersection(hit, null, chunk);
+				return new TerrainIntersection(hit, null, 0, 0, chunk);
 			} else {
 				plane = getChunkAt(point[0], point[1]).getPlane(point[0], point[1], true);
 				hitDist = plane.rayIntersection(origin, dir);
@@ -352,7 +355,7 @@ public class Terrain {
 				hit = Vector3f.add(origin, Vector3f.mul(dir, hitDist));
 				if (hit.x < point[0] + 1 && hit.x >= point[0] && hit.z < point[1] + 1 && hit.z >= point[1]) {
 					hit.y += .25f;
-					return new TerrainIntersection(hit, null, chunk);
+					return new TerrainIntersection(hit, null, 0, 0, chunk);
 				}
 			}
 		}
