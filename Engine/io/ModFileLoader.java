@@ -9,8 +9,9 @@ import java.io.IOException;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-import anim.component.Joint;
-import anim.component.Skeleton;
+import dev.Console;
+import gl.anim.component.Joint;
+import gl.anim.component.Skeleton;
 import gl.res.Model;
 
 public class ModFileLoader {
@@ -86,7 +87,7 @@ public class ModFileLoader {
 		}
 
 		final byte numAnimations = is.readByte();
-
+		
 		for (int a = 0; a < numAnimations; a++) {
 			AniFileLoader.extractAnimationData(key, is);
 		}

@@ -8,8 +8,8 @@ import org.joml.Vector3f;
 
 import core.Application;
 import core.Resources;
-import dev.Console;
 import scene.entity.friendly.FireflyEntity;
+import scene.entity.hostile.ZombieEntity;
 import scene.entity.object.BedEntity;
 import scene.entity.object.CampfireEntity;
 import scene.entity.object.DoorEntity;
@@ -18,6 +18,7 @@ import scene.entity.utility.ItemEntity;
 
 public class EntityData {
 	private static final Map<String, Integer> map = new HashMap<String, Integer>();
+	// TODO: This system blows ass
 	
 	public static void init() {
 		map.put(ItemEntity.class.getSimpleName(), 1);
@@ -26,7 +27,7 @@ public class EntityData {
 		map.put(CampfireEntity.class.getSimpleName(), 4);
 		map.put(BedEntity.class.getSimpleName(), 5);
 		map.put(ForgeEntity.class.getSimpleName(), 6);
-		Console.log(DoorEntity.class.getSimpleName());
+		map.put(ZombieEntity.class.getSimpleName(), 7);
 		initModelsAndTextures();
 	}
 	
@@ -46,6 +47,7 @@ public class EntityData {
 		case 4: return new CampfireEntity(0, 0, 0);
 		case 5: return new BedEntity(pos, rot);
 		case 6: return new ForgeEntity(pos, rot);
+		case 7: return new ZombieEntity(pos);
 		}
 	
 		return null;
@@ -65,6 +67,7 @@ public class EntityData {
 		Resources.addModel("campfire", "entity/campfire.mod");
 		Resources.addModel("bed", "entity/bed.mod");
 		Resources.addModel("forge", "entity/forge.mod");
+		Resources.addModel("test", "entity/test.mod");
 		
 		Resources.addSound("fire", "fire.ogg");
 		
@@ -79,6 +82,7 @@ public class EntityData {
 		Resources.getModel("campfire").cleanUp();
 		Resources.getModel("bed").cleanUp();
 		Resources.getModel("forge").cleanUp();
+		Resources.getModel("test").cleanUp();
 		
 		Resources.removeSound("fire");
 		

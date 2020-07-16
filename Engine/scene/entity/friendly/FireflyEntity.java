@@ -102,7 +102,7 @@ public class FireflyEntity extends Entity {
 	}
 
 	@Override
-	public boolean spawnConditionsMet(Enviroment enviroment, Terrain terrain, Chunk chunk, float x, float z, int dx, int dy, int dz) {
+	public boolean spawnConditionsMet(Enviroment enviroment, Terrain terrain, Chunk chunk, float x, float z, int dx, float dy, int dz) {
 		//final int tileId = chunk.getTileItems().getTileId(dx, dz);
 		//EnvTile envTile = terrain.getTileById(tileId);
 		//BuildingTile buildingTile = chunk.getBuilding().get(dx, dy+2, dz);

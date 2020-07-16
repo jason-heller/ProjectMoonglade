@@ -14,6 +14,7 @@ import org.lwjgl.opengl.GL30;
 
 import core.Application;
 import gl.Camera;
+import gl.anim.render.AnimationHandler;
 import gl.entity.GenericMeshShader;
 import gl.entity.item.ItemRender;
 import gl.res.Model;
@@ -21,9 +22,8 @@ import gl.res.Texture;
 import io.Input;
 import map.Chunk;
 import map.Terrain;
-import scene.Scene;
+import scene.PlayableScene;
 import scene.overworld.Overworld;
-import scene.overworld.inventory.Inventory;
 
 public class EntityHandler {
 
@@ -50,10 +50,12 @@ public class EntityHandler {
 		shader.cleanUp();
 		itemRender.cleanUp();
 		EntityData.cleanUp();
+		AnimationHandler.cleanUp();
 	}
 
 	public static void clearEntities() {
 		entities.clear();
+		byChunk.clear();
 	}
 
 	public static void init() {
@@ -64,6 +66,7 @@ public class EntityHandler {
 		itemRender = new ItemRender();
 		
 		EntityData.init();
+		AnimationHandler.init();
 	}
 
 	public static void removeEntity(Entity entity) {
@@ -72,7 +75,7 @@ public class EntityHandler {
 		}
 	}
 
-	public static void render(Camera camera, Vector3f lightDir) {
+	public static void render(PlayableScene scene, Camera camera, Vector3f lightDir) {
 		shader.start();
 		shader.projectionViewMatrix.loadMatrix(camera.getProjectionViewMatrix());
 		shader.lightDirection.loadVec3(lightDir);
@@ -82,7 +85,14 @@ public class EntityHandler {
 		GL20.glEnableVertexAttribArray(2);
 
 		for (final Texture texture : entities.keySet()) {
-			if (texture == null || texture == itemRender.getTexture()) {
+			if (texture == null) {
+				for (final Entity entity : entities.get(null)) {
+					entity.update(scene);
+				}
+				continue;
+			}
+			
+			if (texture == itemRender.getTexture()) {
 				continue;
 			}
 
@@ -90,8 +100,13 @@ public class EntityHandler {
 
 			for (final Entity entity : entities.get(texture)) {
 				final Model model = entity.getModel();
+				if (entity.deactivated)
+					continue;
+				
+				// Less CPU cycles to group these together
+				update(scene, entity);
 
-				if (model == null || entity.deactivated) {
+				if (model == null || model.getSkeleton() != null) {
 					continue;
 				}
 
@@ -111,7 +126,24 @@ public class EntityHandler {
 		
 		List<Entity> items = entities.get(itemRender.getTexture());
 		if (items != null) {
-			itemRender.render(camera, lightDir, items);
+			itemRender.render(scene, camera, lightDir, items);
+		}
+		
+		AnimationHandler.render(camera, Application.scene);
+	}
+
+	private static void update(PlayableScene scene, Entity entity) {
+		Vector3f playerPos = scene.getPlayer().position;
+		entity.update(scene);
+
+		if (entity.isClickable()) {
+			if (Input.isPressed(Input.KEY_LMB)
+					&& entity.getAabb().collide(playerPos, scene.getCamera().getDirectionVector()) < Overworld.PLAYER_REACH) {
+				entity.onClick(true, scene.getInventory());
+			} else if (Input.isPressed(Input.KEY_RMB)
+					&& entity.getAabb().collide(playerPos, scene.getCamera().getDirectionVector()) < Overworld.PLAYER_REACH) {
+				entity.onClick(false, scene.getInventory());
+			}
 		}
 	}
 
@@ -158,11 +190,8 @@ public class EntityHandler {
 		GL30.glBindVertexArray(0);
 		shader.stop();
 	}
-	
-	public static void update(Scene scene, Inventory inventory) {
-		Vector3f playerPos = ((Overworld)Application.scene).getPlayer().position;
-		final int reachSqr = Overworld.PLAYER_REACH * Overworld.PLAYER_REACH;
-		
+
+	public static void tick(Terrain terrain) {
 		for(Entity entity : removalQueue) {
 			if (entities.containsKey(entity.getDiffuse())) {
 				entities.get(entity.getDiffuse()).remove(entity);
@@ -177,29 +206,6 @@ public class EntityHandler {
 		}
 		removalQueue.clear();
 		
-		for (final Texture texture : entities.keySet()) {
-			final List<Entity> batch = entities.get(texture);
-			for (int j = 0, m = batch.size(); j < m; j++) {
-				final Entity entity = batch.get(j);
-				if (entity.deactivated)
-					continue;
-				
-				entity.update(Application.scene);
-
-				if (entity.isClickable()) {
-					if (Input.isPressed(Input.KEY_LMB)
-							&& entity.getAabb().collide(playerPos, scene.getCamera().getDirectionVector()) < reachSqr) {
-						entity.onClick(true, inventory);
-					} else if (Input.isPressed(Input.KEY_RMB)
-							&& entity.getAabb().collide(playerPos, scene.getCamera().getDirectionVector()) < reachSqr) {
-						entity.onClick(false, inventory);
-					}
-				}
-			}
-		}
-	}
-
-	public static void tick(Terrain terrain) {
 		for (final Texture texture : entities.keySet()) {
 			final List<Entity> batch = entities.get(texture);
 			for (int j = 0, m = batch.size(); j < m; j++) {

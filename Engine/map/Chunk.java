@@ -417,6 +417,8 @@ public class Chunk {
 		int terrainx = (int) Math.floor(relx / Chunk.POLYGON_SIZE);
 		int terrainz = (int) Math.floor(relz / Chunk.POLYGON_SIZE);
 
+		if (terrainz < 0 || terrainz < 0 || terrainz >= Chunk.VERTEX_COUNT || terrainz >= Chunk.VERTEX_COUNT) return null;
+		
 		final float trueX = this.dataX * Chunk.CHUNK_SIZE + terrainx * Chunk.POLYGON_SIZE;
 		final float trueZ = this.dataZ * Chunk.CHUNK_SIZE + terrainz * Chunk.POLYGON_SIZE;
 		
@@ -444,8 +446,8 @@ public class Chunk {
 		final float trueZ = this.dataZ * Chunk.CHUNK_SIZE + terrainz * Chunk.POLYGON_SIZE;
 
 		if (terrainx < 0 || terrainz < 0 || terrainx >= heightmap.length - 1 || terrainz >= heightmap.length - 1) {
-			System.err.println(relx + "," + terrainx + "," + this.realX);
-			System.err.println(relz + "," + terrainz + "," + this.realZ);
+			System.err.println(x + "," + terrainx + "," + this.realX);
+			System.err.println(z + "," + terrainz + "," + this.realZ);
 			System.err.println();
 			return null;
 		}

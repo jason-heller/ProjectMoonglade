@@ -75,10 +75,28 @@ public class StructureHandler {
 					y = (int)Math.floor(terrain.getHeightAt(x, z)-.5f);
 					
 					list.add(new StructPlacement(x, y, z, struct));
-					//Console.log("added structure to ",dataX,dataZ);
+					Console.log("added structure to ",dataX,dataZ);
 					/* }else {
 					buildStructurePartial(terrain.get(arrX, arrZ), x, y, z, struct);
 				}*/
+			}
+		}
+	}
+	
+	// For debugging ONLY
+	public void flush() {
+		for(int arrX : saveDataQueue.keySet()) {
+			for(int arrZ : saveDataQueue.get(arrX).keySet()) {
+				for(StructPlacement strPlace : saveDataQueue.get(arrX).get(arrZ)) {
+					for(Chunk[] stripe : terrain.get()) {
+						for(Chunk chunk : stripe) {
+							if (chunk.arrX == arrX && chunk.arrZ == arrZ) {
+								buildStructurePartial(chunk, strPlace);
+								chunk.getBuilding().buildModel();
+							}
+						}
+					}
+				}
 			}
 		}
 	}
@@ -172,16 +190,24 @@ public class StructureHandler {
 		//Map<Integer, List<StructPlacement>> batch = saveDataQueue.get(chunk.arrX);
 		//batch.get(chunk.arrZ).remove(structPlacement);
 	}
+
+
+	public Terrain getTerrain() {
+		return terrain;
+	}
 }
 
 class StructPlacement {
 	public int x, y, z;
 	public Structure struct;
+	//public boolean mirrorY, mirrorX;
 	
 	public StructPlacement(int x, int y, int z, Structure struct) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
 		this.struct = struct;
+		//this.mirrorX = (Math.random() > .5);
+		//this.mirrorY = (Math.random() > .5);
 	}
 }

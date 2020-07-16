@@ -8,6 +8,7 @@ import java.util.TreeMap;
 import org.joml.Vector3f;
 
 import core.Application;
+import dev.Console;
 import map.Chunk;
 import map.Enviroment;
 import scene.entity.Entity;
@@ -23,6 +24,8 @@ public class ChunkStreamer {
 	
 	public static Thread saveThread = null, loadThread = null;
 	
+	private boolean closed = false;
+	
 	private ChunkCallback callback;
 	private Enviroment enviroment;
 
@@ -32,11 +35,11 @@ public class ChunkStreamer {
 	}
 	
 	public void update() {
-		if (!loadList.isEmpty() && loadThread == null) {
+		if (!loadList.keySet().isEmpty() && loadThread == null) {
 			load();
 		}
 		
-		if (!saveList.isEmpty() && saveThread == null) {
+		if (!saveList.keySet().isEmpty() && saveThread == null) {
 			save(Application.scene.getCamera().getPosition());
 		}
 	}
@@ -46,7 +49,10 @@ public class ChunkStreamer {
 		saveThread = new Thread(new RegionSaver(callback, filename, saveList.get(filename)));
 		saveThread.start();
 		saveList.remove(filename);
-		
+		Console.log("saving",filename);
+		for(String s : saveList.keySet()) {
+			Console.log(s);
+		}
 	}
 	
 	private void load() {
@@ -61,11 +67,12 @@ public class ChunkStreamer {
 	}
 	
 	public void queueForSaving(Chunk chunk) {
+		if (closed) return;
 		if (chunk.editFlags == 0x0) {
 			chunk.cleanUp();
 			return;
 		}
-		
+		Console.log("queue for saving",chunk.dataX>>4,chunk.dataZ>>4);
 		int regionX = chunk.dataX >> 4;
 		int regionY = 0;
 		int regionZ = chunk.dataZ >> 4;
@@ -85,6 +92,7 @@ public class ChunkStreamer {
 	}
 	
 	public void queueForLoading(Chunk chunk) {
+		if (closed) return;
 		int regionX = chunk.dataX >> 4;
 		int regionY = 0;
 		int regionZ = chunk.dataZ >> 4;
@@ -103,6 +111,14 @@ public class ChunkStreamer {
 		
 		map.put(id, chunk);
 	}
+
+	public boolean isFinished() {
+		return saveList.keySet().isEmpty();
+	}
+
+	public void close() {
+		closed = true;
+	}
 }
 
 class ChunkCallback implements ChunkCallbackInterface {
@@ -110,6 +126,7 @@ class ChunkCallback implements ChunkCallbackInterface {
 	@Override
 	public void saveCallback() {
 		ChunkStreamer.saveThread = null;
+		Console.log("save callback");
 	}
 	
 	@Override

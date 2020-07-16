@@ -18,7 +18,7 @@ public class ItemEntity extends PhysicsEntity {
 	private static final float MAX_LIFE = 300;
 
 	public ItemEntity(Vector3f position, int item, int quantity) {
-		super();
+		super(null, null);
 		this.position.set(position);
 		this.item = item;
 		this.quantity = quantity;

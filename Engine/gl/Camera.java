@@ -20,14 +20,14 @@ public class Camera {
 
 	public static float cameraSpeed = .5f;
 
-	public static int fov = 70;
+	public static int fov = 90;
 
 	public static float mouseSensitivity = 1f;
 	public static final float FAR_PLANE = 4500f;
 
 	public static final float NEAR_PLANE = .1f;
 	public static final byte NO_CONTROL = 0, SPECTATOR = 1, FIRST_PERSON = 2;
-
+	
 	private static Matrix4f createProjectionMatrix() {
 		final Matrix4f projectionMatrix = new Matrix4f();
 		final float aspectRatio = (float) Display.getWidth() / (float) Display.getHeight();
@@ -48,6 +48,7 @@ public class Camera {
 	private final Matrix4f projectionViewMatrix = new Matrix4f();
 	private final Matrix4f viewMatrix = new Matrix4f();
 	private final Vector3f position = new Vector3f();
+	private final Vector3f prevPosition = new Vector3f();
 	private final Frustum frustum = new Frustum();
 	private float yaw;
 	private float pitch;
@@ -56,9 +57,12 @@ public class Camera {
 	private float angleAroundPlayer;
 
 	private float shakeTime = 0f, shakeIntensity = 0f;
+	private float flinchTime = 0f, flinchIntensity = 0f;
+	private Vector3f flinchDir = new Vector3f();
 
 	private final Vector2f screenShake = new Vector2f();
-
+	private final Vector3f flinch = new Vector3f();
+	
 	private Vector3f lookAt = null;
 	private Vector3f viewDirection = new Vector3f();
 
@@ -134,6 +138,10 @@ public class Camera {
 	public float getYaw() {
 		return yaw;
 	}
+	
+	public Vector3f getPrevPosition() {
+		return prevPosition;
+	}
 
 	public void grabMouse() {
 		Input.requestMouseGrab();
@@ -204,6 +212,36 @@ public class Camera {
 						-(shakeIntensity / 2f) + (float) (Math.random() * shakeIntensity));
 			}
 		}
+		
+		if (flinchTime > 0) {
+			float pwr = flinchTime*flinchTime;
+			
+			flinchTime = Math.max(flinchTime - Window.deltaTime, 0f);
+			if (flinchTime != 0) {
+				if (flinchDir.x > .5f) {
+					flinch.x = pwr * -flinchIntensity; 
+				} else if (flinchDir.x < -.5f) {
+					flinch.x = pwr * flinchIntensity; 
+				}
+				
+				if (flinchDir.y > .5f) {
+					flinch.y = pwr * -flinchIntensity;
+				} else if (flinchDir.y < -.5f) {
+					flinch.y = pwr * flinchIntensity;
+				}
+				
+				if (flinchDir.z > .5f) {
+					flinch.z = pwr * -flinchIntensity;
+				} else if (flinchDir.z < -.5f) {
+					flinch.z = pwr * flinchIntensity;
+				}
+				
+				
+				
+			} else {
+				flinch.zero();
+			}
+		}
 
 		if (controlStyle == NO_CONTROL && focus != null) {
 			if (lookAt == null) {
@@ -223,7 +261,6 @@ public class Camera {
 		}
 
 		updateViewMatrix();
-
 	}
 
 	public void setControlStyle(byte style) {
@@ -268,11 +305,9 @@ public class Camera {
 	public void updateViewMatrix() {
 		viewMatrix.identity();
 
-		final Vector2f shake = getScreenShake();
-
-		viewMatrix.rotateX(pitch + shake.y);
-		viewMatrix.rotateY(yaw + shake.x);
-		viewMatrix.rotateZ(roll);
+		viewMatrix.rotateX(pitch + screenShake.y + flinch.y);
+		viewMatrix.rotateY(yaw + screenShake.x + flinch.x);
+		viewMatrix.rotateZ(roll + flinch.z);
 		final Vector3f negativeCameraPos = new Vector3f(-position.x, -position.y, -position.z);
 		viewMatrix.translate(negativeCameraPos);
 
@@ -283,6 +318,20 @@ public class Camera {
 		Matrix4f.mul(projectionMatrix, viewMatrix, projectionViewMatrix);
 
 		frustum.update(projectionViewMatrix);
+	}
+
+	public void flinch(Vector3f attackDir, float flinchIntensity) {
+		this.flinchIntensity = flinchIntensity * 3;
+		flinchTime = .33f;
+		
+		Vector3f look = this.getDirectionVector();
+		Vector2f v = new Vector2f(attackDir.x, attackDir.z);
+		
+		float forwardFlinch = Vector2f.dot(v, new Vector2f(look.x, look.z));
+		float sideFlinch = 1f - forwardFlinch;
+		v.perpendicular();
+		float altFlinch = Vector2f.dot(v, new Vector2f(look.x, look.z));
+		flinchDir.set(new Vector3f(sideFlinch, forwardFlinch, altFlinch));
 	}
 
 }

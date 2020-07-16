@@ -2,6 +2,7 @@ package map.tile;
 
 import org.joml.Vector3f;
 
+import dev.Console;
 import gl.Camera;
 import map.Material;
 import scene.overworld.inventory.Item;
@@ -27,7 +28,7 @@ public class Tile {
 		this.materials = new Material[NUM_MATS];
 		this.flags = new byte[NUM_MATS];
 		this.slope = slope;
-		
+		Console.log(slope,walls);
 		int val = 1;
 		for(int i = 0; i < NUM_MATS-1; i++) {
 			this.materials[i] = (walls & val) != 0 ? material : Material.NONE;

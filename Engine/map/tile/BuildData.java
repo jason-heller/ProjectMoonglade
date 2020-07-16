@@ -237,6 +237,9 @@ public class BuildData {
 		dy *= 8;
 		dz *= 8;
 		
+		if (x < dx || y < dy || z < dz) return null;
+		
+		
 		return sector.get(x-dx, y-dy, z-dz);//buildingTiles[i][j - MIN_BUILD_HEIGHT][k];
 	}
 

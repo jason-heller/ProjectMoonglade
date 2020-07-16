@@ -32,6 +32,10 @@ public enum Material {
 	CYPRESS_PLANKS("cypress_planks", 10, 0, null, TileModels.FILLED, false, false, true, true, 0),
 	HEDGE("hedge", 11, 0, null, TileModels.DEFAULT, false, false, false, false, 0),
 	SHEET_METAL("sheet_metal", 7, 1, TileModels.FILLED),
+	CONCRETE("concrete", 12, 0, TileModels.FILLED),
+	LIMESTONE("limestone", 13, 0, TileModels.FILLED),
+	DRIED_MUD_WALL("dried_mud_wall", 14, 0, TileModels.FILLED),
+	CLAY("clay", 15, 0, TileModels.FILLED),
 	;
 	
 	private String name;
@@ -115,6 +119,10 @@ public enum Material {
 
 	public TileModel getTileModel() {
 		return tileModel.getModel();
+	}
+	
+	public TileModels getTileModelType() {
+		return tileModel;
 	}
 	
 	/** This will probably be confusing, maps a byteflag variable to a 16x16 (+) offset in the

@@ -3,10 +3,7 @@ package audio;
 import java.io.InputStream;
 import java.nio.IntBuffer;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Map;
-import java.util.Queue;
 
 import org.joml.Vector3f;
 import org.lwjgl.LWJGLException;
@@ -28,17 +25,27 @@ import io.FileUtils;
 
 public class AudioHandler {
 
-	public static Queue<Source> sources = new LinkedList<Source>();	// All active sources
 	private static Map<SoundEffects, SoundEffect> effects = new HashMap<SoundEffects, SoundEffect>();
 	private static Map<SoundFilters, Integer> filters = new HashMap<SoundFilters, Integer>();
 	
-	private static Queue<Source> sourceDeletionQueue = new LinkedList<Source>();
-
+	private static final int MAX_SOURCES = 64;
+	private static final int MAX_LOOPING_SOURCES = 8;
+	private static Source[] sources = new Source[MAX_SOURCES];
+	private static int sourcePtr = 0, sourceLoopPtr = MAX_SOURCES - MAX_LOOPING_SOURCES;
+	
 	private static float pauseDelay = 0f;
 	public static float volume = 0.5f;
-
-	public static void addSource(Source source) {
-		sources.add(source);
+	
+	public static void play(String sound) {
+		sources[sourcePtr++].play(sound);
+		if (sourcePtr == MAX_SOURCES - MAX_LOOPING_SOURCES)
+			sourcePtr = 0;
+	}
+	
+	public static void loop(String sound) {
+		sources[sourceLoopPtr++].play(sound);
+		if (sourceLoopPtr == MAX_SOURCES)
+			sourceLoopPtr = MAX_SOURCES - MAX_LOOPING_SOURCES;
 	}
 
 	public static void changeMasterVolume() {
@@ -49,8 +56,8 @@ public class AudioHandler {
 
 	public static void cleanUp() {
 
-		while (sources.size() > 0) {
-			sources.remove().delete();
+		for(Source source : sources) {
+			source.delete();
 		}
 
 		for (final SoundEffect sfx : getEffects().values()) {
@@ -83,6 +90,16 @@ public class AudioHandler {
 			setupEffects();
 			setupFilters();
 			Thread.sleep(50);
+			
+			int i = 0;
+			for(; i < MAX_SOURCES - MAX_LOOPING_SOURCES; i++) {
+				sources[i] = new Source();
+			}
+			for(; i < MAX_SOURCES; i++) {
+				sources[i] = new Source();
+				sources[i].setLooping(true);
+			}
+			
 		} catch (final LWJGLException e) {
 			e.printStackTrace();
 		} catch (final Exception e) {
@@ -120,10 +137,6 @@ public class AudioHandler {
 			s.applyEffect(SoundEffects.ECHO);
 			pauseDelay = 0.1f;
 		}
-	}
-
-	public static void removeSource(Source source) {
-		sources.remove(source);
 	}
 
 	public static void setListenerData(Vector3f pos) {
@@ -202,23 +215,18 @@ public class AudioHandler {
 				}
 			}
 		}
-		
-		Iterator<Source> iter = sourceDeletionQueue.iterator();
-		while(iter.hasNext()) {
-			Source source = iter.next();
-			if (!source.isPlaying()) {
-				source.delete();
-				iter.remove();
-			}
-		}
 
 		final Vector3f p = camera.getPosition();
 		AL10.alListener3f(AL10.AL_POSITION, p.x, p.y, p.z);
 		AL10.alListener3f(AL10.AL_VELOCITY, 0, 0, 0);
 	}
 
-	public static void deleteSource(Source source) {
-		sourceDeletionQueue.add(source);
+	public static void stop(String sound) {
+		for(int i = MAX_SOURCES - MAX_LOOPING_SOURCES; i < MAX_SOURCES; i++) {
+			if (sources[i].getSound().equals(sound)) {
+				sources[i].stop();
+			}
+		}
 	}
 
 }

@@ -4,7 +4,6 @@ import org.joml.Vector3f;
 
 import core.Application;
 import core.Resources;
-import dev.Console;
 import gl.Camera;
 import gl.skybox.Skybox;
 import gl.terrain.TerrainRender;
@@ -16,6 +15,7 @@ import procedural.biome.BiomeVoronoi;
 import procedural.terrain.GenTerrain;
 import scene.Scene;
 import scene.entity.EntityHandler;
+import scene.entity.EntitySpawnHandler;
 import scene.entity.skybox.RevolvingPlanetEntity;
 import scene.overworld.Overworld;
 import util.MathUtil;
@@ -44,6 +44,7 @@ public class Enviroment {
 	//private final SkyboxRenderer skyboxRenderer;
 	private final TerrainRender terrainRender;
 	
+	private int shiftX, shiftZ;
 	int x, z;
 	
 	private Weather weather;
@@ -85,17 +86,22 @@ public class Enviroment {
 		terrain = new Terrain(this);
 		GenTerrain.initStructureHandler(terrain);
 		
-		final int chunkX = (int) Math.floor(c.x / Chunk.CHUNK_SIZE);
-		final int chunkZ = (int) Math.floor(c.z / Chunk.CHUNK_SIZE);
+		x = (int) Math.floor(c.x / Chunk.CHUNK_SIZE) - Terrain.size/2;
+		z = (int) Math.floor(c.z / Chunk.CHUNK_SIZE) - Terrain.size/2;
 
-		reposition(chunkX, chunkZ);
+		reposition(x, z);
 		
+		// TODO move this to an acutal place to load assets such as these
 		Resources.addSound("walk_grass", "walk_grass.ogg", 3, false);
 		Resources.addSound("tree_fall", "tree_fall.ogg", true);
 		Resources.addSound("chop_bark", "chop.ogg", 2, false);
 		Resources.addSound("swing", "swing.ogg", 2, false);
 		Resources.addSound("collect", "collect03.wav", true);
 		Resources.addSound("water", "ambient/water_ambient.ogg", true);
+		Resources.addSound("hit", "hit.ogg", true);
+		
+		Resources.addSound("player_hurt", "player/ow.ogg", 3, false);
+		Resources.addSound("player_die", "player/die.ogg", true);
 		
 		spawner = new EntitySpawnHandler(this, terrain);
 	}
@@ -113,6 +119,10 @@ public class Enviroment {
 		Resources.removeSound("swing");
 		Resources.removeSound("collect");
 		Resources.removeSound("water");
+		
+		Resources.removeSound("player_hurt");
+		Resources.removeSound("player_die");
+		Resources.removeSound("hit");
 	}
 
 	public Terrain getTerrain() {
@@ -128,49 +138,55 @@ public class Enviroment {
 		//EntityControl.render(camera, lightDirection);
 	}
 	
-	public void reposition(int camX, int camZ) {
-		x = camX;
-		z = camZ;
+	public void reposition(int x, int z) {
+		shiftX = x;
+		shiftZ = z;
+		this.x = x;
+		this.z = z;
 		
-		terrain.populate(x, z);
+		terrain.populate(shiftX, shiftZ);
 		EntityHandler.setActivation(terrain);
+	}
+	
+	public void update(Scene scene) {
+		final Camera camera = scene.getCamera();
+		
+		terrain.update(camera);
 	}
 
 	public void tick(Scene scene) {
 		final Camera camera = scene.getCamera();
 
-		final int camX = (int) Math.floor(camera.getPosition().x / Chunk.CHUNK_SIZE) - (Terrain.size / 2);
-		final int camZ = (int) Math.floor(camera.getPosition().z / Chunk.CHUNK_SIZE) - (Terrain.size / 2);
-
 		spawner.tick();
+		
+		x = (int) Math.floor(camera.getPosition().x / Chunk.CHUNK_SIZE) - (Terrain.size / 2);
+		z = (int) Math.floor(camera.getPosition().z / Chunk.CHUNK_SIZE) - (Terrain.size / 2);
 		
 		weather.tick(camera);
 		biomeVoronoi.tick(camera.getPosition().x, camera.getPosition().z);//camera.getPosition().x, camera.getPosition().z
-		if (x != camX) {
-			final int dx = camX - x;
+		if (shiftX != x) {
+			final int dx = x - shiftX;
 			if (Math.abs(dx) > 1) {
-				reposition(camX, camZ);
+				reposition(x, z);
 			} else {
 				terrain.shiftX(dx);
 				EntityHandler.setActivation(terrain);
 				//EntityControl.shiftX(terrain, dx);
 			}
-			x = camX;
+			shiftX = x;
 		}
 
-		if (z != camZ) {
-			final int dz = camZ - z;
+		if (shiftZ != z) {
+			final int dz = z - shiftZ;
 			if (Math.abs(dz) > 1) {
-				reposition(camX, camZ);
+				reposition(x, z);
 			} else {
 				terrain.shiftY(dz);
 				EntityHandler.setActivation(terrain);
 				//EntityControl.shiftY(terrain, dz);
 			}
-			z = camZ;
+			shiftZ = z;
 		}
-		
-		terrain.update(camera);
 
 		// DAY/NIGHT time
 		if (Math.abs(time - DAY) < 30) {

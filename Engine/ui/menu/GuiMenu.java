@@ -1,5 +1,6 @@
 package ui.menu;
 
+import audio.AudioHandler;
 import io.Input;
 import ui.Font;
 import ui.UI;
@@ -68,7 +69,7 @@ public class GuiMenu extends GuiElement {
 				selectedOption = index;
 				if (Input.isPressed(Input.KEY_LMB) && listener != null) {
 					listener.onClick(option, index);
-					UI.getSource().play("click");
+					AudioHandler.play("click");
 				}
 			}
 

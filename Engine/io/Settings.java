@@ -106,7 +106,7 @@ public class Settings {
 		addEntry("volume", 0.5f);
 		addEntry("mouse_sensitivity", .5f);
 		addEntry("max_particles", 99);
-		addEntry("chunk_dist", 7);
+		addEntry("chunk_dist", 13);
 		addEntry("entity_dist", 5);
 		addEntry("shadow_quality", 2);
 		addEntry("shadow_dist", 16);

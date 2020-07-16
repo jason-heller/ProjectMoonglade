@@ -2,7 +2,7 @@ package scene.overworld.inventory;
 
 import org.joml.Vector3f;
 
-import core.Resources;
+import audio.AudioHandler;
 import dev.Debug;
 import gl.Camera;
 import gl.particle.ParticleHandler;
@@ -17,27 +17,28 @@ import scene.overworld.Overworld;
 import scene.overworld.inventory.tool.EditorBoundsTool;
 
 public enum ItemAction {
-	NONE, PAINT, DIG, CHOP;
-
+	NONE, PAINT, DIG, CHOP, EAT;
+	
 	public boolean doAction(Overworld overworld, TerrainIntersection ti, Tile tile, Chunk chunk, int id, int facingIndex, boolean lmb) {
 		Camera camera = overworld.getCamera();
 		Vector3f selectionPt = overworld.getSelectionPoint();
 		Vector3f exactSelectionPt = overworld.getExactSelectionPoint();
-		final int cx = chunk.realX;
-		final int cz = chunk.realZ;
+	
 		PlayerEntity player = overworld.getPlayer();
 		
 		if (lmb) {
 			switch(this) {
 			case DIG:
-				return dig(ti, chunk, cx, cz, selectionPt);
+				if (tile == null) return true;
+				return dig(ti, chunk, chunk.realX, chunk.realZ, selectionPt);
 				
 			case CHOP:
+				if (tile == null) return true;
 				if (Debug.structureMode) {
 					EditorBoundsTool.interact(exactSelectionPt, true, false);
 					return true;
 				}
-				return chop(player, camera, ti, exactSelectionPt, exactSelectionPt, chunk, cx, cz);
+				return chop(player, camera, ti, exactSelectionPt, exactSelectionPt, chunk, chunk.realX, chunk.realZ);
 				
 			default:
 				return true;
@@ -45,9 +46,11 @@ public enum ItemAction {
 		} else {
 			switch(this) {
 			case DIG:
-				return makeMound(chunk, cx, cz, selectionPt);
+				if (tile == null) return true;
+				return makeMound(chunk, chunk.realX, chunk.realZ, selectionPt);
 			
 			case CHOP:
+				if (tile == null) return true;
 				if (Debug.structureMode) {
 					EditorBoundsTool.interact(exactSelectionPt, true, false);
 				}
@@ -60,6 +63,12 @@ public enum ItemAction {
 					return true;
 				}
 				return false;
+				
+			case EAT:
+				Inventory inv = overworld.getInventory();
+				inv.consume(inv.getSelectionPos());
+				overworld.getPlayer().heal(1);
+				return true;
 				
 			default:
 				return true;
@@ -76,10 +85,10 @@ public enum ItemAction {
 		
 		StaticProp propTile = Props.get(ti.getProp());
 		if (propTile == null || !propTile.isDestroyableBy(Item.AXE)) {
-			player.getSource().play(Resources.getSound("swing"));
+			AudioHandler.play("swing");
 			return false;
 		} else {
-			player.getSource().play(Resources.getSound("chop_bark"));
+			AudioHandler.play("chop_bark");
 		}
 		
 		Vector3f splashDir = new Vector3f(camera.getDirectionVector()).negate().normalize();

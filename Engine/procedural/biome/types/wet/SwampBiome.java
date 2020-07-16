@@ -15,7 +15,7 @@ public class SwampBiome extends Biome {
 		this.name = "Swamp";
 		this.temp = Temperature.TEMPERATE;
 		this.moisture = Moisture.WET;
-		this.terrainHeightFactor = 1f;
+		this.terrainHeightFactor = 2f;
 		this.terrainRoughness = 50f;
 		this.terrainTransitionScale = 4f;
 		this.waterColor = BiomeColors.SWAMP_WATER;
@@ -27,7 +27,7 @@ public class SwampBiome extends Biome {
 
 	@Override
 	public float augmentTerrainHeight(int x, int z, float currentHeight, int subseed, Random r) {
-		return currentHeight-1f;
+		return -1f + Math.abs(currentHeight);
 	}
 	
 	@Override

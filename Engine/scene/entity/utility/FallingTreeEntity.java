@@ -3,16 +3,14 @@ package scene.entity.utility;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
+import audio.AudioHandler;
 import core.Resources;
 import gl.Window;
-import map.Chunk;
-import map.Terrain;
 import map.prop.StaticProp;
 import scene.Scene;
 import scene.entity.Entity;
 import scene.entity.EntityHandler;
 import scene.overworld.Overworld;
-import scene.overworld.inventory.Item;
 import util.RunLengthInputStream;
 import util.RunLengthOutputStream;
 
@@ -39,7 +37,7 @@ public class FallingTreeEntity extends Entity {
 		fallDirZ = (float)Math.random() > 0.5;
 		fallDirPos = (Math.random() > 0.5) ? 1 : -1;
 		
-		source.play(Resources.getSound("tree_fall"));
+		AudioHandler.play("tree_fall");
 
 		EntityHandler.addEntity(this);
 	}

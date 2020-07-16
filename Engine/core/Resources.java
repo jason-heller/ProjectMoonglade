@@ -10,9 +10,9 @@ import java.util.Map;
 import org.lwjgl.openal.AL10;
 import org.lwjgl.opengl.GL11;
 
-import anim.Animation;
 import audio.AudioHandler;
 import dev.Console;
+import gl.anim.Animation;
 import gl.fbo.FrameBuffer;
 import gl.res.Model;
 import gl.res.ModelUtils;

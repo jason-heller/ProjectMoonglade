@@ -2,6 +2,8 @@ package procedural.terrain;
 
 import java.util.Random;
 
+import org.joml.Vector3f;
+
 import map.Chunk;
 import map.Enviroment;
 import map.Moisture;
@@ -14,6 +16,7 @@ import procedural.biome.Biome;
 import procedural.biome.BiomeData;
 import procedural.biome.BiomeVoronoi;
 import procedural.structures.Structure;
+import procedural.structures.StructureData;
 import procedural.structures.StructureHandler;
 
 public class GenTerrain {
@@ -186,5 +189,13 @@ public class GenTerrain {
 
 	public static void initStructureHandler(Terrain terrain) {
 		structureHandler = new StructureHandler(terrain);
+	}
+
+	public static void buildStructure(Structure structure, Vector3f at) {
+		Terrain terrain = structureHandler.getTerrain();
+		Chunk chunk = terrain.getChunkAt(at.x, at.z);
+		structureHandler.addStructure(chunk, (int)at.x, (int)at.y, (int)at.z, structure);
+		structureHandler.flush();
+		
 	}
 }

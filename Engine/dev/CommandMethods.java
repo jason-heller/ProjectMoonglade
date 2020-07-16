@@ -12,9 +12,12 @@ import core.Application;
 import dev.io.StructureExporter;
 import gl.Camera;
 import gl.Window;
+import map.Chunk;
 import map.Enviroment;
 import map.Terrain;
 import map.weather.Weather;
+import procedural.structures.Structure;
+import procedural.terrain.GenTerrain;
 import scene.entity.Entity;
 import scene.entity.EntityData;
 import scene.entity.EntityHandler;
@@ -60,6 +63,29 @@ public class CommandMethods {
 	public static void structure_export(int includeHeights, int includeBuildings, int includeEnvTiles) {
 		if (Application.scene instanceof Overworld && Debug.structureMode) {
 			StructureExporter.export(includeHeights != 0, includeBuildings != 0, includeEnvTiles != 0);
+		}
+	}
+	
+	public static void spawn_structure(String name) {
+		Structure structure = null;
+		try {
+			structure = Structure.valueOf(name.toUpperCase());
+		} catch (Exception e) {
+			return;
+		}
+		
+		if (!(Application.scene instanceof Overworld)) {
+			return;
+		}
+		
+		Overworld scene = ((Overworld)Application.scene);
+		Terrain terrain = scene.getEnviroment().getTerrain();
+		
+		if (structure != null) {
+			Vector3f at = scene.getSelectionPoint();
+			if (at == null) at = scene.getPlayer().position;
+			GenTerrain.buildStructure(structure, at);
+			terrain.reload();
 		}
 	}
 	

@@ -42,7 +42,7 @@ public class MainMenuUI {
 		newGame = new NewGameMenu(null, 300, 300);
 		loadGame = new LoadGameMenu(null, 300, 300);
 
-		title = new Text("Landscape Game", 50, 125, .75f, false);
+		title = new Text(Application.TITLE, 50, 125, .75f, false);
 		
 		background = new Image(mainMenuBg, 0, 0, (int) UI.width, (int) UI.height);
 

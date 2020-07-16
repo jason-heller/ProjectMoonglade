@@ -2,7 +2,6 @@ package procedural.structures;
 
 import map.Material;
 import map.prop.Props;
-import map.tile.Tile;
 
 public class StructureData {
 	
@@ -81,43 +80,6 @@ public class StructureData {
 }
 
 class CompTileData {
-	/*long l1, l2;
-	
-	// uuswMMMM MMMMMMMM
-	
-	public CompTileData(int[] materials, int walls, int flags) {
-		l1 |= (0xffff & materials[0]);
-		l1 |= (0xffff & materials[1]) << 16;
-		l1 |= (0xffff & materials[2]) << 32;
-		l1 |= (0xffff & materials[3]) << 48;
-		
-		l2 |= (0xffff & materials[4]);
-		l2 |= (0xffff & materials[5]) << 16;
-		l2 |= ((0xff & walls) << 32);
-		l2 |= ((0xff & flags) << 40);	
-	}
-	
-	public Material[] getMaterials() {
-		final Material[] mats = Material.values();
-		final Material[] materials = new Material[6];
-		materials[0] = mats[(int) (l1 & 0xffff)];
-		materials[1] = mats[(int) (l1 >> 16 & 0xffff)];
-		materials[2] = mats[(int) (l1 >> 32 & 0xffff)];
-		materials[3] = mats[(int) (l1 >> 48 & 0xffff)];
-		materials[4] = mats[(int) (l2 & 0xffff)];
-		materials[5] = mats[(int) (l2 >> 16 & 0xffff)];
-		
-		return materials;
-	}
-	
-	public byte getWalls() {
-		return  (byte) ((l2 >> 32) & 0xff);
-	}
-	
-	public byte getFlags() {
-		return (byte) ((l2 >> 40) & 0xff);
-	}*/
-	
 	private byte walls, slope;
 	private byte[] flags;
 	private int[] materials;

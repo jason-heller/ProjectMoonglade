@@ -28,7 +28,7 @@ public class BedEntity extends Entity {
 		
 		id = 5;
 		
-		//aabb = new AABB(position.x, position.y+1f, position.z, .75f, 1f, .75f);
+		aabb = new AABB(position.x, position.y+1f, position.z, .75f, 1f, .75f);
 	}
 	
 	@Override

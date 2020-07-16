@@ -1,8 +1,6 @@
 package core;
 
 
-import java.io.File;
-
 import org.lwjgl.opengl.Display;
 
 import audio.AudioHandler;
@@ -16,12 +14,13 @@ import io.Input;
 import io.Settings;
 import scene.MainMenu;
 import scene.Scene;
-import scene.overworld.inventory.Item;
 import ui.UI;
 
 public class Application {
 	
-	public static final String VERSION = "Engine Dev. 0.2.2";
+	public static final String TITLE = "Moonglade"; //Vendure
+	public static final String VERSION = "Version 0.4.0 Build 5";
+	// Alpha Version 4, Minor 1, revision/patch 0
 	
 	public static Scene scene;
 	private static Class<?> nextScene;

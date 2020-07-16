@@ -7,7 +7,7 @@ import org.lwjgl.openal.EFX10;
 
 import core.Resources;
 
-public class Source {
+class Source {
 	private final int sourceId;
 	private float vol = 1.0f;
 	private int bufferOffset = 0;
@@ -16,9 +16,6 @@ public class Source {
 		sourceId = AL10.alGenSources();
 		// defaultAttenuation();
 		AL10.alSourcef(sourceId, AL10.AL_ROLLOFF_FACTOR, 0f);
-
-		// Attenuation
-		AudioHandler.addSource(this);
 		update();
 	}
 
@@ -39,7 +36,6 @@ public class Source {
 	public void delete() {
 		stop();
 		AL10.alSourceStop(sourceId);
-		AudioHandler.removeSource(this);
 		AL10.alDeleteSources(sourceId);
 	}
 

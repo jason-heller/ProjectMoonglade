@@ -3,11 +3,10 @@ package scene.entity;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-import anim.Animator;
-import audio.AudioHandler;
-import audio.Source;
 import core.Resources;
 import geom.AABB;
+import gl.Window;
+import gl.anim.Animator;
 import gl.res.Model;
 import gl.res.Texture;
 import map.Chunk;
@@ -25,13 +24,15 @@ public abstract class Entity {
 	protected Matrix4f matrix;
 	protected Animator animator;
 	
-	protected Source source;
 	protected AABB aabb;
 	
 	protected int id = 0;
 	
 	protected Chunk chunk;
 	protected float scale;
+	
+	protected int hp = 0;
+	protected float invulnerabilityTimer = 0f;
 	
 	protected boolean clickable = false;
 	
@@ -41,6 +42,7 @@ public abstract class Entity {
 	
 	protected int spawnGroupMin = 1;
 	protected int spawnGroupVariation = 1;
+	protected int spawnRarity = 0;
 	
 	public Entity() {
 		this(null, null);
@@ -53,9 +55,18 @@ public abstract class Entity {
 		scale = 1f;
 		visible = true;
 		matrix = new Matrix4f();
-		this.model = model == null ? null : Resources.getModel(model);
+		if (model == null) {
+			this.model = null;
+		} else {
+			this.model = Resources.getModel(model);
+			if (this.model.getSkeleton() != null) {
+				animator = new Animator(this.model, this);
+			}
+			
+		}
+		
 		this.diffuse = diffuse == null ? null : Resources.getTexture(diffuse);
-		source = new Source();
+		
 	}
 	
 	public boolean visible = true;
@@ -81,14 +92,18 @@ public abstract class Entity {
 		matrix.translate(position);
 		matrix.rotate(rotation);
 		matrix.scale(scale);
+		
+		invulnerabilityTimer = Math.max(invulnerabilityTimer - Window.deltaTime, 0f);
 	}
 	
 	public void tick(Scene scene) {
 	}
 
 	public void destroy() {
+		if (animator != null) {
+			animator.destroy();
+		}
 		EntityHandler.removeEntity(this);
-		AudioHandler.deleteSource(source);
 	}
 
 	public void setDiffuse(Texture diffuse) {
@@ -121,7 +136,7 @@ public abstract class Entity {
 	
 	public abstract void save(RunLengthOutputStream data);
 	public abstract void load(RunLengthInputStream data);
-	public boolean spawnConditionsMet(Enviroment enviroment, Terrain terrain, Chunk chunk, float x, float z, int dx, int dy, int dz) {
+	public boolean spawnConditionsMet(Enviroment enviroment, Terrain terrain, Chunk chunk, float x, float z, int dx, float dy, int dz) {
 		return false;
 	}
 
@@ -141,5 +156,41 @@ public abstract class Entity {
 
 	public AABB getAabb() {
 		return aabb;
+	}
+	
+	public boolean isAnimated() {
+		return (animator != null);
+	}
+	
+	public int getHp() {
+		return hp;
+	}
+	
+	public void heal(int heal) {
+		hp += heal;
+	}
+	
+	public void hurt(int damage, Entity attacker) {
+		hurt( damage, attacker, 1f);
+	}
+	
+	public void hurt(int  damage, Entity attacker, float invulnerabiltiyTime) {
+		if (invulnerabilityTimer == 0) {
+			hp -=  damage;
+			invulnerabilityTimer = invulnerabiltiyTime;
+		}
+		
+		if (hp <= 0) {
+			die();
+		}
+		
+	}
+
+	protected void die() {
+		this.destroy();
+	}
+
+	public int getSpawnRarity() {
+		return spawnRarity;
 	}
 }

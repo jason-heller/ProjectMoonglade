@@ -13,8 +13,6 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.PixelFormat;
 
-import core.Application;
-
 public class Window {
 	private static long lastFrameTime;
 	private static float aspectRatio;
@@ -38,11 +36,7 @@ public class Window {
 	 * Creates the display for the game
 	 */
 	public static void create() {
-		// Globals.displayWidth = Settings.getInt("display width");
-		// Globals.displayHeight = Settings.getInt("display height");
-		// Globals.maxFramerate = Settings.getInt("target fps");
-		// Globals.fov = Settings.getInt("fov");
-
+		
 		try {
 			System.setProperty("org.lwjgl.opengl.Window.undecorated", hasBorder ? "true" : "false");
 			ContextAttribs attribs = new ContextAttribs(3,3).withProfileCore(true).withForwardCompatible(true);
@@ -176,9 +170,6 @@ public class Window {
 							}
 						}
 
-						// if we've found a match for bpp and frequence against the
-						// original display mode then it's probably best to go for this one
-						// since it's most likely compatible with the monitor
 						if (current.getBitsPerPixel() == Display.getDesktopDisplayMode().getBitsPerPixel()
 								&& current.getFrequency() == Display.getDesktopDisplayMode().getFrequency()) {
 							targetDisplayMode = current;

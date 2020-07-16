@@ -2,7 +2,7 @@ package scene.entity.object;
 
 import org.joml.Vector3f;
 
-import audio.Source;
+import audio.AudioHandler;
 import core.Resources;
 import gl.particle.ParticleEmitter;
 import scene.Scene;
@@ -48,13 +48,12 @@ public class CampfireEntity extends Entity {
 	}
 	
 	public void ignite() {
-		source.play("fire");
+		AudioHandler.loop("fire");
 		lit = true;
 	}
 	
 	public void extinquish() {
 		lit = false;
-		source.stop();
 	}
 
 	@Override

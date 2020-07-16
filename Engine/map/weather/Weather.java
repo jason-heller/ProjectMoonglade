@@ -5,7 +5,6 @@ import java.util.Random;
 import org.joml.Vector3f;
 
 import audio.AudioHandler;
-import audio.Source;
 import core.Resources;
 import gl.Camera;
 import gl.Window;
@@ -27,9 +26,6 @@ public class Weather {
 	
 	public static int weather = CLEAR;
 	
-	private Source ambientSource;
-	private Source eventSource;
-	
 	public Weather(long seed, int cellArrSize) {
 		random = new Random(seed);
 		updateWeatherCells();
@@ -38,9 +34,6 @@ public class Weather {
 		targetWeather = 0f;
 		doAction();
 		emitter = new PrecipitationEmitter();
-		
-		ambientSource = new Source();
-		eventSource = new Source();
 		
 		Resources.addSound("thunder1", "ambient/thunder1.ogg");
 		Resources.addSound("thunder_distant1", "ambient/distant_thunder1.ogg");
@@ -56,13 +49,13 @@ public class Weather {
 				if (thunderTimer+Window.deltaTime > nextThunder && thunderTimer <= nextThunder) {
 					switch((int)(Math.random()*3)) {
 					case 0:
-						eventSource.play("thunder1");
+						AudioHandler.play("thunder1");
 						break;
 					case 1:
-						eventSource.play("thunder_distant1");
+						AudioHandler.play("thunder_distant1");
 						break;
 					default:
-						eventSource.play("thunder_distant2");
+						AudioHandler.play("thunder_distant2");
 					}
 				
 				}
@@ -78,15 +71,9 @@ public class Weather {
 		
 		if (weather == RAIN || weather == THUNDER || weather == TORNADO) {
 			emitter.update(camera, weatherCell);
-			if (!ambientSource.isPlaying()) {
-				ambientSource.setLooping(true);
-				ambientSource.play("rain");
-			}
+			AudioHandler.loop("rain");
 		} else {
-			if (ambientSource.isPlaying()) {
-				ambientSource.stop();
-				ambientSource.setLooping(false);
-			}
+			AudioHandler.stop("rain");
 		}
 		
 		updateWeatherCells();
@@ -146,7 +133,5 @@ public class Weather {
 		Resources.removeSound("thunder_distant1");
 		Resources.removeSound("thunder_distant2");
 		Resources.removeSound("rain");
-		ambientSource.delete();
-		eventSource.delete();
 	}
 }

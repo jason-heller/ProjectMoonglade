@@ -3,6 +3,7 @@ package scene.entity;
 import org.joml.Vector3f;
 import org.lwjgl.input.Keyboard;
 
+import audio.AudioHandler;
 import gl.Camera;
 import gl.Window;
 import gl.post.PostProcessing;
@@ -14,7 +15,7 @@ import util.MathUtil;
 public class PlayerHandler {
 	private static PhysicsEntity entity;
 
-	public static float jumpVelocity = 6f;
+	public static float jumpVelocity = 8f;
 	public static float friction = 15f, airFriction = 0f;
 	public static float maxSpeed = 80f, maxAirSpeed = 4f, maxWaterSpeed = 32f;
 	public static float accelSpeed = 80f, airAccel = 3f, waterAccel = 32f;
@@ -24,7 +25,7 @@ public class PlayerHandler {
 	
 	private static float cameraHeight = CAMERA_STANDING_HEIGHT;
 	private static float height = 1.6f;
-	private static float width = .5f;
+	private static float width = .6f;
 	
 	private static float walkSfxTimer = 0f;
 
@@ -142,7 +143,7 @@ public class PlayerHandler {
 				}
 				
 				if (walkSfxTimer == 0f) {
-					entity.getSource().play("walk_grass");
+					AudioHandler.play("walk_grass");
 				}
 				
 				walkSfxTimer += Window.deltaTime*.2f;
@@ -152,8 +153,10 @@ public class PlayerHandler {
 				walkSfxTimer = 0f;
 			}
 		} else {
-			entity.position.set(camera.getPosition());
-			entity.velocity.zero();
+			Vector3f oldCamPos = camera.getPrevPosition();
+			entity.velocity.set(Vector3f.sub(camera.getPosition(), oldCamPos).div(Window.deltaTime));
+			entity.position.set(oldCamPos.x, oldCamPos.y - cameraHeight, oldCamPos.z);
+			entity.previouslyGrounded = true;
 		}
 		
 	}

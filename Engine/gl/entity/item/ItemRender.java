@@ -8,10 +8,10 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 
 import core.Resources;
-import dev.Console;
 import gl.Camera;
 import gl.building.BuildingRender;
 import gl.res.Texture;
+import scene.PlayableScene;
 import scene.entity.Entity;
 import scene.entity.utility.ItemEntity;
 import scene.overworld.inventory.Inventory;
@@ -32,7 +32,7 @@ public class ItemRender {
 		this.texture = texture;
 	}
 
-	public void render(Camera camera, Vector3f lightDirection, List<Entity> list) {
+	public void render(PlayableScene scene, Camera camera, Vector3f lightDirection, List<Entity> list) {
 		if (texture == null) return;
 		
 		shader.start();
@@ -49,6 +49,7 @@ public class ItemRender {
 		final float size = Inventory.itemAtlasSize;
 
 		for(Entity entity : list) {
+			entity.update(scene);
 			shader.viewMatrix.loadMatrix(buildViewMatrix(entity.position, camera.getViewMatrix()));
 			ItemData item = Item.get(((ItemEntity) entity).getItem());
 			

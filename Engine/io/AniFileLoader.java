@@ -10,10 +10,10 @@ import org.joml.Matrix4f;
 import org.joml.Quaternion;
 import org.joml.Vector3f;
 
-import anim.Animation;
-import anim.component.JointTransform;
-import anim.component.Keyframe;
 import core.Resources;
+import gl.anim.Animation;
+import gl.anim.component.JointTransform;
+import gl.anim.component.Keyframe;
 
 public class AniFileLoader {
 	public static byte EXPECTED_VERSION = 1; // Version of .MOD files that this game supports
@@ -25,11 +25,16 @@ public class AniFileLoader {
 	}
 
 	public static void extractAnimationData(String key, DataInputStream is) throws IOException {
+		/*String animName = "";
+		final int animNameLen = is.readByte();
+		for(int i = 0; i < animNameLen; i++) {
+			animName += is.readChar();
+		}*/
 		final short numKeyframes = is.readShort();
 		final float animationDuration = is.readFloat();
 
 		final Keyframe[] keyframes = new Keyframe[numKeyframes];
-
+		
 		for (int i = 0; i < numKeyframes; i++) {
 
 			final float time = is.readFloat();

@@ -1,12 +1,9 @@
 package scene.entity.utility;
 
-import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
-import audio.Source;
 import core.Application;
-import core.Resources;
 import geom.AABB;
 import geom.Manifold;
 import gl.Window;
@@ -23,17 +20,17 @@ public abstract class PhysicsEntity extends Entity {
 
 	private static final float ALLOWABLE_STEP = .35f;
 	
-	private boolean grounded = false;
-	private boolean previouslyGrounded = false;
+	protected boolean grounded = false;
+	public boolean previouslyGrounded = false;
 	private boolean sliding = false;
-	private boolean submerged = false, fullySubmerged = false;
+	protected boolean submerged = false;
+
+	private boolean fullySubmerged = false;
 	private boolean climbing = false;
 	
-	private static float gravity = 14f;
-	private static float maxGravity = -20f;
+	private static float gravity = 17f;
+	private static float maxGravity = -40f;
 	
-	protected AABB aabb;
-
 	public float maxSpeed = 25f, maxAirSpeed = 5f, maxWaterSpeed = 1f;
 	public float friction = DEFAULT_FRICTION;
 	public float airFriction = 0f;
@@ -43,8 +40,13 @@ public abstract class PhysicsEntity extends Entity {
 
 	public boolean visible = true;
 	
-	public PhysicsEntity() {
-		this(null, null);
+	public PhysicsEntity(String model, String diffuse) {
+		super(model, diffuse);
+		aabb = new AABB(new Vector3f(), new Vector3f(width, height, width));
+	}
+	
+	/*public PhysicsEntity() {
+		super(null, null);
 	}
 
 	public PhysicsEntity(String model, String diffuse) {
@@ -58,7 +60,7 @@ public abstract class PhysicsEntity extends Entity {
 		this.diffuse = diffuse == null ? null : Resources.getTexture(diffuse);
 
 		aabb = new AABB(new Vector3f(), new Vector3f(width, height, width));
-	}
+	}*/
 
 	public void accelerate(Vector3f dir, float amount) {
 		if (climbing) {
@@ -100,6 +102,8 @@ public abstract class PhysicsEntity extends Entity {
 		final float relz = position.z - chunk.realZ;
 		int tx = ((int) Math.floor(relx / Chunk.POLYGON_SIZE));
 		int tz = ((int) Math.floor(relz / Chunk.POLYGON_SIZE));
+		
+		//if (tx < 0 || tz < 0 || tx >= Chunk.VERTEX_COUNT || tz >= Chunk.VERTEX_COUNT) return;
 		
 		submerged = false;
 		fullySubmerged = false;
@@ -163,7 +167,7 @@ public abstract class PhysicsEntity extends Entity {
 		
 		for(float i = position.x - 1f; i <= position.x + 1f; i += 1f) {
 			for(float j = position.z - 1f; j <= position.z + 1f; j += 1f) {
-				for(float k = position.y + height; k >= position.y-1; k -= 1f) {
+				for(float k = position.y + 1; k > position.y-1; k -= 1f) {
 					Chunk chunkPtr = t.getChunkAt(i, j);
 					if (chunkPtr == null) continue;
 					
@@ -175,7 +179,7 @@ public abstract class PhysicsEntity extends Entity {
 					
 					if (tile != null) {
 						testTile(tile, position.x, position.y, position.z,
-								tx, ty, tz, (k != position.y+height && i == position.x && j == position.z));
+								tx, ty, tz, (k == position.y));
 					}
 				}
 			}
@@ -248,35 +252,49 @@ public abstract class PhysicsEntity extends Entity {
 		}
 		
 		if (slopeFactor == 0 && slope != 0 && tile.isSolid(6)) {
-			float dx = ((position.x % 1f) + 2) % 1f;
-			float dz = ((position.z % 1f) + 2) % 1f;
+			float dx = position.x - tx;//((position.x % 1f) + 2) % 1f;
+			float dz = position.z - tz;//((position.z % 1f) + 2) % 1f;
 			
-			if ((slope & 1) != 0 && (py <= ty + (1 - dx) || previouslyGrounded)) {
-				velocity.y = 0;
-				grounded = true;
-				position.y = ty + (1f - dx);
-				if (stick) position.y++;
+			if (dx < 0 || dz < 0 || dx > 1|| dz > 1) {
+				float f = this.width/2f;
+				tileBounds.setMinMax(tx+f, ty+f, tz+f, tx+(1-f), ty+(1-f), tz+(1-f));
+				aabbCollide(tileBounds);
+				return;
 			}
 			
-			if ((slope & 2) != 0 && (py <= ty + dx || previouslyGrounded)) {
+			/*if (position.y < ty-.1f) {
 				velocity.y = 0;
-				grounded = true;
-				position.y = ty + dx;
-				if (stick) position.y++;
+				position.y = ty-height;
+				return;
+			}*/
+			float yNew = 0;
+			
+			//if (Math.abs(position.x % 1f) > 1 || Math.abs(position.z % 1f) > 1) return;
+
+			if ((slope & 1) != 0 && (position.y <= ty + (1 - dx) || previouslyGrounded)) {
+				yNew = ty + (1f - dx);
 			}
 			
-			if ((slope & 16) != 0 && (py <= ty + (1 - dz) || previouslyGrounded)) {
-				velocity.y = 0;
-				grounded = true;
-				position.y = ty + (1f - dz);
-				if (stick) position.y++;
+			if ((slope & 2) != 0 && (position.y <= ty + dx || previouslyGrounded)) {
+				yNew = ty + dx;
 			}
 			
-			if ((slope & 32) != 0 && (py <= ty + dz || previouslyGrounded)) {
+			if ((slope & 16) != 0 && (position.y <= ty + (1 - dz) || previouslyGrounded)) {
+				yNew = ty + (1f - dz);
+			}
+			
+			if ((slope & 32) != 0 && (position.y <= ty + dz || previouslyGrounded)) {
+				yNew = ty + dz;
+			}
+			
+			if (Math.abs(position.y - yNew) < .5) {
 				velocity.y = 0;
 				grounded = true;
-				position.y = ty + dz;
-				if (stick) position.y++;
+				position.y = yNew;
+			} else {
+				float f = this.width/2f;
+				tileBounds.setMinMax(tx+f, ty+f, tz+f, tx+(1-f), ty+(1-f), tz+(1-f));
+				aabbCollide(tileBounds);
 			}
 		}
 	}
@@ -286,6 +304,14 @@ public abstract class PhysicsEntity extends Entity {
 		
 		if (manifold != null) {
 			Vector3f axis = manifold.getAxis();
+			float aabbTop = (other.getY() + other.getBounds().y);
+			float dy = aabbTop - position.y;
+			if (grounded && dy < ALLOWABLE_STEP && dy > 0) {
+				position.y = aabbTop;
+				aabb.setCenter(position.x, position.y + (height/2), position.z);
+				return;
+			}
+			
 			position.add(Vector3f.mul(axis, manifold.getDepth()));
 			aabb.setCenter(position.x, position.y + (height/2), position.z);
 			
@@ -392,12 +418,12 @@ public abstract class PhysicsEntity extends Entity {
 			grounded = false;
 			sliding = false;
 
-			previouslyGrounded = false;
+			//previouslyGrounded = false;
 		} else {
 			velocity.y = height;
 			grounded = false;
 			sliding = false;
-			previouslyGrounded = false;
+			//previouslyGrounded = false;
 		}
 	}
 
@@ -461,12 +487,25 @@ public abstract class PhysicsEntity extends Entity {
 	}
 	
 	@Override
+	public void hurt(int  damage, Entity attacker, float invulnerabiltiyTime) {
+		if (invulnerabilityTimer == 0) {
+			hp -=  damage;
+			invulnerabilityTimer = invulnerabiltiyTime;
+			if (attacker != null) {
+				this.jump(6f);
+				this.accelerate(Vector3f.sub(attacker.position, position).negate(), 150f);
+			}
+		}
+		
+		if (hp <= 0) {
+			die();
+		}
+		
+	}
+	
+	@Override
 	public void destroy() {
 		super.destroy();
-	}
-
-	public Source getSource() {
-		return source;
 	}
 	
 	public AABB getAABB() {

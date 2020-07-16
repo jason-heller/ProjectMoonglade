@@ -8,9 +8,7 @@ import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 
-import audio.Source;
 import core.Resources;
-import dev.Console;
 import gl.Window;
 import gl.res.Model;
 import scene.Scene;
@@ -27,7 +25,6 @@ public class UI {
 	public static final float width = 1280;
 	public static final float height = 720;
 	
-	private static Source source = new Source();
 	public static boolean hideUI;
 
 	public static void addComponent(Component component) {
@@ -72,13 +69,8 @@ public class UI {
 
 	public static void cleanUp() {
 		shader.cleanUp();
-		source.delete();
 	}
 	
-	public static Source getSource() {
-		return source;
-	}
-
 	public static void clear() {
 		components.clear();
 	}

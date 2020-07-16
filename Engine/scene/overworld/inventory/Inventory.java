@@ -78,6 +78,10 @@ public class Inventory {
 				Input.requestMouseRelease();
 			}
 		}
+		
+		if (getSelected() != viewmodel.getItem()) {
+			viewmodel.setItem(getSelected());
+		}
 
 		// Hotbar
 		
@@ -175,7 +179,6 @@ public class Inventory {
 		for (int i = 1; i <= 9; i++) {
 			if (Input.isPressed("item slot " + i)) {
 				selectionPos = i - 1;
-				viewmodel.set(getSelected());
 			}
 		}
 
@@ -185,14 +188,12 @@ public class Inventory {
 			if (selectionPos == -1) {
 				selectionPos = 8;
 			}
-			viewmodel.set(getSelected());
 		}
 		if (dWheel < 0) {
 			selectionPos++;
 			if (selectionPos == 9) {
 				selectionPos = 0;
 			}
-			viewmodel.set(getSelected());
 		}
 		viewmodel.update();
 	}
@@ -261,5 +262,13 @@ public class Inventory {
 				items[index] = 0;
 			}
 		}
+	}
+
+	public boolean isEmpty() {
+		for(int item : items) {
+			if (item != Item.AIR) return false;
+		}
+		
+		return true;
 	}
 }

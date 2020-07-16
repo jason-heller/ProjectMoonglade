@@ -16,8 +16,9 @@ public class FenBiome extends Biome {
 		this.name = "Fen";
 		this.temp = Temperature.TEMPERATE;
 		this.moisture = Moisture.WET;
-		this.terrainHeightFactor = 1f;
+		this.terrainHeightFactor = .5f;
 		this.terrainRoughness = 50f;
+		this.terrainTransitionScale = 3f;
 		
 		this.skyColor = BiomeColors.DEFAULT_SKY;
 		this.groundColor = BiomeColors.FEN_GRASS;

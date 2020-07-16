@@ -71,7 +71,7 @@ public class Debug {
 		Biome biome = biomeCellData.biome;
 		float[] cp = GenTerrain.getClimateProperties(camera.getPosition().x, camera.getPosition().z);
 
-		UI.drawString("#rX: "+cx+" #gY: "+cy+" #bZ: "+cz+"\n"
+		UI.drawString("\n#rX: "+cx+" #gY: "+cy+" #bZ: "+cz+"\n"
 				+ "#wFPS: "+(int)Window.framerate+"/"+Window.maxFramerate+"\n"
 				+ "TPS: "+Application.TICKS_PER_SECOND + "\n"
 				+ "chunk xz: "+Math.floor(camera.getPosition().x/Chunk.CHUNK_SIZE)+", "+Math.floor(camera.getPosition().z/Chunk.CHUNK_SIZE) + "\n"

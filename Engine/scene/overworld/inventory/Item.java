@@ -48,6 +48,8 @@ public class Item {
 
 		addItem("forest_green_paint", 12, 1, ItemAction.PAINT);
 		
+		addItem("health", 0, 0, ItemAction.EAT);
+		
 		initMaterialItems();
 	}
 

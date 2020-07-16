@@ -3,6 +3,7 @@ package scene.overworld;
 import core.Resources;
 import gl.Window;
 import io.Input;
+import scene.PlayableScene;
 import ui.UI;
 import util.Colors;
 
@@ -12,13 +13,13 @@ public class TileShapePicker {
 	private final int size = 80, radius = 128;
 	private int selected = -1;
 	
-	private Overworld ow;
+	private PlayableScene scene;
 	
 	//private Texture slot;
 	private String[] labels = new String[] {"Walls", "Steep Slope", "Regular Slope", "Floors"};
 	
-	public TileShapePicker(Overworld ow) {
-		this.ow = ow;
+	public TileShapePicker(PlayableScene scene) {
+		this.scene = scene;
 		Resources.addTexture("slot", "gui/slot.png");
 	}
 	
@@ -74,18 +75,18 @@ public class TileShapePicker {
 		if (Input.isPressed(Input.KEY_LMB) && open) {
 			switch(selected) {
 			case 0:
-				ow.setTileShape(0, 0);
+				scene.setTileShape(0, 0);
 				break;
 				
 			case 1:
-				ow.setTileShape(0, 1);
+				scene.setTileShape(0, 1);
 				break;
 				
 			case 2:
-				ow.setTileShape(0, 2);
+				scene.setTileShape(0, 2);
 				break;
 			case 3:
-				ow.setTileShape(1, 0);
+				scene.setTileShape(1, 0);
 				break;
 			}
 			

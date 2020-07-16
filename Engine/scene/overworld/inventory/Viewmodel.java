@@ -28,7 +28,7 @@ public class Viewmodel {
 		matrix = new Matrix4f();
 	}
 
-	public void set(int item) {
+	public void setItem(int item) {
 		this.item = item;
 		switch (item) {
 		case Item.AXE:
@@ -100,5 +100,9 @@ public class Viewmodel {
 		if (model != null) {
 			EntityHandler.renderViewmodel(camera, lightDir, model, texture, matrix);
 		}
+	}
+
+	public int getItem() {
+		return this.item;
 	}
 }

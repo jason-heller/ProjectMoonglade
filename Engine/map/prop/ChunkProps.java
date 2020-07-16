@@ -100,8 +100,8 @@ public class ChunkProps {
 		}
 		//tilemap = null;
 		//tileProperties = null;
-		chunk = null;
-		model = null;
+		//chunk = null;
+		//model = null;
 	}
 	
 	public StaticPropProperties getEntityProperties(int x, int z) {
@@ -125,6 +125,8 @@ public class ChunkProps {
 		final int propX = (int) (tileX - chunk.realX);
 		final int propZ = (int) (tileZ - chunk.realZ);
 
+		if (propX < 0 || propX < 0) return null;
+		
 		final Props prop = propMap[propX][propZ];
 		
 		if (prop == null) return null;

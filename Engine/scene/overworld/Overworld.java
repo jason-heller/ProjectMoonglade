@@ -3,7 +3,7 @@ package scene.overworld;
 import static map.tile.Tile.TILE_SIZE;
 
 import org.joml.Vector3f;
-import org.lwjgl.input.Mouse;
+import org.lwjgl.input.Keyboard;
 
 import core.Application;
 import core.Resources;
@@ -26,17 +26,19 @@ import map.prop.StaticPropProperties;
 import map.tile.BuildData;
 import map.tile.Tile;
 import scene.MainMenu;
-import scene.Scene;
+import scene.PlayableScene;
+import scene.PlayableSceneUI;
 import scene.entity.Entity;
 import scene.entity.EntityData;
 import scene.entity.EntityHandler;
 import scene.entity.PlayerEntity;
 import scene.entity.utility.ItemEntity;
-import scene.overworld.inventory.Inventory;
 import scene.overworld.inventory.Item;
 import scene.overworld.inventory.ItemData;
+import ui.UI;
+import util.Colors;
 
-public class Overworld implements Scene {
+public class Overworld extends PlayableScene {
 	
 	public static final int PLAYER_REACH = Chunk.POLYGON_SIZE * 6;
 	public static String worldName;
@@ -44,19 +46,8 @@ public class Overworld implements Scene {
 	public static String worldFileName;
 
 	private Enviroment enviroment;
-	private Camera camera;
-	private Inventory inventory;
 	
-	private PlayerEntity player;
-		
-	private final OverworldUI ui;
-	
-	private Vector3f selectionPt, exactSelectionPt;
-	private byte facing;
-
-	protected boolean returnToMenu;
-	
-	private byte slopeSetting = 0, wallSetting = 0;
+	private final PlayableSceneUI ui;
 	
 	private float actionDelay = 0f;
 	
@@ -64,24 +55,15 @@ public class Overworld implements Scene {
 	private float dx, dz;
 	
 	public Overworld() {
-
+		super();
 		Enviroment.exactTime = 0f;
-		EntityHandler.init();
-		Item.init();
-		
-		camera = new Camera();
-		camera.setControlStyle(Camera.FIRST_PERSON);
-		camera.setPosition(new Vector3f((Chunk.CHUNK_SIZE)/2f, 0, (Chunk.CHUNK_SIZE)/2f));
-		camera.grabMouse();
-		
-		inventory = new Inventory();
 		
 		SaveDataIO.readSaveData(this);
 		
 		enviroment = new Enviroment(this);
 		enviroment.tick(this);
 		
-		ui = new OverworldUI(this);
+		ui = new PlayableSceneUI(this);
 		
 		player = new PlayerEntity(this);
 		camera.focusOn(player);
@@ -94,6 +76,37 @@ public class Overworld implements Scene {
 			LineRender.init();
 			Enviroment.exactTime = Enviroment.DAY;
 		}
+
+		if (inventory.isEmpty()) {
+			inventory.addItem(Item.AXE, 1);
+			inventory.addItem(Item.getId("stone_wall"), 999);
+			inventory.addItem(Item.getId("planks"), 999);
+			inventory.addItem(Item.getId("window"), 999);
+			inventory.addItem(Item.getId("shingles"), 999);
+			inventory.addItem(Item.getId("concrete"), 999);
+			inventory.addItem(Item.getId("limestone"), 999);
+			inventory.addItem(Item.getId("fence"), 999);
+			inventory.addItem(Item.getId("drywall"), 999);
+			inventory.addItem(Item.getId("stone_bricks"), 999);
+			inventory.addItem(Item.getId("forge"), 999);
+			inventory.addItem(Item.getId("metal_mesh"), 999);
+			inventory.addItem(Item.getId("bricks"), 999);
+			inventory.addItem(Item.getId("thatch"), 999);
+			inventory.addItem(Item.getId("palm_planks"), 999);
+			inventory.addItem(Item.getId("cypress_planks"), 999);
+			inventory.addItem(Item.getId("dried_mud_wall"), 999);
+			inventory.addItem(Item.getId("reclaimed_metal"), 999);
+			
+			inventory.addItem(Item.getId("red_paint"), 1);
+			inventory.addItem(Item.getId("orange_paint"), 1);
+			inventory.addItem(Item.getId("yellow_paint"), 1);
+			inventory.addItem(Item.getId("green_paint"), 1);
+			inventory.addItem(Item.getId("forest_green_paint"), 1);
+			inventory.addItem(Item.getId("blue_paint"), 1);
+			inventory.addItem(Item.getId("cyan_paint"), 1);
+			inventory.addItem(Item.getId("indigo_paint"), 1);
+			inventory.addItem(Item.getId("violet_paint"), 1);
+		}
 	}
 
 	@Override
@@ -103,20 +116,32 @@ public class Overworld implements Scene {
 	@Override
 	public void update() {
 		if (returnToMenu) {
-			Application.changeScene(MainMenu.class);
+			if (enviroment.getTerrain().getStreamer().isFinished()) {
+				Application.changeScene(MainMenu.class);
+			} else {
+				enviroment.getTerrain().getStreamer().update();
+				UI.drawRect(0, 0, 1280, 620, Colors.BLACK).setOpacity(.75f);
+				UI.drawString("Saving..", 1280/2,720/2, true);
+			}
+			
 			return;
 		}
 		
-		if (Mouse.isGrabbed()) {
-			Mouse.setCursorPosition(Window.getWidth()/2, Window.getHeight()/2);
+		if (player.isDisabled()) {
+			camera.setControlStyle(Camera.NO_CONTROL);
+			UI.drawRect(0, 300, 1280, 120, Colors.RED).setDepth(-999);
+			UI.drawString("You're Dead!\nPress R to Respawn", 1280/2, 720/2, true).setDepth(-1000);
+			if (Input.isPressed(Keyboard.KEY_R)) {
+				player.setDisabled(false);
+				player.heal(10);
+				camera.setControlStyle(Camera.FIRST_PERSON);
+				camera.focusOn(player);
+			}
 		}
 		
-		facing = Tile.getFacingByte(camera, wallSetting == 1, slopeSetting == 1);
-		selectionPt = null;
-		exactSelectionPt = null;
+		enviroment.update(this);
 		
-		camera.move();
-		EntityHandler.update(this, inventory);
+		super.update();
 	
 		if (Debug.debugMode) {
 			Debug.uiDebugInfo(this);
@@ -137,8 +162,6 @@ public class Overworld implements Scene {
 				byte snapFlags = (byte) ((wallSetting == 1) ? 1 : 0);
 				snapFlags = (byte) ((slopeSetting == 1) ? 2 : snapFlags);
 				Vector3f pt = enviroment.getTerrain().buildingRaycast(this, camera.getPosition(), camera.getDirectionVector(), PLAYER_REACH, facing, snapFlags);
-
-				
 				if (pt != null && (selectionPt == null || Vector3f.distanceSquared(camera.getPosition(), pt) <
 				Vector3f.distanceSquared(camera.getPosition(), selectionPt))) {
 					selectionPt = pt;
@@ -149,40 +172,52 @@ public class Overworld implements Scene {
 		actionDelay = Math.max(actionDelay - Window.deltaTime, 0f);
 		
 		// Pointer interactions
-		if (selectionPt != null && Input.isMouseGrabbed() && actionDelay == 0f) {
-			
-			exactSelectionPt = new Vector3f(selectionPt);
-			selectionPt.set((float) Math.floor(selectionPt.x), (float) Math.floor(selectionPt.y), (float) Math.floor(selectionPt.z));
-			selectionPt.y = Math.min(Math.max(selectionPt.y, BuildData.MIN_BUILD_HEIGHT+1), BuildData.MAX_BUILD_HEIGHT-1);
-			
+		if (Input.isMouseGrabbed() && actionDelay == 0f) {
 			final boolean lmb = Input.isPressed(Input.KEY_LMB);
 			final boolean rmb = Input.isPressed(Input.KEY_RMB);
-			
-			final Terrain terrain = enviroment.getTerrain();
-			Chunk chunkPtr = terrain.getChunkAt(selectionPt.x, selectionPt.z);
-			cx = chunkPtr.realX;
-			cz = chunkPtr.realZ;
-			_x = (int) ((selectionPt.x - cx) / TILE_SIZE);
-			_y = (int) (selectionPt.y / TILE_SIZE);
-			_z = (int) ((selectionPt.z - cz) / TILE_SIZE);
-			dx = camera.getPosition().x - selectionPt.x;
-			dz = camera.getPosition().z - selectionPt.z;
-			
-			Tile tile = chunkPtr.getBuilding().get(_x, _y, _z);
-			//byte facing = Tile.getFacingByte(camera, wallSetting == 1, slopeSetting == 1);
-			final int facingIndex = facing == 1 ? 0 : (int)Math.sqrt(facing);
 			final ItemData selected = Item.get(inventory.getSelected());
 			
-			if (lmb) {
-				actionDelay = .05f;
-				lmbAction(chunkPtr, tile, selected, terrainIntersection, facingIndex, isFacingTile);
+			if (selectionPt != null) {
+				
+				exactSelectionPt = new Vector3f(selectionPt);
+				selectionPt.set((float) Math.floor(selectionPt.x), (float) Math.floor(selectionPt.y), (float) Math.floor(selectionPt.z));
+				selectionPt.y = Math.min(Math.max(selectionPt.y, BuildData.MIN_BUILD_HEIGHT+1), BuildData.MAX_BUILD_HEIGHT-1);
+				
+				final Terrain terrain = enviroment.getTerrain();
+				Chunk chunkPtr = terrain.getChunkAt(selectionPt.x, selectionPt.z);
+				cx = chunkPtr.realX;
+				cz = chunkPtr.realZ;
+				_x = (int) ((selectionPt.x - cx) / TILE_SIZE);
+				_y = (int) (selectionPt.y / TILE_SIZE);
+				_z = (int) ((selectionPt.z - cz) / TILE_SIZE);
+				dx = camera.getPosition().x - selectionPt.x;
+				dz = camera.getPosition().z - selectionPt.z;
+				
+				Tile tile = chunkPtr.getBuilding().get(_x, _y, _z);
+				//byte facing = Tile.getFacingByte(camera, wallSetting == 1, slopeSetting == 1);
+				int facingIndex = Tile.getFacingIndex(facing);
+				
+				if (this.slopeSetting != 0) {
+					facingIndex = 6;
+				}
+				
+				if (lmb) {
+					actionDelay = .05f;
+					lmbAction(chunkPtr, tile, selected, terrainIntersection, facingIndex, isFacingTile);
+				}
+				
+				if (rmb && inventory.getSelected() != Item.AIR) {
+					actionDelay = .05f;
+					rmbAction(chunkPtr, tile, selected, terrainIntersection, facingIndex, isFacingTile);
+				}
+			} else {
+				
+				if (rmb && inventory.getSelected() != Item.AIR) {
+					actionDelay = .05f;
+					selected.doAction(this, terrainIntersection, null, null, Tile.getFacingIndex(facing), false);
+				}
 			}
-			
-			if (rmb && inventory.getSelected() != Item.AIR) {
-				actionDelay = .05f;
-				rmbAction(chunkPtr, tile, selected, terrainIntersection, facingIndex, isFacingTile);
-			}
-		}
+		} 
 		
 		ui.update();
 		inventory.update();
@@ -248,9 +283,9 @@ public class Overworld implements Scene {
 			
 			byte specialFlags = mat.getInitialFlags();
 			if (mat.isTiling()) {
-				final float rx = (_x * TILE_SIZE) + cx;
-				final float ry = (_y * TILE_SIZE);
-				final float rz = (_z * TILE_SIZE) + cz;
+				final float rx = (_x) + cx;
+				final float ry = (_y);
+				final float rz = (_z) + cz;
 				dx = ((facing & 3) == 0) ? TILE_SIZE : 0;
 				dz = TILE_SIZE - dx;
 				if ((facing & 1) != 0) dz *= -1;
@@ -262,10 +297,6 @@ public class Overworld implements Scene {
 				chunkPtr.getBuilding().buildModel();
 			} else {
 				chunkPtr.setTile(_x, _y, _z, wallFlags, slopeFlags, mat, specialFlags);
-			}
-			
-			if ((wallFlags & 12) != 0 && Math.abs(chunkPtr.heightLookup(_x, _z) - _y) <= .1f) {
-				chunkPtr.setHeight(_x, _z, _y - .025f);
 			}
 
 			inventory.consume(inventory.getSelectionPos());
@@ -283,11 +314,11 @@ public class Overworld implements Scene {
 			
 			if (performedAction) {
 				if (tile.getMaterial(facingIndex).isTiling()) {
-					final float rx = (_x * TILE_SIZE) + cx;
-					final float ry = (_y * TILE_SIZE);
-					final float rz = (_z * TILE_SIZE) + cz;
-					dx = ((facing & 3) == 0) ? TILE_SIZE : 0;
-					dz = TILE_SIZE - dx;
+					final float rx = (_x) + cx;
+					final float ry = (_y);
+					final float rz = (_z) + cz;
+					dx = ((facing & 3) == 0) ? 1 : 0;
+					dz = 1 - dx;
 					if ((facing & 1) != 0) dz *= -1;
 					if ((facing & 32) != 0) dx *= -1;
 					Material.removeTilingFlags(tile, enviroment.getTerrain(), rx, ry, rz, dx, dz, facingIndex, 0);
@@ -383,27 +414,16 @@ public class Overworld implements Scene {
 
 	@Override
 	public void render() {
-		if (returnToMenu) return;
-		
 		enviroment.render(camera, selectionPt, facing);
-		EntityHandler.render(camera, enviroment.getLightDirection());	
+		EntityHandler.render(this, camera, enviroment.getLightDirection());	
+		camera.getPrevPosition().set(camera.getPosition());
 		if (Debug.structureMode) {
 			LineRender.render(camera);
 		}
-		
-		
 	}
 
 	public Enviroment getEnviroment() {
 		return enviroment;
-	}
-
-	public PlayerEntity getPlayer() {
-		return this.player;
-	}
-
-	public Inventory getInventory() {
-		return inventory;
 	}
 
 	public void setCamFacingByte(byte cameraFacing) {
@@ -414,16 +434,8 @@ public class Overworld implements Scene {
 		return this.facing;
 	}
 
-	public Vector3f getSelectionPoint() {
-		return selectionPt;
-	}
-
-	public void setTileShape(int wall, int slope) {
-		this.slopeSetting = (byte)slope;
-		this.wallSetting = (byte)wall;
-	}
-
-	public Vector3f getExactSelectionPoint() {
-		return exactSelectionPt;
+	@Override
+	protected void onSceneEnd() {
+		enviroment.getTerrain().cleanUp();
 	}
 }
