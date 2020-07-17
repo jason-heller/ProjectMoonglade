@@ -160,6 +160,8 @@ public class RegionSaver implements Runnable {
 			Chunk chunk = map.get(key);
 			final byte[] compressedData = writeChunk(chunk, buf);
 			chunkData.put(key, compressedData);
+
+			Console.log("saving ",chunk.dataX,chunk.dataZ," at "+freespace*SECTOR_SIZE);
 			freespace += Math.ceil(compressedData.length / (double)SECTOR_SIZE);
 			chunk.setState(Chunk.UNLOADING);
 		}

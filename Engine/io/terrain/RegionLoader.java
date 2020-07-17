@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.DataFormatException;
 
+import dev.Console;
 import map.Chunk;
 import map.Enviroment;
 import map.Material;
@@ -226,6 +227,7 @@ public class RegionLoader implements Runnable {
 				
 				// Parse data
 				byte[] decompressedData = ZLibUtil.decompress(compressedData);
+				Console.log("loading ",chunk.dataX,chunk.dataZ," at "+dataPosition);
 				readChunk(chunk, new RunLengthInputStream(decompressedData), ignoreTimeDifference);
 			}
 		//}

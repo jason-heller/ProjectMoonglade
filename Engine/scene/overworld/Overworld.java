@@ -7,6 +7,7 @@ import org.lwjgl.input.Keyboard;
 
 import core.Application;
 import core.Resources;
+import dev.Console;
 import dev.Debug;
 import dev.tracers.LineRender;
 import gl.Camera;

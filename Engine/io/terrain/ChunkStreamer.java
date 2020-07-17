@@ -8,7 +8,6 @@ import java.util.TreeMap;
 import org.joml.Vector3f;
 
 import core.Application;
-import dev.Console;
 import map.Chunk;
 import map.Enviroment;
 import scene.entity.Entity;
@@ -49,10 +48,6 @@ public class ChunkStreamer {
 		saveThread = new Thread(new RegionSaver(callback, filename, saveList.get(filename)));
 		saveThread.start();
 		saveList.remove(filename);
-		Console.log("saving",filename);
-		for(String s : saveList.keySet()) {
-			Console.log(s);
-		}
 	}
 	
 	private void load() {
@@ -72,7 +67,7 @@ public class ChunkStreamer {
 			chunk.cleanUp();
 			return;
 		}
-		Console.log("queue for saving",chunk.dataX>>4,chunk.dataZ>>4);
+		
 		int regionX = chunk.dataX >> 4;
 		int regionY = 0;
 		int regionZ = chunk.dataZ >> 4;
@@ -126,7 +121,6 @@ class ChunkCallback implements ChunkCallbackInterface {
 	@Override
 	public void saveCallback() {
 		ChunkStreamer.saveThread = null;
-		Console.log("save callback");
 	}
 	
 	@Override

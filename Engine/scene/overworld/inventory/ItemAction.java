@@ -29,11 +29,9 @@ public enum ItemAction {
 		if (lmb) {
 			switch(this) {
 			case DIG:
-				if (tile == null) return true;
 				return dig(ti, chunk, chunk.realX, chunk.realZ, selectionPt);
 				
 			case CHOP:
-				if (tile == null) return true;
 				if (Debug.structureMode) {
 					EditorBoundsTool.interact(exactSelectionPt, true, false);
 					return true;
@@ -46,11 +44,9 @@ public enum ItemAction {
 		} else {
 			switch(this) {
 			case DIG:
-				if (tile == null) return true;
 				return makeMound(chunk, chunk.realX, chunk.realZ, selectionPt);
 			
 			case CHOP:
-				if (tile == null) return true;
 				if (Debug.structureMode) {
 					EditorBoundsTool.interact(exactSelectionPt, true, false);
 				}
