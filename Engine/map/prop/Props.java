@@ -31,10 +31,10 @@ public enum Props {
 		add(THIN_TREE, "thin_tree", PLANKS, "planks", 8, DEF_STRENGTH, true, true, Item.AXE);
 		add(DEAD_TREE, "dead_tree", PLANKS, "planks", 4, DEF_STRENGTH, true, true, Item.AXE);
 		add(ROCK, "rock", STONE_BRICK, "stone", 1, STRONG, true, false, Item.AIR);
-		add(REED, "reed", THATCH, "air", 12, DEF_STRENGTH, false, false, Item.SPADE);
+		add(REED, "reed", THATCH, "thatch", 6, DEF_STRENGTH, true, false, Item.AIR);
 		add(OAK, "oak", PLANKS, "planks", 12, DEF_STRENGTH, false, true, Item.AXE);
 		add(AGAVE, "agave", THATCH, "plant_fibers", 3, DEF_STRENGTH, false, false, Item.AIR);
-		add(CACTUS, "cactus", THATCH,  "air", 0, DEF_STRENGTH, false, true, Item.SPADE);
+		add(CACTUS, "cactus", THATCH,  "plant_fibers", 10, DEF_STRENGTH, false, true, Item.AXE);
 		add(PINE, "pine", PLANKS, "planks", 0, DEF_STRENGTH, false, false, Item.AXE);
 		add(PINE_SNOWY, PINE, 0, 4, PLANKS, "planks", 0, DEF_STRENGTH, false, true, Item.AXE, true);
 		add(MANGROVE, "mangrove", STICK, "stick", 0, STRONG, false, true, Item.AXE);
@@ -53,7 +53,7 @@ public enum Props {
 		add(PURPLE_FLOWERS, PLANE, 13, 1, STICK, "stick", 8, DEF_STRENGTH, false, false, Item.AIR, true);
 		
 		add(EVERGREEN, "evergreen", PLANKS, "planks", 12, DEF_STRENGTH, false, true, Item.AXE);
-		add(DUCKWEED, PLANE, 7, 12, PLANKS, "planks", 12, DEF_STRENGTH, false, true, Item.AIR, false);
+		add(DUCKWEED, PLANE, 7, 12, NONE, "planks", 12, DEF_STRENGTH, false, true, Item.AIR, false);
 
 	}
 

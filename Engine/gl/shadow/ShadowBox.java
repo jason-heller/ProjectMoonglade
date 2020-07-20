@@ -212,8 +212,9 @@ public class ShadowBox {
 	 */
 	private Matrix4f calculateCameraRotationMatrix(Camera camera) {
 		Matrix4f rotation = new Matrix4f();
-		rotation.rotateX(-camera.getPitch());
+
 		rotation.rotateY(-camera.getYaw());
+		rotation.rotateX(-camera.getPitch());
 		return rotation;
 	}
 
@@ -225,10 +226,9 @@ public class ShadowBox {
 	 * but means that distant objects wouldn't cast shadows.
 	 */
 	public void updateFrustumParams() {
-		int fov = Math.min(Camera.fov, 89);
-		farWidth = 2f * (float) (shadowDistance * Math.tan(Math.toRadians(fov/2f)));
-		nearWidth = (float) (Camera.NEAR_PLANE
-				* Math.tan(Math.toRadians(fov)));
+		farWidth = 2f * (float) (shadowDistance * Math.tan(Math.toRadians(Camera.fov/2f)));
+		nearWidth = 2f * (float) (Camera.NEAR_PLANE
+				* Math.tan(Math.toRadians(Camera.fov/2f)));
 		farHeight = farWidth / getAspectRatio();
 		nearHeight = nearWidth / getAspectRatio();
 	}

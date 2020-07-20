@@ -19,7 +19,7 @@ import ui.UI;
 public class Application {
 	
 	public static final String TITLE = "Moonglade"; //Vendure
-	public static final String VERSION = "Version 0.4.1 Build 1";
+	public static final String VERSION = "Version 0.4.1 Build 2";
 	// Alpha Version 4, Minor 1, revision/patch 0
 	
 	public static Scene scene;
@@ -63,7 +63,7 @@ public class Application {
 		Console.init();
 		
 		Window.update();
-
+		
 		scene = new MainMenu();
 
 		for (final String arg : args) {
@@ -76,7 +76,7 @@ public class Application {
 			}
 		}
 
-		while (!Display.isCloseRequested() && !forceClose) {
+		while ((!Display.isCloseRequested() && !forceClose) || scene.hasHolds()) {
 			if (scene.isLoading()) {
 				handleSceneLoad();
 				continue;
@@ -125,5 +125,9 @@ public class Application {
 		
 		Thread.sleep(1000);
 		System.exit(0);
+	}
+	
+	public static boolean isCloseRequested() {
+		return forceClose;
 	}
 }

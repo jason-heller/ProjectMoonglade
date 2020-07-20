@@ -97,7 +97,8 @@ public class Item {
 	}
 
 	public static int getId(String name) {
-		return nameMap.get(name);
+		Integer id = nameMap.get(name);
+		return (id == null) ? 0 : id;
 	}
 
 	public static Set<String> names() {

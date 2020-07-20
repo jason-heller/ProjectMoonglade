@@ -6,7 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -144,9 +143,13 @@ public class RegionSaver implements Runnable {
 
 	void save(String filename, Map<Integer, Chunk> map) {
 		File file = new File(filename);
+
+		Console.log(filename);
 		//Map<Integer, Chunk> map = new HashMap<Integer, Chunk>(m);\
 
 		if (file.exists()) {
+
+			Console.log("append");
 			append(file, map);
 			this.c.saveCallback();
 			return;
@@ -154,7 +157,7 @@ public class RegionSaver implements Runnable {
 		
 		RunLengthOutputStream buf = new RunLengthOutputStream();
 		
-		Map<Integer, byte[]> chunkData = new HashMap<Integer, byte[]>();
+		Map<Integer, byte[]> chunkData = new TreeMap<Integer, byte[]>();
 
 		int freespace = 0;
 		for(int key : map.keySet()) {
@@ -162,7 +165,6 @@ public class RegionSaver implements Runnable {
 			final byte[] compressedData = writeChunk(chunk, buf);
 			chunkData.put(key, compressedData);
 
-			Console.log("saving ",chunk.dataX,chunk.dataZ," at "+freespace*SECTOR_SIZE);
 			freespace += Math.ceil(compressedData.length / (double)SECTOR_SIZE);
 			chunk.setState(Chunk.UNLOADING);
 		}
@@ -170,10 +172,6 @@ public class RegionSaver implements Runnable {
 		try (DataOutputStream out = new DataOutputStream(new FileOutputStream(file))) {
 			int bytePosition = 0;
 			// Header
-			/*out.writeChar('R');
-			out.writeChar('G');
-			out.writeChar('N');
-			out.writeByte(1);*/
 			
 			out.write(freespace >> 24);
 			out.write(freespace >> 16);
@@ -188,6 +186,7 @@ public class RegionSaver implements Runnable {
 					out.write(bytePosition);
 					out.write(lenBytes);
 					bytePosition += lenBytes;
+					Console.log("write chunk ",bytePosition*SECTOR_SIZE);
 				} else {
 					out.write(0);	// TODO: Only save chunks if theyre edited in some way
 					out.write(0);
@@ -225,14 +224,12 @@ public class RegionSaver implements Runnable {
 		
 		Map<Integer, byte[]> chunkData = new TreeMap<Integer, byte[]>();	// Index each chunk's memory by it's offset in header (see getOffset()`)
 
-		int spaceUsedByAppend = 0;
 		for(int key : map.keySet()) {	// Sort data by memory position
 			Chunk chunk = map.get(key);
 			final byte[] compressedData = writeChunk(chunk, byteArrOutStream);
 			chunkData.put(key, compressedData);
 			
 			chunk.setState(Chunk.UNLOADING);
-			spaceUsedByAppend += Math.ceil(compressedData.length / (double)SECTOR_SIZE);
 		}
 		
 		try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
@@ -241,14 +238,8 @@ public class RegionSaver implements Runnable {
 			
 			// Header
 			List<Integer> chunkMemoryMap = new LinkedList<Integer>();	// Index into each chunks position in memory
-			int newFreespace = freespace + spaceUsedByAppend;	// Guarenteed new free memory, this probably skips over space
-																// (since only new chunks really expand the data, not appended chunks). Should fix that eventually.
-			write(raf, 
-					newFreespace >> 24,
-					newFreespace >> 16,
-					newFreespace >> 8,
-					newFreespace);
-			
+			int newFreespace = freespace;	// Guarenteed new free memory, this probably skips over space
+															
 			// Lookup table
 			for(int bytePosition = 0; bytePosition < CHUNKS_PER_REGION; bytePosition++) {
 				if (chunkData.containsKey(bytePosition)) {
@@ -258,6 +249,8 @@ public class RegionSaver implements Runnable {
 					int len = chunkData.get(bytePosition).length;
 					byte lenBytes = (byte) Math.ceil(len / (double)SECTOR_SIZE);
 					if (existingTableData == 0) {	// Chunk has no data yet
+
+						newFreespace += lenBytes;
 						raf.seek((1 + bytePosition) * 4);
 						
 						write(raf, 
@@ -273,7 +266,7 @@ public class RegionSaver implements Runnable {
 							chunkMemoryMap.add(existingTableData >> 8);	// Chunk exists, and data doesn't overflow
 						} else {
 							chunkMemoryMap.add(existingTableData >> 8);	// Chunk exists, but new data wont fit into allocation
-							Console.log("OH FUCK");
+							System.err.println("OH FUCK");
 							// TODO: This happens when a chunk exceeds its current allocation of sectors
 							// when this happens, change its last sector's last 3 bytes to be a 
 							// pointer to the 'freespace' variable above, take the original 3 bytes and 
@@ -302,6 +295,14 @@ public class RegionSaver implements Runnable {
 					e.printStackTrace();
 				}
 			}
+			raf.seek(0);
+			write(raf, 
+					newFreespace >> 24,
+					newFreespace >> 16,
+					newFreespace >> 8,
+					newFreespace);
+			
+			
 			raf.close();
 		} catch (IOException ex) {
 			ex.printStackTrace();

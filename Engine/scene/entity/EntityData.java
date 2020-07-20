@@ -74,6 +74,7 @@ public class EntityData {
 		Resources.addTexture("entity_sheet1", "entity/entity_sheet1.png");
 		Resources.addTexture("campfire", "entity/campfire.png");
 		Resources.addTexture("bed", "entity/bed.png");
+		Resources.addTexture("test", "entity/test.png");
 	}
 	
 	static void cleanUp() {
@@ -89,5 +90,6 @@ public class EntityData {
 		Resources.getTexture("entity_sheet1").delete();
 		Resources.getTexture("campfire").delete();
 		Resources.getTexture("bed").delete();
+		Resources.getTexture("test").delete();
 	}
 }

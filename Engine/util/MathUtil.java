@@ -148,6 +148,30 @@ public class MathUtil {
 		final float dist = (float) Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
 		return (float) Math.atan2(z2 - z1, dist);
 	}
+	
+	public static Vector3f directionVectorToEuler(Vector3f dirNormalized, Vector3f up) {
+		final Vector3f side = new Vector3f(dirNormalized).cross(up).normalize();
+		up = new Vector3f(side).cross(dirNormalized);
+
+		/*final Matrix4f matrix = new Matrix4f();
+		matrix.m00 = side.x;
+		matrix.m01 = side.y;
+		matrix.m02 = side.z;
+		matrix.m10 = up.x;
+		matrix.m11 = up.y;
+		matrix.m12 = up.z;
+		matrix.m20 = -forward.x;
+		matrix.m21 = -forward.y;
+		matrix.m22 = -forward.z;*/
+		
+		float sqr = (float)Math.sqrt((up.z*up.z) + (dirNormalized.z*dirNormalized.z));
+		
+		float rx = (float)Math.atan2(up.z, -dirNormalized.z);
+		float ry = (float)Math.atan2(-side.z, -sqr);
+		float rz = (float)Math.atan2(side.y, side.x);
+		
+		return new Vector3f(rx, ry, rz);
+	}
 
 	public static Vector3f reflect(Vector3f vector, Vector3f normal) {
 		// 2*(V dot N)*N - V

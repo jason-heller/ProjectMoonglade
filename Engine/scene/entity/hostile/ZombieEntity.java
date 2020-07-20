@@ -4,6 +4,7 @@ import org.joml.Vector3f;
 
 import audio.AudioHandler;
 import core.Application;
+import dev.Console;
 import gl.particle.ParticleHandler;
 import map.Chunk;
 import map.Enviroment;
@@ -16,13 +17,14 @@ import scene.entity.utility.PhysicsEntity;
 import scene.overworld.Overworld;
 import scene.overworld.inventory.Inventory;
 import scene.overworld.inventory.Item;
+import util.MathUtil;
 import util.RunLengthInputStream;
 import util.RunLengthOutputStream;
 
 public class ZombieEntity extends PhysicsEntity {
 	
 	public ZombieEntity(Vector3f position) {
-		super("test", "default");
+		super("test", "test");
 		this.position.set(position);
 		animator.loop("test");
 		clickable = true;
@@ -49,10 +51,10 @@ public class ZombieEntity extends PhysicsEntity {
 		
 		toPlayer.div(len);
 		
-		//rotation.y = (float) Math.toDegrees(MathUtil.vectorToEuler(this.velocity).x) - 90;
+		rotation.y = 90 + (float) Math.toDegrees(MathUtil.pointDirection(0, 0, velocity.x, velocity.z));
 		super.update(scene);
 		
-		this.accelerate(toPlayer, 15);
+		this.accelerate(toPlayer, 6f);
 		
 	}
 

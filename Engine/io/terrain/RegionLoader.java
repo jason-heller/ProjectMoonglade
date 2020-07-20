@@ -51,7 +51,8 @@ public class RegionLoader implements Runnable {
 
 	@Override
 	public void run() {
-		
+
+		Console.log(filename);
 		load(filename, map, ignoreTimeDifference);
 		this.c.loadCallback(entities);
 	}
@@ -212,6 +213,8 @@ public class RegionLoader implements Runnable {
 					continue;
 				}
 				
+				Console.log("read",dataPosition);
+				
 				// Seek to chunk position
 				raf.seek(LOOKUPTBL_OFFSET_BYTES + (LOOKUPTBL_SIZE_BYTES) + dataPosition);
 				// Read chunk data
@@ -227,7 +230,6 @@ public class RegionLoader implements Runnable {
 				
 				// Parse data
 				byte[] decompressedData = ZLibUtil.decompress(compressedData);
-				Console.log("loading ",chunk.dataX,chunk.dataZ," at "+dataPosition);
 				readChunk(chunk, new RunLengthInputStream(decompressedData), ignoreTimeDifference);
 			}
 		//}
@@ -235,14 +237,5 @@ public class RegionLoader implements Runnable {
 
 	public static String getFilename(int regionX, int regionY, int regionZ) {
 		return "saves/" + Overworld.worldFileName + "/r." + regionX + "." + regionY + "." + regionZ + ".rgn";
-	}
-	
-	public static int getOffset(int regionX, int regionY, int regionZ) {
-		int rx = Math.floorMod(regionX, CHUNKS_PER_AXIS);
-		int ry = 0;//Math.floorMod(regionY, CHUNKS_PER_AXIS);
-		int rz = Math.floorMod(regionZ, CHUNKS_PER_AXIS);
-
-		return ((rx) + (rz * CHUNKS_PER_AXIS)
-				+ (ry * (CHUNKS_PER_AXIS * CHUNKS_PER_AXIS)));
 	}
 }

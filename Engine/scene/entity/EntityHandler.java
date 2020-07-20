@@ -76,6 +76,7 @@ public class EntityHandler {
 	}
 
 	public static void updateAndRender(PlayableScene scene, Camera camera, Vector3f lightDir) {
+		
 		for(Entity entity : removalQueue) {
 			if (entities.containsKey(entity.getDiffuse())) {
 				entities.get(entity.getDiffuse()).remove(entity);
@@ -97,6 +98,10 @@ public class EntityHandler {
 		GL20.glEnableVertexAttribArray(0);
 		GL20.glEnableVertexAttribArray(1);
 		GL20.glEnableVertexAttribArray(2);
+		
+		if (scene.getUi().isPaused()) {
+			return;
+		}
 
 		for (final Texture texture : entities.keySet()) {
 			if (texture == null) {

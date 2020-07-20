@@ -7,7 +7,6 @@ import org.lwjgl.input.Keyboard;
 
 import core.Application;
 import core.Resources;
-import dev.Console;
 import dev.Debug;
 import dev.tracers.LineRender;
 import gl.Camera;
@@ -48,12 +47,11 @@ public class Overworld extends PlayableScene {
 
 	private Enviroment enviroment;
 	
-	private final PlayableSceneUI ui;
-	
 	private float actionDelay = 0f;
 	
 	private int cx, cz, _x, _y, _z;
 	private float dx, dz;
+	private boolean hasHolds;
 	
 	public Overworld() {
 		super();
@@ -86,10 +84,20 @@ public class Overworld extends PlayableScene {
 	}
 	
 	@Override
+	public boolean hasHolds() {
+		return hasHolds;
+	}
+	
+	@Override
 	public void update() {
-		if (returnToMenu) {
+		if (returnToMenu || Application.isCloseRequested()) {
+		
 			if (enviroment.getTerrain().getStreamer().isFinished()) {
-				Application.changeScene(MainMenu.class);
+				if (Application.isCloseRequested()) {
+					hasHolds = false;
+				} else {
+					Application.changeScene(MainMenu.class);
+				}
 			} else {
 				enviroment.getTerrain().getStreamer().update();
 				UI.drawRect(0, 0, 1280, 620, Colors.BLACK).setOpacity(.75f);
@@ -98,6 +106,7 @@ public class Overworld extends PlayableScene {
 			
 			return;
 		}
+		hasHolds = true;
 		
 		if (player.isDisabled()) {
 			camera.setControlStyle(Camera.NO_CONTROL);
@@ -241,18 +250,16 @@ public class Overworld extends PlayableScene {
 				return;
 			}
 			
-			//if (tile != null && (tile.getWalls() & facing) != 0) {
+			if (tile != null && (tile.getWalls() & facing) != 0) {
 				//TODO: CRASHES
-				//EntityHandler.addEntity(new ItemEntity(getTileDropPos(selectionPt), tile.getMaterial(facingIndex).getDrop(), 1));
-			//}
+				EntityHandler.addEntity(new ItemEntity(getTileDropPos(selectionPt), tile.getMaterial(facingIndex).getDrop(), 1));
+			}
 			
 			byte wallFlags = facing;
 			byte slopeFlags = 0;
 			if (slopeSetting == 1) {
 				wallFlags = 0;
 				slopeFlags = facing;
-			} else if (slopeSetting == 2) {
-				// TODO: This
 			}
 			
 			byte specialFlags = mat.getInitialFlags();
@@ -410,7 +417,7 @@ public class Overworld extends PlayableScene {
 	}
 
 	@Override
-	protected void onSceneEnd() {
+	public void onSceneEnd() {
 		enviroment.getTerrain().cleanUp();
 	}
 }

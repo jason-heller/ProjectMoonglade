@@ -3,7 +3,6 @@ package scene;
 import org.joml.Vector3f;
 import org.lwjgl.input.Mouse;
 
-import core.Application;
 import gl.Camera;
 import gl.Window;
 import map.Chunk;
@@ -18,6 +17,8 @@ public abstract class PlayableScene implements Scene {
 	protected Camera camera;
 	protected Inventory inventory;
 	protected PlayerEntity player;
+	
+	protected PlayableSceneUI ui;
 
 	protected boolean returnToMenu;
 	
@@ -71,5 +72,9 @@ public abstract class PlayableScene implements Scene {
 		return exactSelectionPt;
 	}
 
-	protected abstract void onSceneEnd();
+	public abstract void onSceneEnd();
+
+	public PlayableSceneUI getUi() {
+		return ui;
+	}
 }

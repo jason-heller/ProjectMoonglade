@@ -43,11 +43,17 @@ public class MainMenu implements Scene {
 		// TODO Auto-generated method stub
 		
 	}
+	
+	@Override
+	public boolean hasHolds() {
+		return false;
+	}
 
 	@Override
 	public void update() {
 		ui.update();
 	}
 
-
+	@Override
+	public void onSceneEnd() {}
 }

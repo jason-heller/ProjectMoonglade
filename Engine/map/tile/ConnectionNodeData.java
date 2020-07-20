@@ -83,20 +83,20 @@ public class ConnectionNodeData {
 		if (dx == 0 && dy == 0 && dz == 0) return n;
 
 		switch(n) {
-		case 0: if (dz == 1 || dy == -1) return n; break;
-		case 1: if (dx == 1 || dy == -1) return n; break;
-		case 2: if (dz == -1 || dy == -1) return n; break;
-		case 3: if (dx == -1 || dy == -1) return n; break;
+		case 0: if (dz == -1 || dy == 1) return n; break;
+		case 1: if (dx == 1 || dy == 1) return n; break;
+		case 2: if (dz == 1 || dy == 1) return n; break;
+		case 3: if (dx == -1 || dy == 1) return n; break;
 		
-		case 4: if (dz == -1 || dx == -1) return n; break;
-		case 5: if (dz == -1 || dx == 1) return n; break;
-		case 6: if (dz == 1 || dx == 1) return n; break;
-		case 7: if (dz == 1 || dx == -1) return n; break;
+		case 4: if (dz == 1 || dx == -1) return n; break;
+		case 5: if (dz == 1 || dx == 1) return n; break;
+		case 6: if (dz == -1 || dx == 1) return n; break;
+		case 7: if (dz == -1 || dx == -1) return n; break;
 		
-		case 8: if (dz == 1 || dy == 1) return n; break;
-		case 9: if (dx == 1 || dy == 1) return n; break;
-		case 10: if (dz == -1 || dy == 1) return n; break;
-		case 11: if (dx == -1 || dy == 1) return n; break;
+		case 8: if (dz == -1 || dy == -1) return n; break;
+		case 9: if (dx == 1 || dy == -1) return n; break;
+		case 10: if (dz == 1 || dy == -1) return n; break;
+		case 11: if (dx == -1 || dy == -1) return n; break;
 		}
 		
 		return -1;

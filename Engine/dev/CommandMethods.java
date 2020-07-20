@@ -221,7 +221,10 @@ public class CommandMethods {
 		Inventory inv = overworld.getInventory();
 		
 		ItemData itemData = Item.get(item);
-		if (itemData != null) {
+		
+		
+		
+		if (itemData.getId() != 0) {
 			inv.addItem(itemData, amount);
 		}
 	}
@@ -236,11 +239,12 @@ public class CommandMethods {
 	}
 
 	public static void quit() {
+		Application.scene.onSceneEnd();
 		Application.close();
 	}
 	
 	public static void exit() {
-		Application.close();
+		quit();
 	}
 	
 	private static void incorrectParams(String cmd, String ... strings) {

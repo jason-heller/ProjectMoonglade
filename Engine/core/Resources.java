@@ -68,7 +68,7 @@ public class Resources {
 		modelMap.put(key, mdl);
 		return mdl;
 	}
-	
+
 	public static void addAnimation(String key, Animation animation) {
 		animationMap.put(key, animation);
 	}
@@ -140,7 +140,7 @@ public class Resources {
 	public static int addSound(String key, String path) {
 		return addSound(key, path, false);
 	}
-	
+
 	public static int addSound(String key, String path, boolean doPitchVariance) {
 		int buffer = -1;
 		if (path.charAt(path.length() - 1) == 'g') {
@@ -152,18 +152,18 @@ public class Resources {
 		soundMap.put(key, buffer);
 		return buffer;
 	}
-	
+
 	public static int addSound(String key, String path, int versions) {
 		return addSound(key, path, versions, false);
 	}
-	
+
 	// uuuuuuuuuuuvnnnn################
 	// # = sound buffer id number
 	// n = number of variations (step_grass1, step_grass2 etc)
 	// v = pitch variance flag
 	public static int addSound(String key, String path, int numVersions, boolean doPitchVariance) {
 		int buffer = -1;
-		for(int version = numVersions; version != 0; version--) {
+		for (int version = numVersions; version != 0; version--) {
 			if (path.charAt(path.length() - 1) == 'g') {
 				buffer = AudioHandler.loadOgg("res/sfx/" + path.replace(".", version + "."));
 			} else {
@@ -212,8 +212,8 @@ public class Resources {
 
 	public static Texture addTexture(String key, String path, boolean nearest, boolean isTransparent,
 			boolean clampEdges, boolean mipmap, float bias, int numRows) {
-		final Texture tex = TextureUtils.createTexture("res/" + path, GL11.GL_TEXTURE_2D, nearest, mipmap, bias, clampEdges,
-				isTransparent, numRows);
+		final Texture tex = TextureUtils.createTexture("res/" + path, GL11.GL_TEXTURE_2D, nearest, mipmap, bias,
+				clampEdges, isTransparent, numRows);
 		return addTexture(key, tex);
 	}
 
@@ -222,15 +222,15 @@ public class Resources {
 		textureMap.put(key, tex);
 		return tex;
 	}
-	
-	public static Texture addCubemap(String key, String ... paths) {
+
+	public static Texture addCubemap(String key, String... paths) {
 		byte[][] data = TextureUtils.getRawTextureData(paths);
 		int wid = (int) Math.sqrt(data[0].length / 3);
 		final Texture tex = TextureUtils.createTexture(data, wid, wid);
 		textureMap.put(key, tex);
 		return tex;
 	}
-	
+
 	public static Texture addTexture(String key, Texture texture) {
 		textureMap.put(key, texture);
 		return texture;
@@ -254,7 +254,7 @@ public class Resources {
 	public static Collection<Integer> getAllSounds() {
 		return soundMap.values();
 	}
-	
+
 	public static Animation getAnimation(String key) {
 		return animationMap.get(key);
 	}
@@ -291,22 +291,21 @@ public class Resources {
 		textureMap.get(key).delete();
 		textureMap.remove(key);
 	}
-	
+
 	public static void removeSound(String sound) {
 		int mapData = soundMap.remove(sound);
 		int buffer = (mapData & 0xffff);
 		AL10.alDeleteBuffers(buffer);
 		int variationNum = ((mapData >> 16) & 0xf);
-		
-		for(int i = 1; i <= variationNum; i++) {
+
+		for (int i = 1; i <= variationNum + 1; i++) {
 			AL10.alDeleteBuffers(buffer - i);
-			Console.log("remove", sound, buffer - i);
-			
+
 		}
 	}
-	
+
 	public static void removeAllSounds() {
-		for(int sound : soundMap.values()) {
+		for (int sound : soundMap.values()) {
 			AL10.alDeleteBuffers(sound);
 		}
 	}

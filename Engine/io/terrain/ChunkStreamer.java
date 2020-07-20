@@ -1,6 +1,5 @@
 package io.terrain;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -8,6 +7,7 @@ import java.util.TreeMap;
 import org.joml.Vector3f;
 
 import core.Application;
+import dev.Console;
 import map.Chunk;
 import map.Enviroment;
 import scene.entity.Entity;
@@ -16,8 +16,8 @@ import scene.entity.EntityHandler;
 public class ChunkStreamer {
 	
 	// String of region file, and chunk
-	private Map<String, Map<Integer, Chunk>> loadList = new HashMap<String, Map<Integer, Chunk>>();
-	private Map<String, Map<Integer, Chunk>> saveList = new HashMap<String, Map<Integer, Chunk>>();
+	private Map<String, Map<Integer, Chunk>> loadList = new TreeMap<String, Map<Integer, Chunk>>();
+	private Map<String, Map<Integer, Chunk>> saveList = new TreeMap<String, Map<Integer, Chunk>>();
 	
 	//private List<Chunk> genList = new LinkedList<Chunk>();
 	
@@ -54,7 +54,6 @@ public class ChunkStreamer {
 		String filename =loadList.keySet().iterator().next();
 		
 		Map<Integer, Chunk> chunks = loadList.get(filename);
-			
 		loadThread = new Thread(new RegionLoader(callback, filename, chunks, enviroment));
 		
 		loadThread.start();
@@ -68,9 +67,9 @@ public class ChunkStreamer {
 			return;
 		}
 		
-		int regionX = chunk.dataX >> 4;
+		int regionX = Math.floorDiv(chunk.dataX, 16);
 		int regionY = 0;
-		int regionZ = chunk.dataZ >> 4;
+		int regionZ = Math.floorDiv(chunk.dataZ, 16);
 		
 		int id = RegionSaver.getOffset(chunk.dataX, 0, chunk.dataZ);
 		
@@ -88,9 +87,9 @@ public class ChunkStreamer {
 	
 	public void queueForLoading(Chunk chunk) {
 		if (closed) return;
-		int regionX = chunk.dataX >> 4;
+		int regionX = Math.floorDiv(chunk.dataX, 16);
 		int regionY = 0;
-		int regionZ = chunk.dataZ >> 4;
+		int regionZ = Math.floorDiv(chunk.dataZ, 16);
 		
 		int id = RegionSaver.getOffset(chunk.dataX, 0, chunk.dataZ);
 		

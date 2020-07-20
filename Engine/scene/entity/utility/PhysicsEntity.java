@@ -366,6 +366,8 @@ public abstract class PhysicsEntity extends Entity {
 	}
 	
 	private void testWall(Chunk chunk, int rx1, int rz1, int rx2, int rz2, int n) {
+		if (rx1 < 0 || rz1 < 0 || rx2 >= Chunk.VERTEX_COUNT || rz2 >= Chunk.VERTEX_COUNT) return;
+		
 		float y1 = chunk.heightmap[rx1][rz1];
 		float y2 = chunk.heightmap[rx2][rz2];
 	

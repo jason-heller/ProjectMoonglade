@@ -81,7 +81,7 @@ public class StaticProp {
 				return true;
 			return false;
 		default:
-			return (item != Item.AXE);
+			return true;
 		}
 	}
 	

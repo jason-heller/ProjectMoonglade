@@ -1,6 +1,7 @@
 package gl.anim.render;
 
 import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.lwjgl.opengl.GL11;
 
@@ -13,7 +14,7 @@ import scene.entity.Entity;
 public class AnimationHandler {
 
 	private static AnimationShader shader;
-	private static ArrayList<Entity> entityBatch;
+	private static CopyOnWriteArrayList<Entity> entityBatch;
 
 	public static void add(Entity e) {
 		entityBatch.add(e);
@@ -25,7 +26,7 @@ public class AnimationHandler {
 
 	public static void init() {
 		shader = new AnimationShader();
-		entityBatch = new ArrayList<Entity>();
+		entityBatch = new CopyOnWriteArrayList<Entity>();
 	}
 
 	public static void remove(Entity e) {

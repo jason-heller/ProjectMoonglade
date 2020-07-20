@@ -66,6 +66,8 @@ public class BuildData {
 		} else {
 			tile.append(wall, slope, material, flags);
 		}
+		
+		chunk.editFlags |= 0x01;
 	}
 	
 	// Almost the same as above, but will only make changes if it considers the target tile "free" (meaning nothing is occupying the space or
@@ -106,6 +108,8 @@ public class BuildData {
 		} else if ((tile.getWalls() & wall) == 0 || material.isTransparent() || tile.getMaterial(Tile.getFacingIndex(wall)).isTransparent()) {
 			tile.append(wall, slope, material, flags);
 		}
+		
+		chunk.editFlags |= 0x01;
 	}
 	
 	/** Sets a tile within the build data
