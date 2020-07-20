@@ -22,7 +22,7 @@ public class ChunkDataWrapper {
 		this.arrZ = chunk.arrZ;
 		
 		this.heightmap = chunk.heightmap.clone();
-		this.tilemap = chunk.getChunkEntities().getPropMap().clone();
+		this.tilemap = chunk.getProps().getPropMap().clone();
 		Collection<BuildSector> sectorCollection = chunk.getBuilding().getSectors();
 		this.sectors = new BuildSector[sectorCollection.size()];
 		int i = 0;

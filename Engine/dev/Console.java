@@ -63,10 +63,6 @@ public class Console {
 		}
 	}
 
-	public static List<String> getLog() {
-		return log;
-	}
-
 	public static void init() {
 		outStream = new PrintStream(System.out) {
 			@Override

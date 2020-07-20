@@ -122,7 +122,7 @@ public class TerrainRender {
 						continue;
 					}
 					
-					final Model model = chunk.getChunkEntities().getModel();
+					final Model model = chunk.getProps().getModel();
 					if (model != null) {
 						model.bind(0, 1, 2, 3);
 						model.getIndexVbo().bind();

@@ -61,6 +61,8 @@ public class Overworld extends PlayableScene {
 		
 		SaveDataIO.readSaveData(this);
 		
+		OverworldResourcemanager.init();
+		
 		enviroment = new Enviroment(this);
 		enviroment.tick(this);
 		
@@ -76,37 +78,6 @@ public class Overworld extends PlayableScene {
 		if (Debug.structureMode) {
 			LineRender.init();
 			Enviroment.exactTime = Enviroment.DAY;
-		}
-
-		if (inventory.isEmpty()) {
-			inventory.addItem(Item.AXE, 1);
-			inventory.addItem(Item.getId("stone_wall"), 999);
-			inventory.addItem(Item.getId("planks"), 999);
-			inventory.addItem(Item.getId("window"), 999);
-			inventory.addItem(Item.getId("shingles"), 999);
-			inventory.addItem(Item.getId("concrete"), 999);
-			inventory.addItem(Item.getId("limestone"), 999);
-			inventory.addItem(Item.getId("fence"), 999);
-			inventory.addItem(Item.getId("drywall"), 999);
-			inventory.addItem(Item.getId("stone_bricks"), 999);
-			inventory.addItem(Item.getId("forge"), 999);
-			inventory.addItem(Item.getId("metal_mesh"), 999);
-			inventory.addItem(Item.getId("bricks"), 999);
-			inventory.addItem(Item.getId("thatch"), 999);
-			inventory.addItem(Item.getId("palm_planks"), 999);
-			inventory.addItem(Item.getId("cypress_planks"), 999);
-			inventory.addItem(Item.getId("dried_mud_wall"), 999);
-			inventory.addItem(Item.getId("reclaimed_metal"), 999);
-			
-			inventory.addItem(Item.getId("red_paint"), 1);
-			inventory.addItem(Item.getId("orange_paint"), 1);
-			inventory.addItem(Item.getId("yellow_paint"), 1);
-			inventory.addItem(Item.getId("green_paint"), 1);
-			inventory.addItem(Item.getId("forest_green_paint"), 1);
-			inventory.addItem(Item.getId("blue_paint"), 1);
-			inventory.addItem(Item.getId("cyan_paint"), 1);
-			inventory.addItem(Item.getId("indigo_paint"), 1);
-			inventory.addItem(Item.getId("violet_paint"), 1);
 		}
 	}
 
@@ -152,7 +123,7 @@ public class Overworld extends PlayableScene {
 		
 		// Check for terrain intersection (of pointer)
 		TerrainIntersection terrainIntersection = null;
-		if (!inventory.isOpen()) {
+		if (!inventory.isOpen() && !ui.isPaused()) {
 			terrainIntersection = enviroment.getTerrain().terrainRaycast(camera.getPosition(),
 					camera.getDirectionVector(), PLAYER_REACH);
 			if (terrainIntersection != null) {
@@ -173,17 +144,19 @@ public class Overworld extends PlayableScene {
 		actionDelay = Math.max(actionDelay - Window.deltaTime, 0f);
 		
 		// Pointer interactions
-		if (Input.isMouseGrabbed() && actionDelay == 0f) {
-			final boolean lmb = Input.isPressed(Input.KEY_LMB);
-			final boolean rmb = Input.isPressed(Input.KEY_RMB);
+		if (selectionPt != null) {
+			
+			exactSelectionPt = new Vector3f(selectionPt);
+			selectionPt.set((float) Math.floor(selectionPt.x), (float) Math.floor(selectionPt.y), (float) Math.floor(selectionPt.z));
+			selectionPt.y = Math.min(Math.max(selectionPt.y, BuildData.MIN_BUILD_HEIGHT+1), BuildData.MAX_BUILD_HEIGHT-1);
+		}
+		
+		if (Input.isMouseGrabbed() && this.actionDelay == 0f) {
+			final boolean lmb = Input.isPressed("attack");
+			final boolean rmb = Input.isPressed("use");
 			final ItemData selected = Item.get(inventory.getSelected());
 			
 			if (selectionPt != null) {
-				
-				exactSelectionPt = new Vector3f(selectionPt);
-				selectionPt.set((float) Math.floor(selectionPt.x), (float) Math.floor(selectionPt.y), (float) Math.floor(selectionPt.z));
-				selectionPt.y = Math.min(Math.max(selectionPt.y, BuildData.MIN_BUILD_HEIGHT+1), BuildData.MAX_BUILD_HEIGHT-1);
-				
 				final Terrain terrain = enviroment.getTerrain();
 				Chunk chunkPtr = terrain.getChunkAt(selectionPt.x, selectionPt.z);
 				cx = chunkPtr.realX;
@@ -221,7 +194,7 @@ public class Overworld extends PlayableScene {
 		} 
 		
 		ui.update();
-		inventory.update();
+		inventory.update(ui);
 	}
 
 	private void rmbAction(Chunk chunkPtr, Tile tile, ItemData selected, TerrainIntersection terrainIntersection,
@@ -398,6 +371,7 @@ public class Overworld extends PlayableScene {
 		ui.cleanUp();
 		EntityHandler.clearEntities();
 		enviroment.cleanUp();
+		OverworldResourcemanager.cleanUp();
 		
 		SaveDataIO.writeSaveData(this);
 	}
@@ -416,7 +390,7 @@ public class Overworld extends PlayableScene {
 	@Override
 	public void render() {
 		enviroment.render(camera, selectionPt, facing);
-		EntityHandler.render(this, camera, enviroment.getLightDirection());	
+		EntityHandler.updateAndRender(this, camera, enviroment.getLightDirection());	
 		camera.getPrevPosition().set(camera.getPosition());
 		if (Debug.structureMode) {
 			LineRender.render(camera);

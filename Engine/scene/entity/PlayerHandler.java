@@ -8,8 +8,13 @@ import gl.Camera;
 import gl.Window;
 import gl.post.PostProcessing;
 import io.Input;
+import map.Enviroment;
+import map.Material;
+import procedural.biome.BiomeData;
+import procedural.biome.BiomeVoronoi;
 import scene.Scene;
 import scene.entity.utility.PhysicsEntity;
+import scene.overworld.Overworld;
 import util.MathUtil;
 
 public class PlayerHandler {
@@ -25,7 +30,7 @@ public class PlayerHandler {
 	
 	private static float cameraHeight = CAMERA_STANDING_HEIGHT;
 	private static float height = 1.6f;
-	private static float width = .6f;
+	private static float width = .45f;
 	
 	private static float walkSfxTimer = 0f;
 
@@ -138,12 +143,52 @@ public class PlayerHandler {
 					getEntity().position.z);
 			
 			if (entity.isGrounded() && !entity.isSubmerged() && (W || A || S || D)) {
-				if (walkSfxTimer >= .7f-entity.velocity.length()/9f) {
+				if (walkSfxTimer >=.085f) {
 					walkSfxTimer = 0f;
 				}
 				
 				if (walkSfxTimer == 0f) {
-					AudioHandler.play("walk_grass");
+					if (entity.getStoodOnMaterial() == Material.NONE) {
+						Enviroment env = ((Overworld)scene).getEnviroment();
+						BiomeVoronoi biomeVoronoi = env.getBiomeVoronoi();
+						BiomeData biomeCellData = biomeVoronoi.getDataAt(entity.position.x, entity.position.z);
+						switch(biomeCellData.getMainBiome().getName()) {
+						case "Snowy Pine Forest":
+						case "Cold Mountain":
+							AudioHandler.play("walk_snow");
+							break;
+						case "Chaparrel":
+						case "Desert":
+							AudioHandler.play("walk_dirt");
+							break;
+						case "Marsh":
+						case "Mangrove Forest":
+						case "Swamp":
+							AudioHandler.play("walk_mud");
+							break;
+						default:
+							AudioHandler.play("walk_grass");
+						}
+					} else {
+						switch(entity.getStoodOnMaterial()) {
+						case SHEET_METAL:
+						case METAL_MESH:
+							AudioHandler.play("walk_metal");
+							break;
+						case PLANKS:
+						case PALM_PLANKS:
+						case CYPRESS_PLANKS:
+							AudioHandler.play("walk_wood");
+							break;
+						case CONCRETE:
+						case STONE_WALL:
+						case STONE_BRICK:
+							AudioHandler.play("walk_asphalt");
+							break;
+						default:
+							AudioHandler.play("walk_grass");
+						}
+					}
 				}
 				
 				walkSfxTimer += Window.deltaTime*.2f;

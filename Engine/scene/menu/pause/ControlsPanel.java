@@ -19,23 +19,28 @@ public class ControlsPanel extends GuiPanel {
 	private final GuiSlider sensitivity;
 	private final GuiButton reset;
 
-	public ControlsPanel(GuiPanel parent, int x, int y) {
-		super(parent, x, y);
+	public ControlsPanel(GuiPanel parent, int x, int y, int width, int height) {
+		super(parent, x, y, width, height);
 
 		setScrollable(true);
 		setLayout(new GuiFlowLayout(GuiFlowLayout.VERTICAL), x, y, 582, 9999);//392
 
 		int i = 0;
 		Iterator<String> iter = Controls.controls.keySet().iterator();
+		add(new GuiLabel(x, y ,"#SGameplay"));
+		for (i = 0; i < 6; i++) {
+			addBind(iter.next());
+		}
 		
+		addSeparator();
 		add(new GuiLabel(x, y ,"#SMovement"));
-		for (; i < 7; i++) {
+		for (i = 0; i < 7; i++) {
 			addBind(iter.next());
 		}
 		
 		addSeparator();
 		add(new GuiLabel(x, y ,"#SInventory"));
-		for (i = 0; i < 10; i++) {
+		for (i = 0; i < 9; i++) {
 			addBind(iter.next());
 		}
 

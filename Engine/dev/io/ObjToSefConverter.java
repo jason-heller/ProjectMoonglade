@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.joml.Vector3f;
 
@@ -21,6 +23,7 @@ public class ObjToSefConverter {
 		String path = "";
 		float posVar = 0, scaleVar = 0;
 		float width = Float.NaN, height = Float.NaN, length = Float.NaN;
+		int minMiddles = 1, maxMiddles = 3;
 		try {
 			lines = Files.readAllLines(new File(filename).toPath());
 			
@@ -53,9 +56,16 @@ public class ObjToSefConverter {
 					String[] data = line.replaceAll(" ", "").replaceAll("\t", "").split("=");
 					length = Float.parseFloat(data[1]);
 					
-				}
-				else if (line.contains("}")) {
-					convert(path, posVar, scaleVar, width, height, length);
+				} else if (line.contains("min_middles")) {
+					String[] data = line.replaceAll(" ", "").replaceAll("\t", "").split("=");
+					minMiddles = Integer.parseInt(data[1]);
+					
+				} else if (line.contains("max_middles")) {
+					String[] data = line.replaceAll(" ", "").replaceAll("\t", "").split("=");
+					maxMiddles = Integer.parseInt(data[1]);
+					
+				} else if (line.contains("}")) {
+					convert(path, posVar, scaleVar, width, height, length, minMiddles, maxMiddles);
 					posVar = 0;
 					scaleVar = 0;
 				}
@@ -65,7 +75,7 @@ public class ObjToSefConverter {
 		}
 	}
 	
-	public static void convert(String filename, float posVar, float scaleVar, float width, float height, float length) {
+	public static void convert(String filename, float posVar, float scaleVar, float width, float height, float length, int minMiddles, int maxMiddles) {
 		BufferedReader reader;
 		
 		List<Vertex> glData = new ArrayList<Vertex>();
@@ -75,6 +85,9 @@ public class ObjToSefConverter {
 		List<float[]> uvs = new ArrayList<float[]>();
 		List<float[]> normals = new ArrayList<float[]>();
 		List<int[]> indices = new ArrayList<int[]>();
+		Map<Integer, int[]> partitionOffsets = new TreeMap<Integer, int[]>();
+		
+		int lastOffset = -1;
 		
 		float w = width;
 		float h = height;
@@ -112,6 +125,21 @@ public class ObjToSefConverter {
 					
 					normals.add(new float[] { Float.parseFloat(data[1]), Float.parseFloat(data[2]),
 							Float.parseFloat(data[3]) });
+				} else if (data[0].equals("o")) {
+					if (lastOffset != -1)
+						partitionOffsets.get(lastOffset)[1] = glIndexOrder.size();
+					
+					if (data[1].toLowerCase().contains("bottom")) {
+						partitionOffsets.put(0, new int[] {glIndexOrder.size(), 0});
+						lastOffset = 0;
+					} else if (data[1].toLowerCase().contains("middle")) {
+						partitionOffsets.put(1, new int[] {glIndexOrder.size(), 0});
+						lastOffset = 1;
+					} else if (data[1].toLowerCase().contains("top")) {
+						partitionOffsets.put(2, new int[] {glIndexOrder.size(), 0});
+						lastOffset = 2;
+					}
+					
 				} else if (data[0].equals("f")) {
 					
 					for (byte i = 1; i < 4; i++) {
@@ -159,6 +187,10 @@ public class ObjToSefConverter {
 			if (Float.isNaN(length))
 				l = (max.z - min.z) / 2f;
 			
+			if (partitionOffsets.size() != 0) {
+				partitionOffsets.get(lastOffset)[1] = glIndexOrder.size();
+			}
+			
 			try {
 				dos = new DataOutputStream(new FileOutputStream(f.getPath().substring(0, f.getPath().indexOf(".")) + ".sef"));
 				Console.log(f.getPath().substring(0, f.getPath().indexOf(".")) + ".sef");
@@ -172,9 +204,8 @@ public class ObjToSefConverter {
 				dos.writeFloat(posVar);
 				dos.writeFloat(scaleVar);
 				
-				dos.writeByte(1);// \ TODO: allow multiple models to be fit into this
-				dos.writeByte(0);// / (model #1 id, 0=always render)
-				
+				dos.writeByte(0);		// Flags
+	
 				int vertexCount = glData.size();
 				dos.writeShort(vertexCount);
 				int indexCount = glIndexOrder.size();

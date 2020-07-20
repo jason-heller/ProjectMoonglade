@@ -18,7 +18,7 @@ public class NewGameMenu extends GuiPanel {
 	private final GuiButton create, back;
 
 	public NewGameMenu(GuiPanel parent, int x, int y) {
-		super(parent, x, y);
+		super(parent, x, y, 0, 0);
 		setLayout(new GuiFlowLayout(GuiFlowLayout.VERTICAL), x, y, 582 / 2, 392);
 
 		worldName = new GuiTextbox(x,y, "World Name", "New World");

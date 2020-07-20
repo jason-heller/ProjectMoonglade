@@ -136,7 +136,7 @@ public class Terrain {
 			
 			final float tileY = chunk.getTerrain().getHeightAt(point[0] + .5f, point[1] + .5f);//plane.projectPoint(new Vector3f(point[0] + .5f, 0, point[1] + .5f)).y;
 			
-			ti = chunk.getChunkEntities().testCollision(origin, dir, point[0], tileY, point[1]);
+			ti = chunk.getProps().testCollision(origin, dir, point[0], tileY, point[1]);
 			
 			if (ti != null) {
 				return ti;
@@ -256,7 +256,7 @@ public class Terrain {
 		float relz = (float) Math.floor(z / Chunk.CHUNK_SIZE);
 		final int tx = (int) relx - enviroment.x;//Math.floor(relx / Chunk.CHUNK_SIZE);
 		final int tz = (int) relz - enviroment.z;//Math.floor(relz / Chunk.CHUNK_SIZE);
-
+		
 		if (tx >= 0 && tz >= 0 && tx < data.length && tz < data.length) {
 			Chunk chunk = data[tx][tz];
 			
@@ -270,6 +270,7 @@ public class Terrain {
 	
 	public Tile getTileAt(float x, float y, float z) {
 		Chunk chunkPtr = getChunkAt(x, z);
+		if (chunkPtr == null) return null;
 		
 		return chunkPtr.getBuilding().getTileAt(
 				x - chunkPtr.realX,
@@ -290,7 +291,6 @@ public class Terrain {
 	}
 
 	public void reload() {
-		Vector3f pos = Application.scene.getCamera().getPosition();
 		
 		for(Chunk[] stripe : data) {
 			for(Chunk chunk : stripe) {
@@ -298,8 +298,8 @@ public class Terrain {
 			}
 		}
 		this.data = new Chunk[size][size];
-		final int halfSize = size/2;
-		populate((int)(pos.x/Chunk.CHUNK_SIZE) - halfSize, (int)(pos.z/Chunk.CHUNK_SIZE) - halfSize);
+		
+		populate(enviroment.x, enviroment.z);
 	}
 
 	public Vector3f buildingRaycast(Overworld overworld, Vector3f position, Vector3f directionVector, int playerReach,
@@ -310,4 +310,5 @@ public class Terrain {
 	public ChunkStreamer getStreamer() {
 		return this.streamer;
 	}
+
 }

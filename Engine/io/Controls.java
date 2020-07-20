@@ -39,6 +39,13 @@ public class Controls {
 
 	public static void defaults() {
 		controls.clear();
+		controls.put("attack", Input.KEY_LMB);
+		controls.put("use", Input.KEY_RMB);
+		controls.put("tile_style", Input.KEY_MMB);
+		controls.put("pause", Keyboard.KEY_ESCAPE);
+		controls.put("next_item", Input.KEY_WHEEL_UP);
+		controls.put("prev_item", Input.KEY_WHEEL_DOWN);
+		
 		controls.put("walk_forward", Keyboard.KEY_W);
 		controls.put("walk_left", Keyboard.KEY_A);
 		controls.put("walk_backward", Keyboard.KEY_S);
@@ -46,7 +53,6 @@ public class Controls {
 		controls.put("jump", Keyboard.KEY_SPACE);
 		controls.put("sneak", Keyboard.KEY_LCONTROL);
 		controls.put("use_backpack", Keyboard.KEY_E);
-		controls.put("pause", Keyboard.KEY_ESCAPE);
 		
 		for(int i = 1; i <= 9; i++) {
 			controls.put("item slot "+i, Keyboard.KEY_1 + (i-1));

@@ -1,6 +1,5 @@
 package ui.menu;
 
-import dev.Console;
 import io.Input;
 import ui.Font;
 import ui.Image;

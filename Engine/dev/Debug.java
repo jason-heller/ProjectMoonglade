@@ -1,22 +1,19 @@
 package dev;
 
-import org.joml.Vector3f;
 import org.lwjgl.opengl.GL15;
 
 import core.Application;
 import gl.Camera;
 import gl.Window;
-import gl.particle.ParticleHandler;
 import gl.res.Model;
 import gl.res.Vbo;
 import map.Chunk;
 import map.Enviroment;
-import map.tile.Tile;
 import procedural.biome.Biome;
 import procedural.biome.BiomeVoronoi;
 import procedural.biome.BiomeVoronoi.BiomeNode;
 import procedural.terrain.GenTerrain;
-import scene.entity.EntityHandler;
+import scene.entity.PlayerEntity;
 import scene.overworld.Overworld;
 import ui.UI;
 
@@ -69,7 +66,11 @@ public class Debug {
 		BiomeVoronoi biomeVoronoi = env.getBiomeVoronoi();
 		BiomeNode biomeCellData = biomeVoronoi.getClosest();
 		Biome biome = biomeCellData.biome;
-		float[] cp = GenTerrain.getClimateProperties(camera.getPosition().x, camera.getPosition().z);
+		PlayerEntity player = overworld.getPlayer();
+		String vx = String.format("%.1f", player.velocity.x);
+		String vy = String.format("%.1f", player.velocity.y);
+		String vz = String.format("%.1f", player.velocity.z);
+		//float[] cp = GenTerrain.getClimateProperties(camera.getPosition().x, camera.getPosition().z);
 
 		UI.drawString("\n#rX: "+cx+" #gY: "+cy+" #bZ: "+cz+"\n"
 				+ "#wFPS: "+(int)Window.framerate+"/"+Window.maxFramerate+"\n"
@@ -77,7 +78,8 @@ public class Debug {
 				+ "chunk xz: "+Math.floor(camera.getPosition().x/Chunk.CHUNK_SIZE)+", "+Math.floor(camera.getPosition().z/Chunk.CHUNK_SIZE) + "\n"
 				+ "Biome: " + biome.getName() + " \n"
 				+ "weather: "+weather+"\n"
-				+ "climate: "+GenTerrain.getTemperature(cp[0])+"/"+GenTerrain.getMoisture(cp[1])+"\n"
+				+ "vel: #r"+vx+" #gY: "+vy+" #bZ: "+vz+"\n"
+				+ "#wswimming: "+player.isSubmerged()+" submerged: "+player.isFullySubmerged()+"\n"
 				+ "dt: "+Window.deltaTime +"\n"
 				+ "time: " + (int)Enviroment.exactTime+"\n"
 				+ "facing: " + overworld.getCamFacingByte()

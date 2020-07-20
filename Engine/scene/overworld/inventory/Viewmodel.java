@@ -10,7 +10,6 @@ import gl.res.Model;
 import gl.res.Texture;
 import io.Input;
 import scene.entity.EntityHandler;
-import util.MathUtil;
 
 public class Viewmodel {
 	private Texture texture;
@@ -49,14 +48,14 @@ public class Viewmodel {
 		}
 	}
 
-	public void update() {
+	public void update(boolean open) {
 		if (Input.isDown("walk_left") || Input.isDown("walk_right") || Input.isDown("walk_forward")
 				|| Input.isDown("walk_backward")) {
 			xWag += Window.deltaTime*5;
 			zWag += Window.deltaTime*5;
 		}
 		
-		if (Input.isPressed(Input.KEY_LMB)) {
+		if (Input.isPressed("attack") && !open) {
 			swingAnim = true;
 			xRot = 0;
 			xRotTarget = -90;

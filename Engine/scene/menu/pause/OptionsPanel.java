@@ -10,13 +10,13 @@ public class OptionsPanel extends GuiLayeredPane {
 	private final SoundPanel sfx;
 
 	public OptionsPanel(GuiPanel parent) {
-		super(parent, 264, 100, 954, 999, "Options");
+		super(parent, 264, 100, 762, 520, "Options");
 
 		setMenu("Controls", "Graphics", "Sound", "Back");
 
-		gfx = new GraphicsPanel(this, tabX + 4, y + 4);
-		controls = new ControlsPanel(this, tabX + 4, y + 4);
-		sfx = new SoundPanel(this, tabX + 4, y + 4);
+		gfx = new GraphicsPanel(this, tabX + 4, y + 4, 758, 520);
+		controls = new ControlsPanel(this, tabX + 4, y + 4, 758, 520);
+		sfx = new SoundPanel(this, tabX + 4, y + 4, 758, 520);
 
 		setPanels(controls, gfx, sfx);
 	}

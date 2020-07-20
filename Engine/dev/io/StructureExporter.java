@@ -66,7 +66,7 @@ public class StructureExporter {
 					if (includeHeights)
 						dos.writeFloat(c.heightmap[dx][dz]);
 					if (includeEnvTiles)
-						dos.writeInt(c.getChunkEntities().getProp(dx, dz).ordinal());
+						dos.writeInt(c.getProps().getProp(dx, dz).ordinal());
 
 					if (includeBuildings) {
 						for (int k = 0; k < h; k++) {

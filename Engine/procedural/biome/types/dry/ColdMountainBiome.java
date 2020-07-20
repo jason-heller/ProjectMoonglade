@@ -13,7 +13,7 @@ import procedural.terrain.TerrainMeshBuilder;
 public class ColdMountainBiome extends Biome {
 	public ColdMountainBiome() {
 		////////////////////////////////////////////////
-		this.name = "Mountain";
+		this.name = "Cold Mountain";
 		this.temp = Temperature.COLD;
 		this.moisture = Moisture.DRY;
 		this.terrainHeightFactor = 50;

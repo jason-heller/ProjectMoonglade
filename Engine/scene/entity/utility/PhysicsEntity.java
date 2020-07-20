@@ -8,7 +8,11 @@ import geom.AABB;
 import geom.Manifold;
 import gl.Window;
 import map.Chunk;
+import map.Material;
 import map.Terrain;
+import map.prop.Props;
+import map.prop.StaticProp;
+import map.prop.StaticPropProperties;
 import map.tile.Tile;
 import scene.Scene;
 import scene.entity.Entity;
@@ -18,7 +22,7 @@ public abstract class PhysicsEntity extends Entity {
 	
 	private static final float DEFAULT_FRICTION = 3f;
 
-	private static final float ALLOWABLE_STEP = .35f;
+	private static final float ALLOWABLE_STEP = .1f;
 	
 	protected boolean grounded = false;
 	public boolean previouslyGrounded = false;
@@ -40,6 +44,8 @@ public abstract class PhysicsEntity extends Entity {
 
 	public boolean visible = true;
 	
+	private Material stoodOnMaterial = Material.NONE;
+
 	public PhysicsEntity(String model, String diffuse) {
 		super(model, diffuse);
 		aabb = new AABB(new Vector3f(), new Vector3f(width, height, width));
@@ -94,6 +100,7 @@ public abstract class PhysicsEntity extends Entity {
 	}
 
 	private void collide(Terrain terrain) {
+		stoodOnMaterial = Material.NONE;
 		Chunk chunk = terrain.getChunkAt(position.x, position.z);
 		
 		if (chunk == null) return;
@@ -102,13 +109,13 @@ public abstract class PhysicsEntity extends Entity {
 		final float relz = position.z - chunk.realZ;
 		int tx = ((int) Math.floor(relx / Chunk.POLYGON_SIZE));
 		int tz = ((int) Math.floor(relz / Chunk.POLYGON_SIZE));
-		
+				
 		//if (tx < 0 || tz < 0 || tx >= Chunk.VERTEX_COUNT || tz >= Chunk.VERTEX_COUNT) return;
 		
 		submerged = false;
 		fullySubmerged = false;
 		final float waterHeight = chunk.getWaterHeight(tx, tz);
-		if (waterHeight != Float.MIN_VALUE && waterHeight > position.y) {
+		if (waterHeight != Float.MIN_VALUE && waterHeight > position.y + .2f) {
 			submerged = true;
 			
 			if (waterHeight > position.y + height) {
@@ -129,13 +136,25 @@ public abstract class PhysicsEntity extends Entity {
 		// Right
 		testWall(chunk, tx + 2, tz, tx + 2, tz + 1, 1);
 		
-		//final float minHeight = chunk.getPolygon(position.x, position.z).barryCentric(position.x, position.z);
+		tx = ((tx-1)/2);
+		tz = ((tz-1)/2);
+		
 		final float w = width-.01f;
+		
+		Chunk tr = terrain.getChunkAt(position.x+w, position.z-w),
+				bl = terrain.getChunkAt(position.x-w, position.z-w),
+				tl = terrain.getChunkAt(position.x-w, position.z+w),
+				br = terrain.getChunkAt(position.x+w, position.z+w);
+		
+		if (tr == null || tl == null || br == null || bl == null) {
+			return;
+		}
+		
 		final float minHeight = Math.max(
-				terrain.getChunkAt(position.x+w, position.z-w).getPolygon(position.x+w, position.z-w).barryCentric(position.x+w, position.z-w), Math.max(
-				terrain.getChunkAt(position.x-w, position.z-w).getPolygon(position.x-w, position.z-w).barryCentric(position.x-w, position.z-w), Math.max(
-				terrain.getChunkAt(position.x-w, position.z+w).getPolygon(position.x-w, position.z+w).barryCentric(position.x-w, position.z+w), 
-				terrain.getChunkAt(position.x+w, position.z+w).getPolygon(position.x+w, position.z+w).barryCentric(position.x+w, position.z+w))));
+				tr.getPolygon(position.x+w, position.z-w).barryCentric(position.x+w, position.z-w), Math.max(
+				bl.getPolygon(position.x-w, position.z-w).barryCentric(position.x-w, position.z-w), Math.max(
+				tl.getPolygon(position.x-w, position.z+w).barryCentric(position.x-w, position.z+w), 
+				br.getPolygon(position.x+w, position.z+w).barryCentric(position.x+w, position.z+w))));
 		
 		
 		if (position.y <= minHeight || position.y <= minHeight + ALLOWABLE_STEP && previouslyGrounded) {
@@ -146,20 +165,53 @@ public abstract class PhysicsEntity extends Entity {
 			grounded = false;
 		}
 		
-		/*if (position.y <= minHeight || position.y <= minHeight + ALLOWABLE_STEP && previouslyGrounded) {
-			if (position.y >= minHeight - ALLOWABLE_STEP) {
-				position.y = minHeight;
-				grounded = true;
-				velocity.y = 0;
-			}
-		} else {
-			grounded = false;
-		}*/
+		collideWithProps(terrain);
 		
 		collideWithBuildings(terrain);
 		
 	}
 	
+	private void collideWithProps(Terrain terrain) {
+		final float w = width-.01f;
+		testProp(terrain, position.x+w, position.z-w);
+		testProp(terrain, position.x-w, position.z-w);
+		testProp(terrain, position.x-w, position.z+w);
+		testProp(terrain, position.x+w, position.z+w);
+		//testProp(terrain, position.x, position.z);
+	}
+	
+	private void testProp(Terrain terrain, float px, float pz) {
+		Chunk chunk = terrain.getChunkAt(px, pz);
+		
+		if (chunk == null) return;
+		
+		int tileX = (int)(px - chunk.realX);
+		int tileZ = (int)(pz - chunk.realZ);
+		
+		Props prop = chunk.getProps().getProp(tileX, tileZ);
+		if (prop != null) {
+			StaticProp staticProp = Props.get(prop);
+			
+			if (staticProp.isSolid()) {
+			
+				final StaticPropProperties tileProps = chunk.getProps().getEntityProperties(tileX, tileZ);
+				
+				final float x = chunk.realX + (tileX + .5f);
+				final float z = chunk.realZ + (tileZ + .5f);
+				
+				final StaticProp tile = Props.get(prop);
+				Vector3f bounds = tile.getBounds();
+	
+				float tileY = staticProp.isGrounded() ? chunk.heightLookup(tileX, tileZ) : chunk.getWaterHeight(tileX, tileZ);
+				
+				final float y = tileY + (tileProps.scale * bounds.y);
+	
+				final AABB aabb = new AABB(x, y, z, bounds.x * tileProps.scale, bounds.y * tileProps.scale, bounds.z * tileProps.scale);
+				this.aabbCollide(tile.getMaterial(), aabb);
+			}
+		}
+	}
+
 	private void collideWithBuildings(Terrain t) {
 		aabb.setCenter(position.x, position.y + (height/2), position.z);
 
@@ -184,19 +236,6 @@ public abstract class PhysicsEntity extends Entity {
 				}
 			}
 		}
-		
-		/*Chunk chunkPtr = t.getChunkAt(position.x, position.z);
-		
-		float tx = (float)Math.floor(position.x);
-		float tz = (float)Math.floor(position.z);
-		float ty = (float)Math.floor(position.y-1f);
-		
-		tile = chunkPtr.getBuilding().getTileAt(tx - chunkPtr.realX, ty, tz - chunkPtr.realZ);
-		
-		if (tile != null) {
-			testTile(tile, position.x, position.y, position.z,
-					tx, ty, tz, true, true);
-		}*/
 	}
 	
 	protected void addTile(Tile[] tiles, Tile tileAt) {
@@ -222,32 +261,32 @@ public abstract class PhysicsEntity extends Entity {
 		if (walls != 0) {
 			if (tile.isSolid(2) && (walls & 4) != 0/* && py > ty+2-height && !isFloor*/) {
 				tileBounds.setMinMax(tx, ty+.95f, tz, tx+1, ty+1, tz+1);
-				aabbCollide(tileBounds);
+				aabbCollide(tile.getMaterial(2), tileBounds);
 			}
 			
 			if ((tile.isSolid(3)/* || tile.isSolid(2)*/) && (walls & 8) != 0/*  && (py <= ty+.05f || this.previouslyGrounded) && isFloor*/) {
 				tileBounds.setMinMax(tx, ty, tz, tx+1, ty+.05f, tz+1);
-				aabbCollide(tileBounds);
+				aabbCollide(tile.getMaterial(3), tileBounds);
 			}
 			
 			if (tile.isSolid(0) && (walls & 1) != 0/* && px < tx+width*/) {
 				tileBounds.setMinMax(tx-.05f, ty, tz, tx+.05f, ty+1, tz+1);
-				aabbCollide(tileBounds);
+				aabbCollide(tile.getMaterial(0), tileBounds);
 			}
 			
 			if (tile.isSolid(1) && (walls & 2) != 0/* && px > (tx + 1f) - width*/) {
 				tileBounds.setMinMax(tx+.95f, ty, tz, tx+1.05f, ty+1, tz+1);
-				aabbCollide(tileBounds);
+				aabbCollide(tile.getMaterial(1), tileBounds);
 			}
 			
 			if (tile.isSolid(4) && (walls & 16) != 0/* && pz < tz+width*/) {
 				tileBounds.setMinMax(tx, ty, tz-.05f, tx+1, ty+1, tz+.05f);
-				aabbCollide(tileBounds);
+				aabbCollide(tile.getMaterial(4), tileBounds);
 			}
 			
 			if (tile.isSolid(5) && (walls & 32) != 0/* && pz > (tz + 1f) - width*/) {
 				tileBounds.setMinMax(tx, ty, tz+.95f, tx+1, ty+1, tz+1.05f);
-				aabbCollide(tileBounds);
+				aabbCollide(tile.getMaterial(5), tileBounds);
 			}
 		}
 		
@@ -258,7 +297,7 @@ public abstract class PhysicsEntity extends Entity {
 			if (dx < 0 || dz < 0 || dx > 1|| dz > 1) {
 				float f = this.width/2f;
 				tileBounds.setMinMax(tx+f, ty+f, tz+f, tx+(1-f), ty+(1-f), tz+(1-f));
-				aabbCollide(tileBounds);
+				aabbCollide(tile.getMaterial(6), tileBounds);
 				return;
 			}
 			
@@ -294,12 +333,12 @@ public abstract class PhysicsEntity extends Entity {
 			} else {
 				float f = this.width/2f;
 				tileBounds.setMinMax(tx+f, ty+f, tz+f, tx+(1-f), ty+(1-f), tz+(1-f));
-				aabbCollide(tileBounds);
+				aabbCollide(tile.getMaterial(6), tileBounds);
 			}
 		}
 	}
 	
-	private void aabbCollide(AABB other) {
+	private void aabbCollide(Material material, AABB other) {
 		Manifold manifold = aabb.collide(other);
 		
 		if (manifold != null) {
@@ -317,6 +356,7 @@ public abstract class PhysicsEntity extends Entity {
 			
 			if (axis.y == 1f) {
 				grounded = true;
+				stoodOnMaterial = material;
 			}
 			
 			if (axis.x != 0) velocity.x = 0;
@@ -510,5 +550,9 @@ public abstract class PhysicsEntity extends Entity {
 	
 	public AABB getAABB() {
 		return aabb;
+	}
+	
+	public Material getStoodOnMaterial() {
+		return stoodOnMaterial;
 	}
 }

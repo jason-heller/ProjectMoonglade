@@ -24,13 +24,13 @@ public enum Input {
 	private static int mouseDWheel;
 
 	private static float backSpaceTimer = 0;
+	
 	public final static int KEY_WHEEL_UP = 10100;
-
 	public final static int KEY_WHEEL_DOWN = 10200;
-
 	public final static int KEY_LMB = 11001;
 	public final static int KEY_RMB = 11002;
 	public final static int KEY_MMB = 11003;
+	
 	public static final long DEFAULT_POLL_RATE = 1000 / 60;
 
 	private static long pollRate = DEFAULT_POLL_RATE; // Poll 20 times per second

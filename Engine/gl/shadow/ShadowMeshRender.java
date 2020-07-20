@@ -45,7 +45,7 @@ public class ShadowMeshRender {
 		//Resources.getTexture("default").bind(0);
 		
 		for (Chunk chunk : chunks) {//chunk.getGroundModel(), chunk.getWallModel(), 
-			Model[] models = new Model[] {chunk.getBuilding().getModel(), chunk.getChunkEntities().getModel()};
+			Model[] models = new Model[] {chunk.getBuilding().getModel(), chunk.getProps().getModel()};
 			Texture[] textures = new Texture[] {Resources.getTexture("material"), Resources.getTexture("flora")};
 			for(int i = 0; i < models.length; i++) {
 				if (models[i] == null) continue;

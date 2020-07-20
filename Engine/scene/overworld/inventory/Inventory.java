@@ -9,10 +9,9 @@ import gl.Camera;
 import gl.building.BuildingRender;
 import gl.res.Texture;
 import io.Input;
+import scene.PlayableSceneUI;
 import scene.entity.EntityHandler;
 import scene.entity.utility.ItemEntity;
-import scene.overworld.inventory.crafting.ItemStack;
-import scene.overworld.inventory.crafting.RecipeHandler;
 import ui.Image;
 import ui.UI;
 import util.Colors;
@@ -67,7 +66,7 @@ public class Inventory {
 		viewmodel = new Viewmodel();
 	}
 
-	public void update() {
+	public void update(PlayableSceneUI ui) {
 
 		if (Input.isPressed("use_backpack")) {
 			open = !open;
@@ -78,6 +77,8 @@ public class Inventory {
 				Input.requestMouseRelease();
 			}
 		}
+		
+		if (ui.isPaused()) return;
 		
 		if (getSelected() != viewmodel.getItem()) {
 			viewmodel.setItem(getSelected());
@@ -129,16 +130,22 @@ public class Inventory {
 				id += (4 - ((my - INV_TOP) / slotSize)) * 9;
 			}
 			
-			if (id != -1 && Input.isPressed(Input.KEY_LMB)) {
-				int tempItem = items[id];
-				int tempQuantity = quantities[id];
-				
-				items[id] = heldItem;
-				quantities[id] = heldQuantity;
-				
-				heldItem = tempItem;
-				heldQuantity = tempQuantity;
-			} else if (heldItem != 0 && Input.isPressed(Input.KEY_LMB)) {
+			if (id != -1 && Input.isPressed("attack")) {
+				if (items[id] == heldItem) {
+					quantities[id] += heldQuantity;
+					heldItem = 0;
+					heldQuantity = 0;
+				} else {
+					int tempItem = items[id];
+					int tempQuantity = quantities[id];
+					
+					items[id] = heldItem;
+					quantities[id] = heldQuantity;
+					
+					heldItem = tempItem;
+					heldQuantity = tempQuantity;
+				}
+			} else if (heldItem != 0 && Input.isPressed("attack")) {
 				EntityHandler.addEntity(new ItemEntity(Application.scene.getCamera().getPosition(), heldItem, heldQuantity));
 				heldItem = 0;
 				heldQuantity = 0;
@@ -195,7 +202,7 @@ public class Inventory {
 				selectionPos = 0;
 			}
 		}
-		viewmodel.update();
+		viewmodel.update(open);
 	}
 
 	public static void drawItem(ItemData data, int dx, int dy, float s) {

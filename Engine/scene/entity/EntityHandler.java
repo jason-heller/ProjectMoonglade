@@ -75,7 +75,21 @@ public class EntityHandler {
 		}
 	}
 
-	public static void render(PlayableScene scene, Camera camera, Vector3f lightDir) {
+	public static void updateAndRender(PlayableScene scene, Camera camera, Vector3f lightDir) {
+		for(Entity entity : removalQueue) {
+			if (entities.containsKey(entity.getDiffuse())) {
+				entities.get(entity.getDiffuse()).remove(entity);
+			}
+			
+			if (entity.getChunk() != null) {
+				List<Entity> list = byChunk.get(entity.getChunk());
+				if (list != null) {
+					list.remove(entity);
+				}
+			}
+		}
+		removalQueue.clear();
+		
 		shader.start();
 		shader.projectionViewMatrix.loadMatrix(camera.getProjectionViewMatrix());
 		shader.lightDirection.loadVec3(lightDir);
@@ -137,10 +151,10 @@ public class EntityHandler {
 		entity.update(scene);
 
 		if (entity.isClickable()) {
-			if (Input.isPressed(Input.KEY_LMB)
+			if (Input.isPressed("attack")
 					&& entity.getAabb().collide(playerPos, scene.getCamera().getDirectionVector()) < Overworld.PLAYER_REACH) {
 				entity.onClick(true, scene.getInventory());
-			} else if (Input.isPressed(Input.KEY_RMB)
+			} else if (Input.isPressed("use")
 					&& entity.getAabb().collide(playerPos, scene.getCamera().getDirectionVector()) < Overworld.PLAYER_REACH) {
 				entity.onClick(false, scene.getInventory());
 			}
@@ -156,13 +170,14 @@ public class EntityHandler {
 		GL20.glEnableVertexAttribArray(1);
 		GL20.glEnableVertexAttribArray(2);
 
-		GL11.glDisable(GL11.GL_DEPTH_TEST);
+		GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
+		//GL11.glDisable(GL11.GL_DEPTH_TEST);
 		model.bind(0, 1, 2);
 		shader.modelMatrix.loadMatrix(modelMatrix);
 		texture.bind(0);
 		GL11.glDrawElements(GL11.GL_TRIANGLES, model.getIndexCount(), GL11.GL_UNSIGNED_INT, 0);
 		model.unbind(0, 1, 2);
-		GL11.glEnable(GL11.GL_DEPTH_TEST);
+		//GL11.glEnable(GL11.GL_DEPTH_TEST);
 		
 		GL20.glDisableVertexAttribArray(0);
 		GL20.glDisableVertexAttribArray(1);
@@ -192,20 +207,6 @@ public class EntityHandler {
 	}
 
 	public static void tick(Terrain terrain) {
-		for(Entity entity : removalQueue) {
-			if (entities.containsKey(entity.getDiffuse())) {
-				entities.get(entity.getDiffuse()).remove(entity);
-			}
-			
-			if (entity.getChunk() != null) {
-				List<Entity> list = byChunk.get(entity.getChunk());
-				if (list != null) {
-					list.remove(entity);
-				}
-			}
-		}
-		removalQueue.clear();
-		
 		for (final Texture texture : entities.keySet()) {
 			final List<Entity> batch = entities.get(texture);
 			for (int j = 0, m = batch.size(); j < m; j++) {

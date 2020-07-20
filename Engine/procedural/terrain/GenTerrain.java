@@ -46,11 +46,11 @@ public class GenTerrain {
 	
 	public static float[][] buildTerrain(Chunk chunk, int x, int y, int z, int vertexStripeSize, int polygonSize, BiomeVoronoi biomeVoronoi) {
 		float terrainHeight;
-		Props terrainTile;
+		Props prop;
 		Structure structure;
 		float[][] heights = chunk.heightmap;
 		float[][] waterTable = chunk.waterTable;
-		Props[][] tileItems = chunk.chunkProps.getPropMap();
+		Props[][] props = chunk.chunkProps.getPropMap();
 		
 		boolean needsTileItems = (chunk.editFlags & 0x02) == 0;
 		boolean needsHeights = (chunk.editFlags & 0x04) == 0;
@@ -90,8 +90,8 @@ public class GenTerrain {
 				waterTable[i][j] = getTerrainWaterTable(x+i,z+j, heights[(i*2)+1][(j*2)+1], biomeData);
 				
 				if (needsTileItems && i != vertexStripeSize-1 && j != vertexStripeSize-1) {
-					terrainTile = getTerrainTileItems(x+i,z+j, heights[(i*2)+1][(j*2)+1], biomeData, r2, tileItems);
-					tileItems[i][j] = terrainTile;
+					prop = getTerrainProps(x+i,z+j, heights[(i*2)+1][(j*2)+1], biomeData, r2, props);
+					props[i][j] = prop;
 					
 					structure = getTerrainStructure(x+i,z+j, heights[(i*2)+1][(j*2)+1], waterTable[i][j], biomeData, r2);
 					if (structure != null) {
@@ -143,7 +143,7 @@ public class GenTerrain {
 	
 	}
 
-	private static Props getTerrainTileItems(int x, int z, float currentHeight, BiomeData biomeData, Random r, Props[][] tileItems) {
+	private static Props getTerrainProps(int x, int z, float currentHeight, BiomeData biomeData, Random r, Props[][] tileItems) {
 		Biome biome = biomeData.getInfluencingBiomes()[biomeData.mainBiomeId];
 		return biome.getTerrainTileItems(x, z, currentHeight, biomeData.getSubseed(), r, tileItems);
 	}

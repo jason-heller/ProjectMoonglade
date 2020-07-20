@@ -91,9 +91,8 @@ public enum ItemAction {
 		ParticleHandler.addSplash(propTile.getMaterial(), exactSelectionPt, splashDir);
 		//ParticleHandler.addBurst(Resources.getTexture("materials"), 0, 0, selectionPt);
 		
-		int relX = (int)(selectionPt.x - cx)/Chunk.POLYGON_SIZE;
-		int relZ = (int)(selectionPt.z - cz)/Chunk.POLYGON_SIZE;
-		chunk.damangeProp(relX, relZ, (byte)15);
+		chunk.damangeProp(ti.getPropX(), ti.getPropZ(), (byte)15);
+		
 		return true;
 	}
 

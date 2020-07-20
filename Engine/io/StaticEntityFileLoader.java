@@ -14,17 +14,16 @@ public class StaticEntityFileLoader {
 	public static byte EXPECTED_VERSION = 2; // Version of .MOD files that this game supports
 
 	private static PropModel extractModelData(DataInputStream is) throws IOException {
-		Vector3f bounds = new Vector3f(is.readFloat(), is.readFloat(), is.readFloat());
+		Vector3f bounds = new Vector3f(is.readFloat()*2, is.readFloat()*2, is.readFloat()*2);
 
 		float posVar = is.readFloat();
 		float scaleVar = is.readFloat();
 		
-		final byte numParts = is.readByte();
+		final byte flags = is.readByte();
 		
-		PropModel model = new PropModel(numParts, bounds);
+		PropModel model = new PropModel(bounds);
 		
-		for(int p = 0; p < numParts; p++) {
-			final byte flags = is.readByte();
+		//for(int p = 0; p < numParts; p++) {
 			final int vertexCount = is.readShort();
 			final int indexCount = is.readShort();
 			
@@ -51,8 +50,8 @@ public class StaticEntityFileLoader {
 				indices[i] = is.readInt();
 			}
 			
-			model.addSubModel(flags, vertices, uvs, normals, indices);
-		}
+			model.setMeshData(flags, vertices, uvs, normals, indices);
+		//}
 		model.setPositionVariance(posVar);
 		model.setScaleVariance(scaleVar);
 		return model;

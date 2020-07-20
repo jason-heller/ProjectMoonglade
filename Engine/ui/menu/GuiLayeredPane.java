@@ -18,23 +18,19 @@ public class GuiLayeredPane extends GuiPanel {
 	private GuiPanel currentPane = null;
 
 	protected int tabX;
-	protected final int tabWidth = 192;
-	protected final int tabHeight = 32;
+	protected final int tabWidth = 192, tabHeight = 32;
 
 	protected GuiMenu menu;
 
 	public GuiLayeredPane(GuiPanel parent, int x, int y, int width, int height, String label) {
-		super(parent, x, y);
+		super(parent, x, y, width, height);
 		this.x = x;
 		this.y = y;
 		tabX = x;
-		this.width = width;
-		this.height = height;
 
 		pane = new Image("none", tabX, y).setColor(Colors.GUI_BACKGROUND_COLOR);
-		pane.w = width - tabWidth;
+		pane.w = width ;
 		pane.h = height;
-		pane.setUvOffset(0, 0, width / pane.getTexture().size, height / pane.getTexture().size);
 
 		
 		border = new Image("none", 0, 0).setColor(Colors.GUI_BACKGROUND_COLOR);
@@ -43,11 +39,11 @@ public class GuiLayeredPane extends GuiPanel {
 		border.setOpacity(bgOpacity);
 
 		accent = new Image("none", x, y - 2).setColor(Colors.GUI_ACCENT_COLOR);
-		accent.w = width - tabWidth;
+		accent.w = width;
 		accent.h = 2;
 
 		tabs = new Image("none", x, y).setColor(Colors.GUI_BACKGROUND_COLOR);
-		tabs.w = tabWidth;
+		tabs.w =  tabWidth;
 
 		this.label = new Text(label, x + 2, y - 64, .4f, false);
 		this.label.setDepth(3);

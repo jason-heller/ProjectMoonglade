@@ -49,7 +49,7 @@ public class CraftingUI {
 					UI.drawString("x"+amt, LEFT + 60 + 24 + (j*40), y + 16, .26f, false);
 				}
 				
-				if (selected == i && Input.isPressed(Input.KEY_LMB)) {
+				if (selected == i && Input.isPressed("attack")) {
 					handler.craft(inventory, recipe, 1);
 				}
 				

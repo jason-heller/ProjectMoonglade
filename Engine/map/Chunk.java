@@ -488,7 +488,7 @@ public class Chunk {
 		return terrain;
 	}
 
-	public ChunkProps getChunkEntities() {
+	public ChunkProps getProps() {
 		return chunkProps;
 	}
 

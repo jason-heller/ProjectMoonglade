@@ -360,10 +360,10 @@ public class ModelBuilderOld {
 	}
 
 	public void addPropMesh(float rx, float ry, float rz, float scale, PropModel tiledModel, int flipX, int flipZ) {
-		int len = tiledModel.getVertices(0).length / 3;
-		float[] vertices = tiledModel.getVertices(0);
-		float[] uvs = tiledModel.getUvs(0);
-		float[] normals = tiledModel.getNormals(0);
+		int len = tiledModel.getVertices().length / 3;
+		float[] vertices = tiledModel.getVertices();
+		float[] uvs = tiledModel.getUvs();
+		float[] normals = tiledModel.getNormals();
 		
 		for (int i = 0; i < len; i++) {
 			addVertex(rx + vertices[i * 3]*scale, ry + vertices[i * 3 + 1]*scale, rz + vertices[i * 3 + 2]*scale);
@@ -372,17 +372,8 @@ public class ModelBuilderOld {
 			addColor(1, 1, 1, 0);
 		}
 		
-		int[] indices = tiledModel.getIndices(0);
-		//if (flipX != 1 || flipZ != 1 && (flipX != flipZ)) {
-		//	addRelativeIndicesReverse(len, indices);
-		//} else {
-			addRelativeIndices(len, indices);
-		//}
-
-		/*this.addQuad(new Vector3f(rx,ry,rz-1),
-				new Vector3f(rx-1,ry,rz),
-				new Vector3f(rx,ry,rz),
-				new Vector3f(rx-1,ry,rz-1), new Vector3f(rx,ry,rz));*/
+		int[] indices = tiledModel.getIndices();
+		addRelativeIndices(len, indices);
 	}
 	
 	public void addTileableModel(float rx, float ry, float rz, float scale, PropModel tiledModel, byte flags) {

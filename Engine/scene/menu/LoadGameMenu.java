@@ -23,7 +23,7 @@ public class LoadGameMenu extends GuiPanel {
 	private String selected = null;
 
 	public LoadGameMenu(GuiPanel parent, int x, int y) {
-		super(parent, x, y);
+		super(parent, x, y, 0, 0);
 		setLayout(new GuiFlowLayout(GuiFlowLayout.VERTICAL), x, y, 582 / 2, 392);
 	}
 

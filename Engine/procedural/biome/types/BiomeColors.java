@@ -8,7 +8,7 @@ public class BiomeColors {
 	// DIRT
 	public static final Vector3f DIRT_COLOR = rgb(169, 100, 55);
 	public static final Vector3f MUD_COLOR = rgb(94, 63, 29);
-	public static final Vector3f SWAMP_MUD = rgb(47, 59, 33);
+	public static final Vector3f SWAMP_MUD = rgb(94, 120, 53);
 	public static final Vector3f ROCK_COLOR = new Vector3f(0.3f, 0.3f, 0.4f);
 	
 	// SKY

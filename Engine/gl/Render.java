@@ -75,9 +75,10 @@ public class Render {
 			Enviroment e = ow.getEnviroment();
 			waterRender.render(camera, e);
 			
+			ParticleHandler.render(scene.getCamera());
 			ow.getInventory().render(camera, e.getLightDirection());
 		}
-		ParticleHandler.render(scene.getCamera());
+		
 		
 	}
 }

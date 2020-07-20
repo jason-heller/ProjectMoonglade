@@ -45,7 +45,8 @@ public class Enviroment {
 	private final TerrainRender terrainRender;
 	
 	private int shiftX, shiftZ;
-	int x, z;
+	public int x;
+	public int z;
 	
 	private Weather weather;
 	public static Terrain terrain;
@@ -91,18 +92,6 @@ public class Enviroment {
 
 		reposition(x, z);
 		
-		// TODO move this to an acutal place to load assets such as these
-		Resources.addSound("walk_grass", "walk_grass.ogg", 3, false);
-		Resources.addSound("tree_fall", "tree_fall.ogg", true);
-		Resources.addSound("chop_bark", "chop.ogg", 2, false);
-		Resources.addSound("swing", "swing.ogg", 2, false);
-		Resources.addSound("collect", "collect03.wav", true);
-		Resources.addSound("water", "ambient/water_ambient.ogg", true);
-		Resources.addSound("hit", "hit.ogg", true);
-		
-		Resources.addSound("player_hurt", "player/ow.ogg", 3, false);
-		Resources.addSound("player_die", "player/die.ogg", true);
-		
 		spawner = new EntitySpawnHandler(this, terrain);
 	}
 	
@@ -112,17 +101,6 @@ public class Enviroment {
 		terrain.cleanUp();
 		weather.cleanUp();
 		//Resources.removeTextureReference("terrain_tiles");
-		
-		Resources.removeSound("walk_grass");
-		Resources.removeSound("tree_fall");
-		Resources.removeSound("chop_bark");
-		Resources.removeSound("swing");
-		Resources.removeSound("collect");
-		Resources.removeSound("water");
-		
-		Resources.removeSound("player_hurt");
-		Resources.removeSound("player_die");
-		Resources.removeSound("hit");
 	}
 
 	public Terrain getTerrain() {
@@ -156,11 +134,10 @@ public class Enviroment {
 
 	public void tick(Scene scene) {
 		final Camera camera = scene.getCamera();
-
 		spawner.tick();
 		
-		x = (int) Math.floor(camera.getPosition().x / Chunk.CHUNK_SIZE) - (Terrain.size / 2);
-		z = (int) Math.floor(camera.getPosition().z / Chunk.CHUNK_SIZE) - (Terrain.size / 2);
+		x = (int) (camera.getPosition().x / Chunk.CHUNK_SIZE) - (Terrain.size / 2);
+		z = (int) (camera.getPosition().z / Chunk.CHUNK_SIZE) - (Terrain.size / 2);
 		
 		weather.tick(camera);
 		biomeVoronoi.tick(camera.getPosition().x, camera.getPosition().z);//camera.getPosition().x, camera.getPosition().z

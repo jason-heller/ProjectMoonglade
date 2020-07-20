@@ -4,44 +4,35 @@ import org.joml.Vector3f;
 
 public class PropModel {
 	private Vector3f bounds;
-	private MeshData[] models;
+	private MeshData meshData;
 	private float positionVariance, scaleVariance;
 	
-	public PropModel(int subModels, Vector3f bounds) {
-		this.models = new MeshData[subModels];
+	public PropModel(Vector3f bounds) {
 		this.bounds = bounds;
 	}
 	
-	public void addSubModel(byte flags, float[] vertices, float[] uvs, float[] normals, int[] indices) {
-		for(int i = 0; i < models.length; i++) {
-			if (models[i] == null) {
-				models[i] = new MeshData(flags, vertices, uvs, normals, indices);
-			}
-		}
+	public void setMeshData(byte flags, float[] vertices, float[] uvs, float[] normals, int[] indices) {
+		meshData = new MeshData(flags, vertices, uvs, normals, indices);
 	}
 	
-	public int getNumSubmodels() {
-		return models.length;
-	}
-	
-	public byte getFlags(int i) {
-		return models[i].flags;
+	public byte getFlags() {
+		return meshData.flags;
 	}
 
-	public float[] getVertices(int i) {
-		return models[i].vertices;
+	public float[] getVertices() {
+		return meshData.vertices;
 	}
 
-	public float[] getUvs(int i) {
-		return models[i].uvs;
+	public float[] getUvs() {
+		return meshData.uvs;
 	}
 
-	public float[] getNormals(int i) {
-		return models[i].normals;
+	public float[] getNormals() {
+		return meshData.normals;
 	}
 
-	public int[] getIndices(int i) {
-		return models[i].indices;
+	public int[] getIndices() {
+		return meshData.indices;
 	}
 
 	public void setPositionVariance(float positionVariance) {
@@ -66,40 +57,38 @@ public class PropModel {
 
 	public Model toOpenGLModel() {
 		
-		MeshData sm = models[0];
+		MeshData sm = meshData;
 		final Model model = Model.create();
 		model.bind();
 		model.createAttribute(0, sm.vertices, 3);
 		model.createAttribute(1, sm.uvs, 2);
 		model.createAttribute(2, sm.normals, 3);
-		model.createIndexBuffer(sm.indices);
+		if ((sm.flags & 1) == 0) {
+			model.createIndexBuffer(sm.indices);
+		} else {
+			
+		}
 		model.unbind();
 		return model;
 	}
 
 	public PropModel copyAndShiftTexture(float dtx, float dty) {
-		PropModel newPropModel = new PropModel(this.getNumSubmodels(), this.bounds);
-		for(int i = 0; i < models.length; i++) {
-			if (models[i] != null) {
-				float[] uvs = new float[models[i].uvs.length];
-				for(int j = 0; j < models[i].uvs.length; j += 2) {
-					uvs[j] = models[i].uvs[j] + dtx;
-					uvs[j+1] = models[i].uvs[j+1] + dty;
-				}
-				newPropModel.addSubModel(models[i].flags, models[i].vertices, uvs, models[i].normals, models[i].indices);
+		PropModel newPropModel = new PropModel(this.bounds);
+		if (meshData != null) {
+			float[] uvs = new float[meshData.uvs.length];
+			for(int j = 0; j < meshData.uvs.length; j += 2) {
+				uvs[j] = meshData.uvs[j] + dtx;
+				uvs[j+1] = meshData.uvs[j+1] + dty;
 			}
+			newPropModel.setMeshData(meshData.flags, meshData.vertices, uvs, meshData.normals, meshData.indices);
 		}
 		
 		return newPropModel;
 	}
 
 	public PropModel copy(PropModel propModel) {
-		PropModel newPropModel = new PropModel(this.getNumSubmodels(), this.bounds);
-		for(int i = 0; i < models.length; i++) {
-			if (models[i] != null) {
-				newPropModel.addSubModel(models[i].flags, models[i].vertices, models[i].uvs, models[i].normals, models[i].indices);
-			}
-		}
+		PropModel newPropModel = new PropModel(this.bounds);
+		newPropModel.setMeshData(meshData.flags, meshData.vertices, meshData.uvs, meshData.normals, meshData.indices);
 		
 		return newPropModel;
 	}

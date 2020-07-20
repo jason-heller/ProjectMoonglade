@@ -45,10 +45,14 @@ public class ChunkProps {
 			for(int j = 0; j < propMap.length; j++) {
 				Props tile = propMap[i][j];
 				
-				ry = (chunk.heightmap[i * 2 + 0][j * 2 + 0] + chunk.heightmap[i * 2 + 1][j * 2 + 1]) / 2f;
-				
 				if (tile != null) {
 					float dx, dz, scale;
+					
+					if (Props.get(tile).isGrounded()) {
+						ry = (chunk.heightmap[i * 2 + 0][j * 2 + 0] + chunk.heightmap[i * 2 + 1][j * 2 + 1]) / 2f;
+					} else {
+						ry = chunk.waterTable[i][j] + .1f;
+					}
 					
 					PropModel tiledModel = Props.getModel(tile);
 					if (properties[i][j] != null) {
@@ -121,9 +125,9 @@ public class ChunkProps {
 		return propMap; 
 	}
 	
-	public TerrainIntersection testCollision(Vector3f origin, Vector3f dir, float tileX, float tileY, float tileZ) {
-		final int propX = (int) (tileX - chunk.realX);
-		final int propZ = (int) (tileZ - chunk.realZ);
+	public TerrainIntersection testCollision(Vector3f origin, Vector3f dir, int tileX, float tileY, int tileZ) {
+		final int propX = (tileX - chunk.realX);
+		final int propZ = (tileZ - chunk.realZ);
 
 		if (propX < 0 || propX < 0) return null;
 		
@@ -138,7 +142,7 @@ public class ChunkProps {
 		final StaticProp tile = Props.get(prop);
 		Vector3f bounds = tile.getBounds();
 
-		final float y = tileY + (tileProps.scale * bounds.y) / 2f;
+		final float y = tileY + (tileProps.scale * bounds.y);
 
 		final AABB aabb = new AABB(x, y, z, bounds.x * tileProps.scale, bounds.y * tileProps.scale, bounds.z * tileProps.scale);
 

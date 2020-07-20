@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import dev.Console;
 import map.Chunk;
@@ -222,10 +223,10 @@ public class RegionSaver implements Runnable {
 	private void append(File file, Map<Integer, Chunk> map) {
 		RunLengthOutputStream byteArrOutStream = new RunLengthOutputStream();
 		
-		Map<Integer, byte[]> chunkData = new HashMap<Integer, byte[]>();
+		Map<Integer, byte[]> chunkData = new TreeMap<Integer, byte[]>();	// Index each chunk's memory by it's offset in header (see getOffset()`)
 
 		int spaceUsedByAppend = 0;
-		for(int key : map.keySet()) {
+		for(int key : map.keySet()) {	// Sort data by memory position
 			Chunk chunk = map.get(key);
 			final byte[] compressedData = writeChunk(chunk, byteArrOutStream);
 			chunkData.put(key, compressedData);
@@ -239,8 +240,9 @@ public class RegionSaver implements Runnable {
 			raf.seek(0);
 			
 			// Header
-			List<Integer> chunkMemoryMap = new LinkedList<Integer>();
-			int newFreespace = freespace + spaceUsedByAppend;
+			List<Integer> chunkMemoryMap = new LinkedList<Integer>();	// Index into each chunks position in memory
+			int newFreespace = freespace + spaceUsedByAppend;	// Guarenteed new free memory, this probably skips over space
+																// (since only new chunks really expand the data, not appended chunks). Should fix that eventually.
 			write(raf, 
 					newFreespace >> 24,
 					newFreespace >> 16,
@@ -250,12 +252,12 @@ public class RegionSaver implements Runnable {
 			// Lookup table
 			for(int bytePosition = 0; bytePosition < CHUNKS_PER_REGION; bytePosition++) {
 				if (chunkData.containsKey(bytePosition)) {
-					raf.seek((1 + bytePosition) * 4);
+					raf.seek((1 + bytePosition) * 4);	// 1 (freespace ptr) + position*4 (int holding location & size)
 					
 					int existingTableData = raf.readInt();
 					int len = chunkData.get(bytePosition).length;
 					byte lenBytes = (byte) Math.ceil(len / (double)SECTOR_SIZE);
-					if (existingTableData == 0) {
+					if (existingTableData == 0) {	// Chunk has no data yet
 						raf.seek((1 + bytePosition) * 4);
 						
 						write(raf, 
@@ -268,9 +270,9 @@ public class RegionSaver implements Runnable {
 						freespace += lenBytes;
 					} else {
 						if (lenBytes == (existingTableData & 0xFF)) {
-							chunkMemoryMap.add(existingTableData >> 8);
+							chunkMemoryMap.add(existingTableData >> 8);	// Chunk exists, and data doesn't overflow
 						} else {
-							chunkMemoryMap.add(existingTableData >> 8);
+							chunkMemoryMap.add(existingTableData >> 8);	// Chunk exists, but new data wont fit into allocation
 							Console.log("OH FUCK");
 							// TODO: This happens when a chunk exceeds its current allocation of sectors
 							// when this happens, change its last sector's last 3 bytes to be a 

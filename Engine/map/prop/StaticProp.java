@@ -14,12 +14,14 @@ public class StaticProp {
 	private byte strength;
 	private boolean alwaysDrop;
 	private int tool = 0;
+	private boolean grounded;
+	private boolean solid;
 	
-	public StaticProp(PropModel model, Material material, int drop, int dropAmt, byte strength, boolean alwaysDrop) {
-		this(model, material, drop, dropAmt, strength, alwaysDrop, 0);
+	public StaticProp(PropModel model, Material material, int drop, int dropAmt, byte strength, boolean alwaysDrop, boolean solid) {
+		this(model, material, drop, dropAmt, strength, alwaysDrop, solid, 0, true);
 	}
 	
-	public StaticProp(PropModel model, Material material, int drop, int dropAmt, byte strength, boolean alwaysDrop, int tool) {
+	public StaticProp(PropModel model, Material material, int drop, int dropAmt, byte strength, boolean alwaysDrop, boolean solid, int tool, boolean grounded) {
 		this.model = model;
 		this.drop = drop;
 		this.material = material;
@@ -27,6 +29,8 @@ public class StaticProp {
 		this.strength = strength;
 		this.alwaysDrop = alwaysDrop;
 		this.tool = tool;
+		this.grounded = grounded;
+		this.solid = solid;
 	}
 
 	public int getNumDrops() {
@@ -35,6 +39,10 @@ public class StaticProp {
 	
 	public int getDrop() {
 		return drop;
+	}
+	
+	public boolean isSolid() {
+		return solid;
 	}
 	
 	public PropModel getModel() {
@@ -75,5 +83,9 @@ public class StaticProp {
 		default:
 			return (item != Item.AXE);
 		}
+	}
+	
+	public boolean isGrounded() {
+		return grounded;
 	}
 }

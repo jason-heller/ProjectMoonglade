@@ -8,6 +8,8 @@ import gl.Window;
 import gl.particle.ParticleHandler;
 import gl.shadow.ShadowBox;
 import gl.shadow.ShadowRender;
+import map.Chunk;
+import map.Enviroment;
 import map.Terrain;
 import scene.entity.EntityHandler;
 import scene.overworld.Overworld;
@@ -28,8 +30,8 @@ public class GraphicsPanel extends GuiPanel {
 	private final DisplayMode[] resolutions;
 	private final String[] resMenuOptions;
 
-	public GraphicsPanel(GuiPanel parent, int x, int y) {
-		super(parent, x, y);
+	public GraphicsPanel(GuiPanel parent, int x, int y, int width, int height) {
+		super(parent, x, y, width, height);
 		setLayout(new GuiFlowLayout(GuiFlowLayout.VERTICAL), x, y, 582 / 2, 392);
 
 		add(new GuiLabel(x, y, "#SGeneral"));
@@ -142,10 +144,14 @@ public class GraphicsPanel extends GuiPanel {
 
 			@Override
 			public void onRelease(float value) {
+				int oldSize = Terrain.size;
 				Terrain.size = (int) value;
 
 				if (Application.scene instanceof Overworld) {
-					((Overworld) Application.scene).getEnviroment().getTerrain().reload();
+					Enviroment enviroment = ((Overworld) Application.scene).getEnviroment();
+					//enviroment.x += (oldSize - Terrain.size) / 2;
+					//enviroment.z += (oldSize - Terrain.size) / 2;
+					enviroment.getTerrain().reload();
 				}
 			}
 
