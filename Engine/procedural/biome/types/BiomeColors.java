@@ -27,11 +27,13 @@ public class BiomeColors {
 	public static final Vector3f CONIFERFOREST_GRASS = rgb(56, 168, 118);
 	public static final Vector3f TROPIC_GRASS_COLOR = rgb(56, 173, 9);
 	public static final Vector3f TAIGA_GRASS = rgb(151, 170, 97);
+	public static final Vector3f MYSTIC_GRASS = rgb(70, 199, 141);
 	
 	// WATER
 	public static final Vector3f DEFAULT_WATER = rgb(12, 92, 247);
 	public static final Vector3f SWAMP_WATER = rgb(90, 158, 112);
 	public static final Vector3f CHAPARREL_GRASS = rgb(150, 115, 100);
+	public static final Vector3f MYSTIC_SKY = rgb(228, 199, 237);
 	
 	private static Vector3f rgb(float r, float g, float b) {
 		return MathUtil.rgb(r,g,b);

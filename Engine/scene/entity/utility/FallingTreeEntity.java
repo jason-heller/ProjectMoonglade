@@ -50,7 +50,7 @@ public class FallingTreeEntity extends Entity {
 		if (Math.abs(fallX) < 90 && Math.abs(fallZ) < 90) {
 			
 			animTime += (Window.deltaTime * .009f);
-			fallSpeed += animTime*.09f;
+			fallSpeed += animTime*.25f;
 			if (fallDirZ) {
 				fallZ = 90 * fallSpeed * fallDirPos;
 			} else {

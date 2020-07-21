@@ -1,6 +1,5 @@
 package gl.anim.render;
 
-import java.util.ArrayList;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.lwjgl.opengl.GL11;
@@ -39,6 +38,8 @@ public class AnimationHandler {
 		shader.cameraPos.loadVec3(camera.getPosition());
 
 		for (final Entity entity : entityBatch) {
+			if (entity.deactivated) continue;
+			
 			final Animator animator = entity.getAnimator();
 			animator.update();
 			entity.getDiffuse().bind(0);

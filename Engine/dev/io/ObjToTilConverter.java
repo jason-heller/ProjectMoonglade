@@ -23,28 +23,28 @@ public class ObjToTilConverter {
 	
 	private static final int[] idToFacing = new int[] {
 			1, 1, 2, 3, 1, 1,
-			4, 4, 5, 6, 5, 6
+			4, 4
 	};
 	
 	// left, right, top, bottom, front, back, slopeLR, slopeFB, gradLR1, gradLR2, gradFB1, grabFB2
 	private static final Vector3f[] rotAxis = new Vector3f[] {
 			Vector3f.Y_AXIS, null, null, null, Vector3f.Y_AXIS, Vector3f.Y_AXIS,
-			null, Vector3f.Y_AXIS, null, null, Vector3f.Y_AXIS, Vector3f.Y_AXIS
+			null, Vector3f.Y_AXIS
 	};
 	
 	private static final float[] rotRad = new float[] {
 		PI, 0f, 0f, 0f, PI2, -PI2,
-		0f, -PI2, 0f, 0f, PI2, PI2
+		0f, -PI2
 	};
 	
 	private static final float[] dx = new float[] {
 			1, 0, 0, 0, 1, 0,
-			0, 0, 0, 0, 0, 0,
+			0, 0
 		};
 	
 	private static final float[] dz = new float[] {
 			0, 1, 1, 1, 1, 0,
-			1, 0, 0, 0, 0, 0
+			1, 0
 		};
 	
 	public static void tileFileParser(String filename) {
@@ -168,7 +168,7 @@ public class ObjToTilConverter {
 				dos.writeByte(wallFlags);
 				dos.writeByte(slopeFlags);
 				
-				for(int i = 0; i < 12; i++) {
+				for(int i = 0; i < idToFacing.length; i++) {
 					int id = idToFacing[i];
 					Vector3f axis = rotAxis[i];
 					float thetaRadians = rotRad[i];

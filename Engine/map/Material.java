@@ -35,6 +35,9 @@ public enum Material {
 	CONCRETE("concrete", 12, 0, TileModels.FILLED),
 	LIMESTONE("limestone", 13, 0, TileModels.FILLED),
 	DRIED_MUD_WALL("dried_mud_wall", 14, 0, TileModels.FILLED),
+	CHERRY_BLOSSOM_PLANKS("cherry_blossom_planks", 2, 1, null, TileModels.FILLED, false, false, true, true, 15),
+	MYSTIC_PLANKS("mystic_planks", 3, 1, null, TileModels.FILLED, false, false, true, true, 16),
+	PINE_PLANKS("pine_planks", 4, 1, null, TileModels.FILLED, false, false, true, true, 17),
 	CLAY("clay", 15, 0, TileModels.FILLED),
 	;
 	

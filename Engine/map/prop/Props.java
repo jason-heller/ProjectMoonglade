@@ -15,7 +15,8 @@ import scene.overworld.inventory.Item;
 public enum Props {
 
 	PLANE, BUSH, THIN_TREE, DEAD_TREE, ROCK, REED, OAK, AGAVE, CACTUS, PINE, MANGROVE, PALM, VINE, CYPRESS, JOSHUA_TREE,
-	CHAPARREL_BUSH, DEAD_GRASS, CHAPARREL_FLOWER, BIG_BUSH, BERRY_BUSH, PURPLE_FLOWERS, GRASS, EVERGREEN, PINE_SNOWY, CYPRESS_BIG, DUCKWEED;
+	CHAPARREL_BUSH, DEAD_GRASS, CHAPARREL_FLOWER, BIG_BUSH, BERRY_BUSH, PURPLE_FLOWERS, GRASS, EVERGREEN, PINE_SNOWY,
+	CYPRESS_BIG, DUCKWEED, ENCHANTED_TREE, MYSTIC_BUSH, LILYPAD, CHERRY_BLOSSOM;
 
 	private static Map<Props, StaticProp> props;
 	private static final String path = "terrain/tile/";
@@ -28,15 +29,15 @@ public enum Props {
 		// Load resources
 		add(PLANE, "plane", STICK, "stick", 1, DEF_STRENGTH, false, true, Item.AIR);
 		add(BUSH, "bush", STICK, "stick", 1, DEF_STRENGTH, false, false, Item.AIR);
-		add(THIN_TREE, "thin_tree", PLANKS, "planks", 8, DEF_STRENGTH, true, true, Item.AXE);
-		add(DEAD_TREE, "dead_tree", PLANKS, "planks", 4, DEF_STRENGTH, true, true, Item.AXE);
+		add(THIN_TREE, "thin_tree", PINE_PLANKS, "pine_planks", 8, DEF_STRENGTH, true, true, Item.AXE);
+		add(DEAD_TREE, "dead_tree", PINE_PLANKS, "pine_planks", 4, DEF_STRENGTH, true, true, Item.AXE);
 		add(ROCK, "rock", STONE_BRICK, "stone", 1, STRONG, true, false, Item.AIR);
 		add(REED, "reed", THATCH, "thatch", 6, DEF_STRENGTH, true, false, Item.AIR);
 		add(OAK, "oak", PLANKS, "planks", 12, DEF_STRENGTH, false, true, Item.AXE);
 		add(AGAVE, "agave", THATCH, "plant_fibers", 3, DEF_STRENGTH, false, false, Item.AIR);
 		add(CACTUS, "cactus", THATCH,  "plant_fibers", 10, DEF_STRENGTH, false, true, Item.AXE);
-		add(PINE, "pine", PLANKS, "planks", 0, DEF_STRENGTH, false, false, Item.AXE);
-		add(PINE_SNOWY, PINE, 0, 4, PLANKS, "planks", 0, DEF_STRENGTH, false, true, Item.AXE, true);
+		add(PINE, "pine", PINE_PLANKS, "pine_planks", 0, DEF_STRENGTH, false, true, Item.AXE);
+		add(PINE_SNOWY, PINE, 0, 4, PINE_PLANKS, "pine_planks", 0, DEF_STRENGTH, false, true, Item.AXE, true);
 		add(MANGROVE, "mangrove", STICK, "stick", 0, STRONG, false, true, Item.AXE);
 		add(PALM, "palm", PALM_PLANKS, "palm_planks", 0, STRONG, false, true, Item.AXE);
 		add(VINE, "vine", THATCH, "vine", 8, WEAK, true, false, Item.AIR);
@@ -54,6 +55,11 @@ public enum Props {
 		
 		add(EVERGREEN, "evergreen", PLANKS, "planks", 12, DEF_STRENGTH, false, true, Item.AXE);
 		add(DUCKWEED, PLANE, 7, 12, NONE, "planks", 12, DEF_STRENGTH, false, true, Item.AIR, false);
+		
+		add(ENCHANTED_TREE, CYPRESS, 5, 0, PLANKS, "mystic_planks", 12, DEF_STRENGTH, false, true, Item.AXE, true);
+		add(MYSTIC_BUSH, BUSH, 14, 2, STICK, "stick", 8, DEF_STRENGTH, false, false, Item.AIR, true);
+		add(LILYPAD, PLANE, 12, 12, NONE, "planks", 12, DEF_STRENGTH, false, true, Item.AIR, false);
+		add(CHERRY_BLOSSOM, OAK, 0, 4, CHERRY_BLOSSOM_PLANKS, "cherry_blossom_planks", 12, DEF_STRENGTH, false, true, Item.AXE, true);
 
 	}
 

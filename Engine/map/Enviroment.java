@@ -136,8 +136,8 @@ public class Enviroment {
 		final Camera camera = scene.getCamera();
 		spawner.tick();
 		
-		x = (int) (camera.getPosition().x / Chunk.CHUNK_SIZE) - (Terrain.size / 2);
-		z = (int) (camera.getPosition().z / Chunk.CHUNK_SIZE) - (Terrain.size / 2);
+		x = (int) Math.floor(camera.getPosition().x / Chunk.CHUNK_SIZE) - (Terrain.size / 2);
+		z = (int) Math.floor(camera.getPosition().z / Chunk.CHUNK_SIZE) - (Terrain.size / 2);
 		
 		weather.tick(camera);
 		biomeVoronoi.tick(camera.getPosition().x, camera.getPosition().z);//camera.getPosition().x, camera.getPosition().z

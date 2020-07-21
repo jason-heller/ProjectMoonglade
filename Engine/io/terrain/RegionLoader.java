@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.DataFormatException;
 
-import dev.Console;
 import map.Chunk;
 import map.Enviroment;
 import map.Material;
@@ -52,7 +51,6 @@ public class RegionLoader implements Runnable {
 	@Override
 	public void run() {
 
-		Console.log(filename);
 		load(filename, map, ignoreTimeDifference);
 		this.c.loadCallback(entities);
 	}
@@ -212,8 +210,6 @@ public class RegionLoader implements Runnable {
 					chunk.setState(Chunk.GENERATING);
 					continue;
 				}
-				
-				Console.log("read",dataPosition);
 				
 				// Seek to chunk position
 				raf.seek(LOOKUPTBL_OFFSET_BYTES + (LOOKUPTBL_SIZE_BYTES) + dataPosition);

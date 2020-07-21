@@ -32,8 +32,11 @@ public class Colors {
 	public static final Vector3f GUI_BACKGROUND_COLOR = BLACK;
 	public static final Vector3f GUI_ACCENT_COLOR = DK_VIOLET;
 
-	public static final Vector3f OAK = MathUtil.rgb(174, 113, 85);
+	public static final Vector3f OAK = MathUtil.rgb(176, 128, 94);
 	public static final Vector3f CLAY = MathUtil.rgb(239, 146, 127);
+	public static final Vector3f CHERRY_BLOSSOM = MathUtil.rgb(133, 100, 64);
+	public static final Vector3f JAPANESE_DOOR = MathUtil.rgb(218, 191, 149);
+	public static final Vector3f PINE = MathUtil.rgb(226, 143, 81);
 
 	public static Vector3f alertColor() {
 		final float alpha = 0.5f + (float) Math.sin(System.currentTimeMillis() % 1000 / 250f) * 0.5f;

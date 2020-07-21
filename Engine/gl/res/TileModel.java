@@ -2,6 +2,7 @@ package gl.res;
 
 import org.joml.Vector3f;
 
+import dev.Console;
 import map.Material;
 import procedural.biome.types.BiomeColors;
 import util.Colors;
@@ -104,6 +105,8 @@ public class TileModel {
 		
 		case 13: return Colors.OAK;
 		case 14: return Colors.CLAY;
+		case 15: return Colors.CHERRY_BLOSSOM;
+		case 16: return Colors.JAPANESE_DOOR;
 		
 		default: return Colors.WHITE;
 		}
@@ -130,8 +133,6 @@ public class TileModel {
 			case 16: return 7;
 			case 32: flipZ = true; return 7; // flip
 			}
-		} else if (slant == 1) {
-			//eh
 		}
 		
 		return 0;

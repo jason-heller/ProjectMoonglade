@@ -49,6 +49,7 @@ public class ItemRender {
 		final float size = Inventory.itemAtlasSize;
 
 		for(Entity entity : list) {
+			if (entity.deactivated) continue;
 			entity.update(scene);
 			shader.viewMatrix.loadMatrix(buildViewMatrix(entity.position, camera.getViewMatrix()));
 			ItemData item = Item.get(((ItemEntity) entity).getItem());

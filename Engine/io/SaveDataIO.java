@@ -32,6 +32,9 @@ public class SaveDataIO {
 			writer.write("\ntime=" + env.getTime());
 			writer.write("\nweather=" + env.getWeather().getWeatherCell());
 			writer.write("\nlocation=" + pos.x + "," + pos.y + "," + pos.z);
+			writer.write("\nyaw=" + overworld.getCamera().getYaw());
+			writer.write("\npitch=" + overworld.getCamera().getPitch());
+			writer.write("\nhp=" + overworld.getPlayer().getHp());
 
 			Inventory inv = overworld.getInventory();
 			
@@ -83,6 +86,9 @@ public class SaveDataIO {
 			Vector3f camPos = new Vector3f(Float.parseFloat(pos[0]), Float.parseFloat(pos[1]),
 					Float.parseFloat(pos[2]));
 			overworld.getCamera().setPosition(camPos);
+			overworld.getCamera().setYaw(Float.parseFloat(map.get("yaw")));
+			overworld.getCamera().setPitch(Float.parseFloat(map.get("pitch")));
+			//overworld.getPlayer().setHp(Integer.parseInt(map.get("hp")));
 			
 			Inventory inv = overworld.getInventory();
 			

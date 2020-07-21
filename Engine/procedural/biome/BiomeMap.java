@@ -9,6 +9,7 @@ import map.Moisture;
 import map.Temperature;
 import procedural.NoiseUtil;
 import procedural.biome.types.average.DeciduousForestBiome;
+import procedural.biome.types.average.MysticForestBiome;
 import procedural.biome.types.average.PineForestBiome;
 import procedural.biome.types.average.SnowyPineForestBiome;
 import procedural.biome.types.average.TropicalForestBiome;
@@ -44,6 +45,7 @@ public class BiomeMap {
 		addBiome(new ColdMountainBiome());
 		addBiome(new SwampBiome());
 		addBiome(new ChaparrelBiome());
+		addBiome(new MysticForestBiome());
 	}
 	
 	private void addBiome(Biome biome) {

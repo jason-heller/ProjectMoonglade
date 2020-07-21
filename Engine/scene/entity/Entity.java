@@ -36,7 +36,7 @@ public abstract class Entity {
 	
 	protected boolean clickable = false;
 	
-	protected boolean deactivated = false; // If deactivated, still exists in-game, but does not update or render
+	public boolean deactivated = false; // If deactivated, still exists in-game, but does not update or render
 	protected int persistency = 0;	// 0 = despawn as soon as can, 1 = despawn at range or after period of time saved in chunk data(todo)
 									// 2 = never despawn, 3 = never despawn, stays even if current chunk unloads
 	
@@ -146,6 +146,10 @@ public abstract class Entity {
 	
 	public int getSpawnGroupVariation() {
 		return this.spawnGroupVariation;
+	}
+	
+	public void setHp(int hp) {
+		this.hp = hp;
 	}
 	
 	public boolean isClickable() {

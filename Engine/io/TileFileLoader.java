@@ -15,9 +15,9 @@ public class TileFileLoader {
 		byte wallFlags = is.readByte();
 		byte slopeFlags = is.readByte();
 
-		TileModel model = new TileModel(12);
+		TileModel model = new TileModel(8);
 		
-		for(int p = 0; p < 12; p++) {
+		for(int p = 0; p < 8; p++) {
 			
 			final int vertexCount = is.readShort();
 			final int indexCount = is.readShort();

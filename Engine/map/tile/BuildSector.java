@@ -56,10 +56,13 @@ public class BuildSector {
 					byte b = 1;
 					for(int f = 0; f < 6; f++ ) {
 						if ((walls & b) != 0) {
+							byte wallPassFlags = b;//(cornerByte(b, walls));
+							//if (wallPassFlags == 0) continue;
+							
 							Material mat = tile.getMaterial(f);
 							TileModel model = mat.getTileModel();
 							tex = Material.getTexCoordData(tex, tile.materials[f], flags[f]);
-							model.pass(dx,dy,dz, builder, tex, b, flags[f], (byte)-1, tile.materials[f].isColorable());
+							model.pass(dx,dy,dz, builder, tex, wallPassFlags, flags[f], (byte)-1, tile.materials[f].isColorable());
 						}
 						
 						b *= 2;
@@ -70,6 +73,7 @@ public class BuildSector {
 					if (slantFactor == 0) {	// Gradual
 						for(int f = 0; f < 6; f++ ) {
 							if ((slope & b) != 0) {
+								
 								TileModel model = tile.getMaterial(6).getTileModel();
 								tex = Material.getTexCoordData(tex, tile.materials[6], flags[6]);
 								model.pass(dx,dy,dz, builder, tex, b, flags[6], (byte)slantFactor, tile.materials[6].isColorable());
@@ -92,6 +96,23 @@ public class BuildSector {
 			}
 		}
 	}
+
+	/*private byte cornerByte(byte b, byte walls) {
+		switch(b) {
+		case 1: return (byte) (b | (16 & walls));
+		case 2: 
+			if ((walls & 16) != 0) 
+				return 0;
+			return (byte) (b | (32 & walls));
+		case 16: 
+			if ((walls & 1) != 0) 
+				return 0;
+			return (byte) (b | (2 & walls));
+		case 32: return (byte) (b | (1 & walls));
+		}
+		
+		return 0;
+	}*/
 
 	public int getX() {
 		return x;

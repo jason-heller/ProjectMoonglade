@@ -129,4 +129,5 @@ public class PlayerEntity extends PhysicsEntity {
 	public void setDisabled(boolean disable) {
 		this.disable = disable;
 	}
+
 }

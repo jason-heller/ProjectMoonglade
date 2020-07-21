@@ -13,6 +13,7 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
 import core.Application;
+import dev.Console;
 import gl.Camera;
 import gl.anim.render.AnimationHandler;
 import gl.entity.GenericMeshShader;
@@ -23,6 +24,7 @@ import io.Input;
 import map.Chunk;
 import map.Terrain;
 import scene.PlayableScene;
+import scene.entity.utility.ItemEntity;
 import scene.overworld.Overworld;
 
 public class EntityHandler {
@@ -229,8 +231,9 @@ public class EntityHandler {
 		List<Entity> entities = byChunk.get(chunk);
 		if (entities != null) {
 			for(Entity entity : entities) {
-				removeEntity(entity);
+				entity.destroy();
 			}
+			Console.log("removed ",chunk.dataX,chunk.dataZ);
 		}
 		
 		byChunk.remove(chunk);
@@ -246,9 +249,7 @@ public class EntityHandler {
 			}
 			
 			entity.setChunk(chunk);
-			if (entity.persistency != 3) {
-				assignToChunk(entity);
-			}
+			assignToChunk(entity);
 			
 			final int size = Terrain.size;
 			final int halfSize = size / 2;
@@ -258,11 +259,13 @@ public class EntityHandler {
 				entity.deactivated = false;
 			}
 			
-		} else if (chunk == null) {
+		} else if (chunk == null && entity.persistency != 3) {
+			// Instead, the entity should be destroyed and saved with the chunk's data
 			/*if (entity.getChunk() != null) {
 				removeChunkAssignment(entity);
 			}
-			entity.setChunk(null);*/
+			entity.setChunk(null);
+			entity.deactivated = true;*/
 			cont = true;
 		}
 		return cont;
@@ -279,10 +282,17 @@ public class EntityHandler {
 			ents.add(entity);
 			byChunk.put(chunk, ents);
 		}
-		chunk.editFlags |= 0x08;
+		
+		if (entity.getPersistency() == 2) {
+			chunk.editFlags |= 0x08;
+		}
+		
+		Console.log("assigned ",entity,"to",chunk.dataX,chunk.dataZ);
 	}
 	
 	private static void removeChunkAssignment(Entity entity) {
+		if (entity.getPersistency() == 3) return;
+		
 		Chunk chunk = entity.getChunk();
 		List<Entity> entities = byChunk.get(chunk);
 		if (entities != null) {
@@ -292,6 +302,7 @@ public class EntityHandler {
 				chunk.editFlags = (byte) (chunk.editFlags - (byte)(chunk.editFlags & 0x08));
 			}
 		}
+		Console.log("removed ",entity,"from",chunk.dataX,chunk.dataZ);
 	}
 
 	public static GenericMeshShader getShader() {

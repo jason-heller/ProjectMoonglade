@@ -142,7 +142,7 @@ public class PlayerHandler {
 			camera.getPosition().set(getEntity().position.x, getEntity().position.y + cameraHeight,
 					getEntity().position.z);
 			
-			if (entity.isGrounded() && !entity.isSubmerged() && (W || A || S || D)) {
+			if (entity.isGrounded() && !entity.isFullySubmerged() && (W || A || S || D)) {
 				if (walkSfxTimer >=.085f) {
 					walkSfxTimer = 0f;
 				}
@@ -178,6 +178,10 @@ public class PlayerHandler {
 						case PLANKS:
 						case PALM_PLANKS:
 						case CYPRESS_PLANKS:
+						case PINE_PLANKS:
+						case CHERRY_BLOSSOM_PLANKS:
+						case MYSTIC_PLANKS:
+						case STICK_BUNDLE:
 							AudioHandler.play("walk_wood");
 							break;
 						case CONCRETE:

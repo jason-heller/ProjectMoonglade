@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import dev.Console;
 import map.Chunk;
 import map.prop.Props;
 import map.prop.StaticPropProperties;
@@ -121,7 +120,7 @@ public class RegionSaver implements Runnable {
 		List<Entity> chunkEntities = EntityHandler.getAllEntitiesInChunk(chunk);
 		if (chunkEntities != null) {
 			for(Entity entity : chunkEntities) {
-				if (entity.getPersistency() == 1 || entity.getPersistency() == 2) {
+				if (entity.getPersistency() == 2) {
 					data.writeShort(EntityData.getId(entity.getClass()));
 					data.writeByte(entity.getPersistency());
 					entity.save(data);
@@ -144,12 +143,9 @@ public class RegionSaver implements Runnable {
 	void save(String filename, Map<Integer, Chunk> map) {
 		File file = new File(filename);
 
-		Console.log(filename);
 		//Map<Integer, Chunk> map = new HashMap<Integer, Chunk>(m);\
 
 		if (file.exists()) {
-
-			Console.log("append");
 			append(file, map);
 			this.c.saveCallback();
 			return;
@@ -186,7 +182,6 @@ public class RegionSaver implements Runnable {
 					out.write(bytePosition);
 					out.write(lenBytes);
 					bytePosition += lenBytes;
-					Console.log("write chunk ",bytePosition*SECTOR_SIZE);
 				} else {
 					out.write(0);	// TODO: Only save chunks if theyre edited in some way
 					out.write(0);

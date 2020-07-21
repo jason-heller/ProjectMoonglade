@@ -29,7 +29,7 @@ public class ZombieEntity extends PhysicsEntity {
 		animator.loop("test");
 		clickable = true;
 		this.persistency = 1;
-		aabb.setBounds(.7f, 1.7f, .7f);
+		aabb.setBounds(.5f, 1.6f, .5f);
 		hp = 15;
 		
 		this.spawnGroupMin = 1;
@@ -40,7 +40,6 @@ public class ZombieEntity extends PhysicsEntity {
 	@Override
 	public void update(Scene scene) {
 		this.animator.update();
-		
 		Overworld ow = (Overworld)scene;
 		Vector3f playerPos = ow.getPlayer().position;
 		Vector3f toPlayer = Vector3f.sub(playerPos, position);
@@ -54,7 +53,7 @@ public class ZombieEntity extends PhysicsEntity {
 		rotation.y = 90 + (float) Math.toDegrees(MathUtil.pointDirection(0, 0, velocity.x, velocity.z));
 		super.update(scene);
 		
-		this.accelerate(toPlayer, 6f);
+		//this.accelerate(toPlayer, 6f);
 		
 	}
 
@@ -89,11 +88,12 @@ public class ZombieEntity extends PhysicsEntity {
 	@Override
 	public void save(RunLengthOutputStream data) {
 
+		System.out.println("SAVD");
 	}
 
 	@Override
 	public void load(RunLengthInputStream data) {
-
+		System.out.println("LOAD");
 	}
 	
 	@Override
