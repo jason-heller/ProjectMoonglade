@@ -35,11 +35,11 @@ public class ObjToTilConverter {
 	};
 	
 	private static final float[] dx = new float[] {
-			1, 0, 0, 0, 1, 0, 0
+			1, 0, 0, 0, 1, 1, 0
 		};
 	
 	private static final float[] dz = new float[] {
-			1, 1, 1, 1, 1, 0, 1
+			1, 1, 1, 0, 1, 0, 1
 		};
 	
 	public static void tileFileParser(String filename) {

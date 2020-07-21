@@ -273,14 +273,14 @@ public abstract class PhysicsEntity extends Entity {
 			}
 		}
 		
-		/*if (slopeFactor == 0 && slope != 0 && tile.isSolid(6)) {
+		if ((walls & 120) != 0) {
 			float dx = position.x - tx;//((position.x % 1f) + 2) % 1f;
 			float dz = position.z - tz;//((position.z % 1f) + 2) % 1f;
 			
 			if (dx < 0 || dz < 0 || dx > 1|| dz > 1) {
 				float f = this.width/2f;
 				tileBounds.setMinMax(tx+f, ty+f, tz+f, tx+(1-f), ty+(1-f), tz+(1-f));
-				aabbCollide(tile.getMaterial(6), tileBounds);
+				aabbCollide(tile.getMaterial(3), tileBounds);
 				return;
 			}
 			
@@ -288,19 +288,19 @@ public abstract class PhysicsEntity extends Entity {
 			
 			//if (Math.abs(position.x % 1f) > 1 || Math.abs(position.z % 1f) > 1) return;
 
-			if ((slope & 1) != 0 && (position.y <= ty + (1 - dx) || previouslyGrounded)) {
+			if (tile.isSolid(3) && (walls & 64) != 0 && (position.y <= ty + (1 - dx) || previouslyGrounded)) {
 				yNew = ty + (1f - dx);
 			}
 			
-			if ((slope & 2) != 0 && (position.y <= ty + dx || previouslyGrounded)) {
+			if (tile.isSolid(4) && (walls & 32) != 0 && (position.y <= ty + dx || previouslyGrounded)) {
 				yNew = ty + dx;
 			}
 			
-			if ((slope & 16) != 0 && (position.y <= ty + (1 - dz) || previouslyGrounded)) {
+			if (tile.isSolid(5) && (walls & 8) != 0 && (position.y <= ty + (1 - dz) || previouslyGrounded)) {
 				yNew = ty + (1f - dz);
 			}
 			
-			if ((slope & 32) != 0 && (position.y <= ty + dz || previouslyGrounded)) {
+			if (tile.isSolid(6) && (walls & 16) != 0 && (position.y <= ty + dz || previouslyGrounded)) {
 				yNew = ty + dz;
 			}
 			
@@ -313,7 +313,7 @@ public abstract class PhysicsEntity extends Entity {
 				tileBounds.setMinMax(tx+f, ty+f, tz+f, tx+(1-f), ty+(1-f), tz+(1-f));
 				aabbCollide(tile.getMaterial(6), tileBounds);
 			}
-		}*/
+		}
 	}
 	
 	private void aabbCollide(Material material, AABB other) {

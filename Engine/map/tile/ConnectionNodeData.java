@@ -80,13 +80,26 @@ public class ConnectionNodeData {
 					for(int node2 : nodes2) {
 						
 						if (augment(node1,dx,dy,dz) == node2 && node1 != 255) {
-							return i;
+							
+							if ((dx == 0 && dz == 0 && dx == 0) || sameTile(nodes1, nodes2)) {
+								return i;
+							}
+							
 						}
 					}
 				}
 			}
 		}
 		return -1;
+	}
+
+	private boolean sameTile(int[] nodes1, int[] nodes2) {
+		for (int i = 0; i < nodes1.length; i++) {
+			if (nodes1[i] != nodes2[i])
+				return false;
+		}
+
+		return true;
 	}
 
 	private long augment(int node1, int dx, int dy, int dz) {
