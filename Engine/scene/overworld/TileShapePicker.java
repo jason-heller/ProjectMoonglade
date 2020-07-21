@@ -75,18 +75,18 @@ public class TileShapePicker {
 		if (Input.isPressed(Input.KEY_LMB) && open) {
 			switch(selected) {
 			case 0:
-				scene.setTileShape(0, 0);
+				scene.setTileShape(0);
 				break;
 				
 			case 1:
-				scene.setTileShape(0, 1);
+				scene.setTileShape(2);
 				break;
 				
 			case 2:
-				scene.setTileShape(0, 2);
+				
 				break;
 			case 3:
-				scene.setTileShape(1, 0);
+				scene.setTileShape(1);
 				break;
 			}
 			

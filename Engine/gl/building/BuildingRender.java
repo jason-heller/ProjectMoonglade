@@ -92,24 +92,13 @@ public class BuildingRender {
 			selectorMatrix.identity();
 			selectorMatrix.translate(selectionPoint);
 			
-			if ((facing & 3) != 0) {
-				
+			if ((facing & 2) != 0) {
 				selectorMatrix.rotateY(-90);
-				
-				if ((facing & 2) != 0) {
-					selectorMatrix.translate(0f, 0f, -1f);
-				}
-			} else if ((facing & 12) != 0) {
-				
-				selectorMatrix.rotateX(90);
-				
-				if ((facing & 4) != 0) {
-					selectorMatrix.translate(0f,0f,-1f);
-				}
+				selectorMatrix.translate(0f, 0f, -1f);
 			}
-			
-			if ((facing & 32) != 0) {
-				selectorMatrix.translate(0f, 0f, 1f);
+
+			if ((facing & 4) != 0) {
+				selectorMatrix.rotateX(90);
 			}
 			
 			meshShader.modelMatrix.loadMatrix(selectorMatrix);

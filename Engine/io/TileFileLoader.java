@@ -14,11 +14,11 @@ public class TileFileLoader {
 	private static TileModel extractTileData(DataInputStream is) throws IOException {
 		byte wallFlags = is.readByte();
 		byte slopeFlags = is.readByte();
+		byte numDefinedTiles = is.readByte();
 
-		TileModel model = new TileModel(8);
+		TileModel model = new TileModel(numDefinedTiles);
 		
-		for(int p = 0; p < 8; p++) {
-			
+		for(int p = 0; p < numDefinedTiles; p++) {
 			final int vertexCount = is.readShort();
 			final int indexCount = is.readShort();
 			

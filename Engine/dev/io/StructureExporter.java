@@ -75,7 +75,6 @@ public class StructureExporter {
 								dos.write((byte)-1);
 							} else {
 								dos.write(tile.getWalls());
-								dos.write(tile.getSlope());
 								
 								for(int s = 0; s < 7; s++) {
 									dos.writeShort(tile.getMaterial(s).ordinal());

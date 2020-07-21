@@ -22,29 +22,24 @@ public class ObjToTilConverter {
 	final static float PI2 = PI / 2f;
 	
 	private static final int[] idToFacing = new int[] {
-			1, 1, 2, 3, 1, 1,
-			4, 4
+			1, 1, 2, 3, 3, 3, 3
 	};
 	
 	// left, right, top, bottom, front, back, slopeLR, slopeFB, gradLR1, gradLR2, gradFB1, grabFB2
 	private static final Vector3f[] rotAxis = new Vector3f[] {
-			Vector3f.Y_AXIS, null, null, null, Vector3f.Y_AXIS, Vector3f.Y_AXIS,
-			null, Vector3f.Y_AXIS
+			Vector3f.Y_AXIS, null, null, Vector3f.Y_AXIS, Vector3f.Y_AXIS, Vector3f.Y_AXIS, Vector3f.Y_AXIS
 	};
 	
 	private static final float[] rotRad = new float[] {
-		PI, 0f, 0f, 0f, PI2, -PI2,
-		0f, -PI2
+		PI2, 0f, 0f, -PI2, PI2, PI, 0
 	};
 	
 	private static final float[] dx = new float[] {
-			1, 0, 0, 0, 1, 0,
-			0, 0
+			1, 0, 0, 0, 1, 0, 0
 		};
 	
 	private static final float[] dz = new float[] {
-			0, 1, 1, 1, 1, 0,
-			1, 0
+			1, 1, 1, 1, 1, 0, 1
 		};
 	
 	public static void tileFileParser(String filename) {
@@ -167,6 +162,7 @@ public class ObjToTilConverter {
 				
 				dos.writeByte(wallFlags);
 				dos.writeByte(slopeFlags);
+				dos.writeByte(idToFacing.length);
 				
 				for(int i = 0; i < idToFacing.length; i++) {
 					int id = idToFacing[i];
@@ -225,14 +221,9 @@ public class ObjToTilConverter {
 	}
 
 	private static int getId(String name) {
-		switch(name) {
-		case "WALL": return 1;
-		case "FLOOR": return 3;
-		case "CEILING": return 2;
-		case "SLOPE": return 4;
-		case "GRADSLOPE1": return 5;
-		case "GRADSLOPE2": return 6;
-		}
+		if (name.contains("WALL")) return 1;
+		if (name.contains("FLOOR")) return 2;
+		if (name.contains("SLOPE")) return 3;
 		
 		return -1;
 	}

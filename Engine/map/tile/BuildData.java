@@ -8,7 +8,6 @@ import java.util.Map;
 
 import org.joml.Vector3f;
 
-import dev.Console;
 import gl.res.Model;
 import map.Chunk;
 import map.Material;
@@ -32,7 +31,7 @@ public class BuildData {
 	
 	// Use this to modify tile data internally
 	// See: setTile()
-	private void setData(int x, int y, int z, byte wall, byte slope, Material material, byte flags) {
+	private void setData(int x, int y, int z, byte wall, Material material, byte flags) {
 		//int rx = x - chunk.realX;
 		//int rz = z - chunk.realZ;
 		
@@ -54,17 +53,17 @@ public class BuildData {
 		
 		if (material == Material.NONE) {
 			if (tile != null) {
-				if (tile.getWalls() == wall && tile.getSlope() == slope) {
+				if (tile.getWalls() == wall) {
 					sector.removeTile(tx, ty, tz);
 				} else {
-					tile.append(wall, slope, material, flags);
+					tile.append(wall, material, flags);
 				}
 			}
 		} else if (tile == null) {
-			tile = new Tile(material, wall, slope, flags);
+			tile = new Tile(material, wall, flags);
 			sector.addTile(tile, tx, ty, tz);
 		} else {
-			tile.append(wall, slope, material, flags);
+			tile.append(wall, material, flags);
 		}
 		
 		chunk.editFlags |= 0x01;
@@ -73,7 +72,7 @@ public class BuildData {
 	// Almost the same as above, but will only make changes if it considers the target tile "free" (meaning nothing is occupying the space or
 	// the occupying tile is transparent
 	// See: setTile()
-	private void setDataIfFree(int x, int y, int z, byte wall, byte slope, Material material, byte flags) {
+	private void setDataIfFree(int x, int y, int z, byte wall, Material material, byte flags) {
 		//int rx = x - chunk.realX;
 		//int rz = z - chunk.realZ;
 		
@@ -96,17 +95,17 @@ public class BuildData {
 		
 		if (material == Material.NONE) {
 			if (tile != null) {
-				if (tile.getWalls() == wall && tile.getSlope() == slope) {
+				if (tile.getWalls() == wall) {
 					sector.removeTile(tx, ty, tz);
 				} else {
-					tile.append(wall, slope, material, flags);
+					tile.append(wall, material, flags);
 				}
 			}
 		} else if (tile == null) {
-			tile = new Tile(material, wall, slope, flags);
+			tile = new Tile(material, wall, flags);
 			sector.addTile(tile, tx, ty, tz);
 		} else if ((tile.getWalls() & wall) == 0 || material.isTransparent() || tile.getMaterial(Tile.getFacingIndex(wall)).isTransparent()) {
-			tile.append(wall, slope, material, flags);
+			tile.append(wall, material, flags);
 		}
 		
 		chunk.editFlags |= 0x01;
@@ -120,73 +119,11 @@ public class BuildData {
 	 * @param material material to use for all walls
 	 * @param flags certain tiles can have specific flags, if the tile being set is using them, pass them here
 	 */
-	public void setTile(int x, int y, int z, byte wall, byte slope, Material material, byte flags) {
-		setData(x, y, z, wall, slope, material, flags);
-		
-		switch(wall) {
-		case 1: 
-			if (x == 0) {
-				Chunk neighbor = chunk.getTerrain().get(chunk.arrX-1, chunk.arrZ);
-				x = Chunk.VERTEX_COUNT - 2;
-				neighbor.getBuilding().setFromNeighbor(x, y, z, (byte)2, (byte)0, material, flags);
-			} else {
-				setDataIfFree(x-1,y,z, (byte)2, (byte)0, material, flags);
-				
-			}
-			break;
-		case 2: 
-			if (x == Chunk.VERTEX_COUNT-2) {
-				Chunk neighbor = chunk.getTerrain().get(chunk.arrX+1, chunk.arrZ);
-				x = 0;
-				neighbor.getBuilding().setFromNeighbor(x, y, z, (byte)1, (byte)0, material, flags);
-			} else {
-				setDataIfFree(x+1,y,z, (byte)1, (byte)0, material, flags);
-			}
-			break;
-		case 4: 
-			setDataIfFree(x,y+1,z, (byte)8, (byte)0, material, flags);
-			break;
-		case 8: 
-			setDataIfFree(x,y-1,z, (byte)4, (byte)0, material, flags);
-			break;
-		case 16: 
-			if (z == 0) {
-				Chunk neighbor = chunk.getTerrain().get(chunk.arrX, chunk.arrZ-1);
-				z = Chunk.VERTEX_COUNT - 2;
-				neighbor.getBuilding().setFromNeighbor(x, y, z, (byte)32, (byte)0, material, flags);
-			} else {
-				setDataIfFree(x,y,z-1, (byte)32, (byte)0, material, flags);
-			}
-			break;
-		case 32: 
-			if (z == Chunk.VERTEX_COUNT-2) {
-				Chunk neighbor = chunk.getTerrain().get(chunk.arrX, chunk.arrZ+1);
-				z = 0;
-				neighbor.getBuilding().setFromNeighbor(x, y, z, (byte)16, (byte)0, material, flags);
-			} else {
-				setDataIfFree(x,y,z+1, (byte)16, (byte)0, material, flags);
-			}
-			break;
-		}
-		
+	public void setTile(int x, int y, int z, byte wall, Material material, byte flags) {
+		setData(x, y, z, wall, material, flags);
 		buildModel();
 	}
-	
-	
-	/** Helper function for above, used to call setDataIfFree() form a neighboring chunk
-	 * @param x x position in world space
-	 * @param y y position in world space
-	 * @param z z position in world space
-	 * @param wall wall flags
-	 * @param material material to use for all walls
-	 * @param flags tile specific flags
-	 */
-	private void setFromNeighbor(int x, int y, int z, byte wall, byte slope, Material material, byte flags) {
-		setDataIfFree(x, y, z, wall, slope, material, flags);
-		
-		buildModel();
-	}
-	
+
 	/** rebuilds the tile model
 	 * 
 	 * @return the tile model. duh

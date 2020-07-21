@@ -101,11 +101,11 @@ public class RegionSaver implements Runnable {
 						for(int y = 0; y < BuildSector.SIZE; y++) {
 							Tile tile = sector.get(x, y, z);
 							if (tile == null) {
-								for(int i = 0; i < Tile.NUM_MATS*2 + 1; i++) {
+								for(int i = 0; i < Tile.NUM_MATS; i++) {
+									data.writeByte(0);
 									data.writeByte(0);
 								}
 							} else {
-								data.writeByte(tile.getSlope());
 								for (int i = 0; i < Tile.NUM_MATS ; i++) {
 									data.writeByte(tile.materials[i].ordinal());
 									data.writeByte(tile.getFlags()[i]);

@@ -74,20 +74,19 @@ public class StructureData {
 		this.envTiles[i][j] = id;
 	}
 
-	public void setBuildingTile(int i, int j, int k, int[] mats, int tileWalls, int tileSlope, byte[] tileFlags) {
-		this.buildingTiles[i][j][k] = new CompTileData(mats, tileWalls, tileSlope, tileFlags);
+	public void setBuildingTile(int i, int j, int k, int[] mats, int tileWalls, byte[] tileFlags) {
+		this.buildingTiles[i][j][k] = new CompTileData(mats, tileWalls, tileFlags);
 	}
 }
 
 class CompTileData {
-	private byte walls, slope;
+	private byte walls;
 	private byte[] flags;
 	private int[] materials;
 	
-	public CompTileData(int[] materials, int walls, int slope, byte[] flags) {
+	public CompTileData(int[] materials, int walls, byte[] flags) {
 		this.materials = materials;
 		this.walls = (byte) walls;
-		this.slope = (byte) slope;
 		this.flags = flags;
 	}
 	
@@ -111,9 +110,5 @@ class CompTileData {
 	
 	public byte[] getFlags() {
 		return flags;
-	}
-
-	public byte getSlope() {
-		return slope;
 	}
 }

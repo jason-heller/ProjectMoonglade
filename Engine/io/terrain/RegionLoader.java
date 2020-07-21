@@ -112,8 +112,6 @@ public class RegionLoader implements Runnable {
 				for(int x = 0; x < BuildSector.SIZE; x++) {
 					for(int z = 0; z < BuildSector.SIZE; z++) {
 						for(int y = 0; y < BuildSector.SIZE; y++) {
-							byte slope = data.readByte();
-							
 							boolean noMats = true;
 							Material[] mats = new Material[Tile.NUM_MATS];
 							byte[] flags = new byte[Tile.NUM_MATS];
@@ -124,8 +122,8 @@ public class RegionLoader implements Runnable {
 								if (mats[j] != Material.NONE) noMats = false;
 							}
 							
-							if (!noMats || slope != 0) {
-								sector.addTile(new Tile(mats, slope, flags), x, y, z);
+							if (!noMats) {
+								sector.addTile(new Tile(mats, flags), x, y, z);
 							}
 						}
 					}

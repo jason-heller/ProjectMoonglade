@@ -41,8 +41,6 @@ public class StructureLoader {
 							continue;
 						}
 						
-						int tileSlope = is.read();
-						
 						int[] mats = new int[7];
 						byte[] tileFlags = new byte[7];
 						for (int s = 0; s < 7; s++) {
@@ -50,7 +48,7 @@ public class StructureLoader {
 							tileFlags[s] = (byte) is.read();
 						}
 
-						sd.setBuildingTile(i, k, j, mats, tileWalls, tileSlope, tileFlags);
+						sd.setBuildingTile(i, k, j, mats, tileWalls, tileFlags);
 					}
 				}
 			}

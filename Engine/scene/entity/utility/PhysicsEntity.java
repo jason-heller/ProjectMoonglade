@@ -254,23 +254,16 @@ public abstract class PhysicsEntity extends Entity {
 
 	private void testTile(Tile tile, float px ,float py , float pz, float tx, float ty, float tz, boolean stick) {
 		byte walls = tile.getWalls();
-		byte slope = tile.getSlope();
-		int slopeFactor = walls >> 6;
 		AABB tileBounds = new AABB(0,0,0,0,0,0);
 
 		if (walls != 0) {
-			if (tile.isSolid(2) && (walls & 4) != 0/* && py > ty+2-height && !isFloor*/) {
-				tileBounds.setMinMax(tx, ty+.95f, tz, tx+1, ty+1, tz+1);
+			if (tile.isSolid(2) && (walls & 4) != 0) {
+				tileBounds.setMinMax(tx, ty, tz, tx+1, ty+.05f, tz+1);
 				aabbCollide(tile.getMaterial(2), tileBounds);
 			}
 			
-			if ((tile.isSolid(3)/* || tile.isSolid(2)*/) && (walls & 8) != 0/*  && (py <= ty+.05f || this.previouslyGrounded) && isFloor*/) {
-				tileBounds.setMinMax(tx, ty, tz, tx+1, ty+.05f, tz+1);
-				aabbCollide(tile.getMaterial(3), tileBounds);
-			}
-			
 			if (tile.isSolid(0) && (walls & 1) != 0/* && px < tx+width*/) {
-				tileBounds.setMinMax(tx-.05f, ty, tz, tx+.05f, ty+1, tz+1);
+				tileBounds.setMinMax(tx, ty, tz-.05f, tx+1, ty+1, tz+.05f);
 				aabbCollide(tile.getMaterial(0), tileBounds);
 			}
 			
@@ -278,19 +271,9 @@ public abstract class PhysicsEntity extends Entity {
 				tileBounds.setMinMax(tx+.95f, ty, tz, tx+1.05f, ty+1, tz+1);
 				aabbCollide(tile.getMaterial(1), tileBounds);
 			}
-			
-			if (tile.isSolid(4) && (walls & 16) != 0/* && pz < tz+width*/) {
-				tileBounds.setMinMax(tx, ty, tz-.05f, tx+1, ty+1, tz+.05f);
-				aabbCollide(tile.getMaterial(4), tileBounds);
-			}
-			
-			if (tile.isSolid(5) && (walls & 32) != 0/* && pz > (tz + 1f) - width*/) {
-				tileBounds.setMinMax(tx, ty, tz+.95f, tx+1, ty+1, tz+1.05f);
-				aabbCollide(tile.getMaterial(5), tileBounds);
-			}
 		}
 		
-		if (slopeFactor == 0 && slope != 0 && tile.isSolid(6)) {
+		/*if (slopeFactor == 0 && slope != 0 && tile.isSolid(6)) {
 			float dx = position.x - tx;//((position.x % 1f) + 2) % 1f;
 			float dz = position.z - tz;//((position.z % 1f) + 2) % 1f;
 			
@@ -301,11 +284,6 @@ public abstract class PhysicsEntity extends Entity {
 				return;
 			}
 			
-			/*if (position.y < ty-.1f) {
-				velocity.y = 0;
-				position.y = ty-height;
-				return;
-			}*/
 			float yNew = 0;
 			
 			//if (Math.abs(position.x % 1f) > 1 || Math.abs(position.z % 1f) > 1) return;
@@ -335,7 +313,7 @@ public abstract class PhysicsEntity extends Entity {
 				tileBounds.setMinMax(tx+f, ty+f, tz+f, tx+(1-f), ty+(1-f), tz+(1-f));
 				aabbCollide(tile.getMaterial(6), tileBounds);
 			}
-		}
+		}*/
 	}
 	
 	private void aabbCollide(Material material, AABB other) {

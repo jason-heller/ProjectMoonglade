@@ -304,7 +304,7 @@ public class Terrain {
 
 	public Vector3f buildingRaycast(Overworld overworld, Vector3f position, Vector3f directionVector, int playerReach,
 			byte facing, byte snapFlags) {
-		return tilePicker.buildingRaycast(overworld, position, directionVector, playerReach, facing, snapFlags == 2);
+		return tilePicker.buildingRaycast(overworld, position, directionVector, playerReach, facing);
 	}
 
 	public ChunkStreamer getStreamer() {

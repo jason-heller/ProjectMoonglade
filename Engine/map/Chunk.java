@@ -2,7 +2,6 @@ package map;
 
 import org.joml.Vector3f;
 
-import core.Application;
 import dev.Debug;
 import geom.Frustum;
 import geom.Plane;
@@ -22,7 +21,6 @@ import procedural.terrain.WaterMeshBuilder;
 import scene.entity.EntityHandler;
 import scene.entity.utility.FallingTreeEntity;
 import scene.entity.utility.ItemEntity;
-import scene.overworld.Overworld;
 import util.ModelBuilderOld;
 
 public class Chunk {
@@ -149,8 +147,8 @@ public class Chunk {
 		this.terrain = null;*/
 	}
 
-	public void setTile(int x, int y, int z, byte wall, byte slope, Material material, byte specialFlags) {
-		building.setTile(x, y, z, wall, slope, material, specialFlags);
+	public void setTile(int x, int y, int z, byte wall, Material material, byte specialFlags) {
+		building.setTile(x, y, z, wall, material, specialFlags);
 		editFlags |= 0x01;
 	}
 	

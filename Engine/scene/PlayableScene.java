@@ -23,7 +23,7 @@ public abstract class PlayableScene implements Scene {
 	protected boolean returnToMenu;
 	
 	protected byte facing;
-	protected byte slopeSetting = 0, wallSetting = 0;
+	protected byte wallSetting = 0;
 	protected Vector3f selectionPt, exactSelectionPt;
 	
 	public PlayableScene() {
@@ -52,15 +52,14 @@ public abstract class PlayableScene implements Scene {
 			Mouse.setCursorPosition(Window.getWidth()/2, Window.getHeight()/2);
 		}
 		
-		facing = Tile.getFacingByte(camera, wallSetting == 1, slopeSetting == 1);
+		facing = Tile.getFacingByte(camera, wallSetting);
 		selectionPt = null;
 		exactSelectionPt = null;
 		
 		camera.move();
 	}
 
-	public void setTileShape(int wall, int slope) {
-		this.slopeSetting = (byte)slope;
+	public void setTileShape(int wall) {
 		this.wallSetting = (byte)wall;
 	}
 	

@@ -2,14 +2,12 @@ package map.tile;
 
 import org.joml.Vector3f;
 
-import dev.Console;
 import gl.Camera;
 import map.Material;
 import scene.overworld.inventory.Item;
 import util.MathUtil;
 
 public class Tile {
-	private byte slope;
 	public Material[] materials;
 	private byte[] flags;
 	
@@ -18,19 +16,19 @@ public class Tile {
 	public static final float TILE_SIZE = 1f;//.5f;
 	
 	static final byte 	LEFT = 1,
-						RIGHT = 2,
-						TOP = 4,
-						BOTTOM = 8,
-						FRONT = 16,
-						BACK = 32;
+						FRONT = 2,
+						BOTTOM = 4,
+						SLOPE_LEFT = 8,
+						SLOPE_RIGHT = 16,
+						SLOPE_TOP = 32,
+						SLOPE_BOTTOM = 64,
+						SLOPE_WALL_FLAG = (byte) (128 & 0xff);
 	
-	public Tile(Material material, byte walls, byte slope, byte flags) {
+	public Tile(Material material, byte walls, byte flags) {
 		this.materials = new Material[NUM_MATS];
 		this.flags = new byte[NUM_MATS];
-		this.slope = slope;
-		Console.log(slope,walls);
 		int val = 1;
-		for(int i = 0; i < NUM_MATS-1; i++) {
+		for(int i = 0; i < NUM_MATS; i++) {
 			this.materials[i] = (walls & val) != 0 ? material : Material.NONE;
 			if ((walls & val) != 0) {
 				this.materials[i] = material;
@@ -42,26 +40,17 @@ public class Tile {
 		
 			val *= 2;
 		}
-		
-		if (slope != 0) {
-			this.materials[NUM_MATS-1] = material;
-			this.flags[NUM_MATS-1] = flags;
-		} else {
-			this.materials[NUM_MATS-1] = Material.NONE;
-			this.flags[NUM_MATS-1] = (byte)0;
-		}
 	}
 	
-	public Tile(Material[] id, byte slope, byte[] flags) {
+	public Tile(Material[] id, byte[] flags) {
 		this.materials = id;
-		this.slope = slope;
 		this.flags = flags;
 	}
 	
 	public byte getWalls() {
 		byte walls = 0;
 		int val = 1;
-		for(int i = 0; i < NUM_MATS-1; i++) {
+		for(int i = 0; i < NUM_MATS; i++) {
 			if (materials[i] != Material.NONE)
 				walls |= val;
 		
@@ -93,67 +82,61 @@ public class Tile {
 	 *               (true = floors/ceilings)
 	 * @return the byte value for the wall/floor facing the player
 	 */
-	public static byte getFacingByte(Camera camera, boolean floors, boolean slope) {
-		if (floors && !slope) {
-			return camera.getPitch() > 0 ? BOTTOM : TOP;
+	public static byte getFacingByte(Camera camera, byte wallSetting) {
+		if (wallSetting == 1) {
+			return BOTTOM;
+		}
+		
+		if (wallSetting == 0) {
+			float yaw = camera.getYaw();
+			
+			switch((int)(Math.floor((yaw-45) / 90))) {
+			case 0:
+			case 2:
+				return FRONT;
+			}
+			
+			return LEFT;
 		}
 		
 		float yaw = camera.getYaw();
 		
 		switch((int)(Math.floor((yaw-45) / 90))) {
-		case 0:
-			return RIGHT;
 		case 1:
-			return BACK;
+			return SLOPE_RIGHT;
 		case 2:
-			return LEFT;
+			return SLOPE_BOTTOM;
+		case 3:
+			return SLOPE_LEFT;
 		}
 		
-		return FRONT;
+		return SLOPE_TOP;
 	}
 
-	void append(byte wall, byte slope, Material mat, byte flags) {
-		if (mat == Material.NONE) {
-			this.slope = (byte) (this.slope - (this.slope & slope));
-		} else {
-			this.slope |= slope;
-			
-			if (slope != 0) {
-				this.materials[NUM_MATS-1] = mat;
-				this.flags[NUM_MATS-1] = flags;
-			}
-		}
-		
+	void append(byte wall, Material mat, byte flags) {
 		int val = 1;
-		for(int i = 0; i < NUM_MATS-1; i++) {
+		for(int i = 0; i < NUM_MATS; i++) {
 			this.materials[i] = (wall & val) != 0 ? mat : this.materials[i];
 			this.flags[i] = (wall & val) != 0 ? flags : this.flags[i];
 			val *= 2;
 		}
 	}
 	
-	void append(Material[] mat, byte slope, byte[] flags) {
+	void append(Material[] mat, byte[] flags) {
 		this.materials = mat;
 		this.flags = flags;
-		this.slope = slope;
 	}
 	
 	public static byte getFacingByte(Vector3f v) {
-		int weight = Math.round(v.x) + (10 + (Math.round(v.y) * 2)) + (100 + (Math.round(v.z) * 4));
+		int weight = (int) (Math.abs(v.x) + (Math.abs(v.y) * 2) + (Math.abs(v.z) * 4));
 		
 		switch(weight) {
-		case 109:
-			return LEFT;
-		case 111:
-			return RIGHT;
-		case 112:
-			return TOP;
-		case 108:
-			return BOTTOM;
-		case 106:
+		case 1:
 			return FRONT;
-		case 114:
-			return BACK;
+		case 2:
+			return BOTTOM;
+		case 4:
+			return LEFT;
 		}
 		
 		return 0;
@@ -171,24 +154,12 @@ public class Tile {
 			return LEFT;
 		}
 		
-		if ((sides & RIGHT) != 0 && looking == RIGHT) {
-			return RIGHT;
-		}
-		
-		if ((sides & TOP) != 0 && looking == TOP) {
-			return TOP;
-		}
-		
 		if ((sides & BOTTOM) != 0 && looking == BOTTOM) {
 			return BOTTOM;
 		}
 		
 		if ((sides & FRONT) != 0 && looking == FRONT) {
 			return FRONT;
-		}
-		
-		if ((sides & BACK) != 0 && looking == BACK) {
-			return BACK;
 		}
 		
 		return 0;
@@ -234,22 +205,10 @@ public class Tile {
 		return this.materials[facingIndex].isSolid();
 	}
 
-	public byte getSlope() {
-		return slope;
-	}
-
 	public static Vector3f getNormal(byte side) {
 		
 		if ((side & LEFT) != 0) {
 			return new Vector3f(1,0,0);
-		}
-		
-		if ((side & RIGHT) != 0) {
-			return  new Vector3f(-1,0,0);
-		}
-		
-		if ((side & TOP) != 0) {
-			return  new Vector3f(0,-1,0);
 		}
 		
 		if ((side & BOTTOM) != 0) {
@@ -260,10 +219,6 @@ public class Tile {
 			return  new Vector3f(0,0,1);
 		}
 		
-		if ((side & BACK) != 0) {
-			return  new Vector3f(0,0,-1);
-		}
-		
 		return new Vector3f();
 	}
 
@@ -271,16 +226,18 @@ public class Tile {
 		switch(wall) {
 		case LEFT:
 			return 0;
-		case RIGHT:
-			return 1;
-		case TOP:
-			return 2;
-		case BOTTOM:
-			return 3;
 		case FRONT:
+			return 1;
+		case BOTTOM:
+			return 2;
+		case SLOPE_LEFT:
+			return 3;
+		case SLOPE_RIGHT:
 			return 4;
-		case BACK:
+		case SLOPE_TOP:
 			return 5;
+		case SLOPE_BOTTOM:
+			return 6;
 		}
 		
 		return 0;

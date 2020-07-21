@@ -41,10 +41,8 @@ public class TileModel {
 		return models[i].indices;
 	}
 
-	public void pass(float dx, float dy, float dz, ModelBuilder builder, Vector3f tex, byte walls, byte flags, byte slant, boolean isColorable) {
-		int id  = getId(walls, slant);	
-		
-		
+	public void pass(float dx, float dy, float dz, ModelBuilder builder, Vector3f tex, byte walls, byte flags, boolean isColorable) {
+		int id  = getId(walls);	
 		
 		MeshData mesh = models[id];
 		float[] vertices = mesh.vertices;
@@ -87,7 +85,7 @@ public class TileModel {
 	}
 
 	private Vector3f getTileColor(byte colorId) {
-		
+		// TODO: Give Tiles their own Color class
 		switch(colorId) {
 		case 1: return Colors.RED;
 		case 2: return Colors.ORANGE;
@@ -112,27 +110,16 @@ public class TileModel {
 		}
 	}
 
-	// left, right, top, bottom, front, back, slopeLR, slopeFB, gradLR1, gradLR2, gradFB1, grabFB2
-	private int getId(byte walls, byte slant) {
-		flipX = false;
-		flipZ = false;
-		
-		if (slant == -1) {
-			switch(walls) {
-			case 1: return 0;
-			case 2: return 1;
-			case 4: return 2;
-			case 8: return 3;
-			case 16: return 4;
-			case 32: return 5;
-			}
-		} else if (slant == 0) {
-			switch(walls) {
-			case 1: return 6;
-			case 2: flipX = true; return 6; // flip
-			case 16: return 7;
-			case 32: flipZ = true; return 7; // flip
-			}
+	// left, front, bottom, slopeL, slopeR, slopeF, slopeB
+	private int getId(byte walls) {
+		switch(walls) {
+		case 1: return 0;
+		case 2: return 1;
+		case 4: return 2;
+		case 8: return 3;
+		case 16: return 4;
+		case 32: return 5;
+		case 64: return 6;
 		}
 		
 		return 0;

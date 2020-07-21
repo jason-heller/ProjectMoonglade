@@ -141,7 +141,6 @@ public class Overworld extends PlayableScene {
 				
 			if (inventory.getSelected() != 0) {
 				byte snapFlags = (byte) ((wallSetting == 1) ? 1 : 0);
-				snapFlags = (byte) ((slopeSetting == 1) ? 2 : snapFlags);
 				Vector3f pt = enviroment.getTerrain().buildingRaycast(this, camera.getPosition(), camera.getDirectionVector(), PLAYER_REACH, facing, snapFlags);
 				if (pt != null && (selectionPt == null || Vector3f.distanceSquared(camera.getPosition(), pt) <
 				Vector3f.distanceSquared(camera.getPosition(), selectionPt))) {
@@ -179,10 +178,6 @@ public class Overworld extends PlayableScene {
 				Tile tile = chunkPtr.getBuilding().get(_x, _y, _z);
 				//byte facing = Tile.getFacingByte(camera, wallSetting == 1, slopeSetting == 1);
 				int facingIndex = Tile.getFacingIndex(facing);
-				
-				if (this.slopeSetting != 0) {
-					facingIndex = 6;
-				}
 				
 				if (lmb) {
 					actionDelay = .05f;
@@ -255,13 +250,6 @@ public class Overworld extends PlayableScene {
 				EntityHandler.addEntity(new ItemEntity(getTileDropPos(selectionPt), tile.getMaterial(facingIndex).getDrop(), 1));
 			}
 			
-			byte wallFlags = facing;
-			byte slopeFlags = 0;
-			if (slopeSetting == 1) {
-				wallFlags = 0;
-				slopeFlags = facing;
-			}
-			
 			byte specialFlags = mat.getInitialFlags();
 			if (mat.isTiling()) {
 				final float rx = (_x) + cx;
@@ -272,16 +260,16 @@ public class Overworld extends PlayableScene {
 				if ((facing & 1) != 0) dz *= -1;
 				if ((facing & 32) != 0) dx *= -1;
 				
-				chunkPtr.setTile(_x, _y, _z, wallFlags, slopeFlags, mat, (byte) 0);
+				chunkPtr.setTile(_x, _y, _z, facing, mat, (byte) 0);
 				tile = chunkPtr.getBuilding().get(_x,_y,_z);
 				Material.setTilingFlags(tile, terrain, rx, ry, rz, dx, dz, mat, facingIndex, 0);
 				chunkPtr.getBuilding().buildModel();
 			} else {
-				chunkPtr.setTile(_x, _y, _z, wallFlags, slopeFlags, mat, specialFlags);
+				chunkPtr.setTile(_x, _y, _z, facing, mat, specialFlags);
 			}
 
 			inventory.consume(inventory.getSelectionPos());
-			chunkPtr.rebuildWalls();
+			//chunkPtr.rebuildWalls();
 		}
 	}
 
@@ -309,13 +297,7 @@ public class Overworld extends PlayableScene {
 					EntityHandler.addEntity(new ItemEntity(getTileDropPos(selectionPt), tile.getMaterial(facingIndex).getDrop(), 1));
 				}
 				
-				if (slopeSetting != 0) {
-					chunkPtr.setTile(_x, _y, _z, (byte) 0, facing,
-							Material.NONE, (byte) 0);
-				} else {
-					chunkPtr.setTile(_x, _y, _z, facing, (byte) 0,
-							Material.NONE, (byte) 0);
-				}
+				chunkPtr.setTile(_x, _y, _z, facing, Material.NONE, (byte) 0);
 			}
 		}
 		
