@@ -16,6 +16,7 @@ public class Item {
 	public final static int AIR = 0, AXE = 3, SPADE = 1, TROWEL = 2;
 	
 	public static void init() {
+		if (items.size() != 0) return;
 		addItem("air", 0, 0, Material.NONE);
 		addItem("spade", 1, 1, ItemAction.DIG);
 		addItem("trowel", 2, 1, ItemAction.DIG);

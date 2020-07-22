@@ -302,8 +302,7 @@ public class Terrain {
 		populate(enviroment.x, enviroment.z);
 	}
 
-	public Vector3f buildingRaycast(Overworld overworld, Vector3f position, Vector3f directionVector, int playerReach,
-			byte facing, byte snapFlags) {
+	public Vector3f buildingRaycast(Overworld overworld, Vector3f position, Vector3f directionVector, int playerReach, byte facing) {
 		return tilePicker.buildingRaycast(overworld, position, directionVector, playerReach, facing);
 	}
 

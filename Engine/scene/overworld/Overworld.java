@@ -7,6 +7,7 @@ import org.lwjgl.input.Keyboard;
 
 import core.Application;
 import core.Resources;
+import dev.Console;
 import dev.Debug;
 import dev.tracers.LineRender;
 import gl.Camera;
@@ -59,7 +60,7 @@ public class Overworld extends PlayableScene {
 		
 		SaveDataIO.readSaveData(this);
 		
-		OverworldResourcemanager.init();
+		OverworldResourceManager.init();
 		
 		enviroment = new Enviroment(this);
 		enviroment.tick(this);
@@ -108,15 +109,17 @@ public class Overworld extends PlayableScene {
 		}
 		hasHolds = true;
 		
+		// TEMP CODE
 		if (player.isDisabled()) {
 			camera.setControlStyle(Camera.NO_CONTROL);
 			UI.drawRect(0, 300, 1280, 120, Colors.RED).setDepth(-999);
 			UI.drawString("You're Dead!\nPress R to Respawn", 1280/2, 720/2, true).setDepth(-1000);
 			if (Input.isPressed(Keyboard.KEY_R)) {
 				player.setDisabled(false);
-				player.heal(10);
+				player.setHp(10);
 				camera.setControlStyle(Camera.FIRST_PERSON);
 				camera.focusOn(player);
+				Console.send("tp 07.5 -1000 7.5");
 			}
 		}
 		
@@ -140,8 +143,7 @@ public class Overworld extends PlayableScene {
 			}
 				
 			if (inventory.getSelected() != 0) {
-				byte snapFlags = (byte) ((wallSetting == 1) ? 1 : 0);
-				Vector3f pt = enviroment.getTerrain().buildingRaycast(this, camera.getPosition(), camera.getDirectionVector(), PLAYER_REACH, facing, snapFlags);
+				Vector3f pt = enviroment.getTerrain().buildingRaycast(this, camera.getPosition(), camera.getDirectionVector(), PLAYER_REACH, facing);
 				if (pt != null && (selectionPt == null || Vector3f.distanceSquared(camera.getPosition(), pt) <
 				Vector3f.distanceSquared(camera.getPosition(), selectionPt))) {
 					selectionPt = pt;
@@ -360,7 +362,7 @@ public class Overworld extends PlayableScene {
 		ui.cleanUp();
 		EntityHandler.clearEntities();
 		enviroment.cleanUp();
-		OverworldResourcemanager.cleanUp();
+		OverworldResourceManager.cleanUp();
 		
 		SaveDataIO.writeSaveData(this);
 	}

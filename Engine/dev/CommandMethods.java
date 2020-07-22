@@ -108,6 +108,34 @@ public class CommandMethods {
 		}
 	}
 	
+	public static void god() {
+		if (Application.scene instanceof Overworld) {
+			Overworld scene = ((Overworld)Application.scene);
+			Entity player = scene.getPlayer();
+			player.setHurtable(!player.isHurtable());
+		}
+	}
+	
+	public static void hp(String hp) {
+		if (Application.scene instanceof Overworld) {
+			Overworld scene = ((Overworld)Application.scene);
+			scene.getPlayer().setHp(Integer.parseInt(hp));
+		}
+	}
+	
+	public static void kill() {
+		if (Application.scene instanceof Overworld) {
+			Overworld scene = ((Overworld)Application.scene);
+			Entity player = scene.getPlayer();
+			player.setHp(1);
+			boolean hurtable = player.isHurtable();
+			player.setHurtable(true);
+			player.hurt(Integer.MAX_VALUE, null);
+			player.setHurtable(hurtable);
+			
+		}
+	}
+	
 	public static void noclip() {
 		if (Application.scene.getCamera().getControlStyle() == Camera.FIRST_PERSON) {
 			Application.scene.getCamera().setControlStyle(Camera.SPECTATOR);

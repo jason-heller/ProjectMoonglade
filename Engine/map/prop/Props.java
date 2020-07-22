@@ -40,7 +40,7 @@ public enum Props {
 		add(PINE_SNOWY, PINE, 0, 4, PINE_PLANKS, "pine_planks", 0, DEF_STRENGTH, false, true, Item.AXE, true);
 		add(MANGROVE, "mangrove", STICK, "stick", 0, STRONG, false, true, Item.AXE);
 		add(PALM, "palm", PALM_PLANKS, "palm_planks", 0, STRONG, false, true, Item.AXE);
-		add(VINE, "vine", THATCH, "vine", 8, WEAK, true, false, Item.AIR);
+		add(VINE, "vine", HEDGE, "vine", 8, WEAK, true, false, Item.AIR);
 		add(CYPRESS, "cypress", CYPRESS_PLANKS, "cypress_planks", 8, STRONG, false, true, Item.AXE);
 		add(CYPRESS_BIG, "cypress2", CYPRESS_PLANKS, "cypress_planks", 8, STRONG, false, true, Item.AXE);
 		add(JOSHUA_TREE, "joshuatree", STICK, "plant_fibers", 8, DEF_STRENGTH, false, true, Item.AXE);

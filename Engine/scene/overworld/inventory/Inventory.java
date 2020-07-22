@@ -4,6 +4,7 @@ import org.joml.Vector3f;
 
 import core.Application;
 import core.Resources;
+import dev.Console;
 import dev.Debug;
 import gl.Camera;
 import gl.building.BuildingRender;
@@ -19,7 +20,6 @@ import util.Colors;
 public class Inventory {
 	private int[] items;
 	private int[] quantities;
-	private final int INV_WIDTH = 9;
 
 	private int selectionPos = 0;
 
@@ -228,9 +228,9 @@ public class Inventory {
 	}
 	
 	public void addItem(int id, int numDrops) {
+		
 		if (numDrops == 0)
 			return;
-		;
 		for (int i = 0; i < items.length; i++) {
 			if (items[i] == id || items[i] == 0) {
 				items[i] = id;

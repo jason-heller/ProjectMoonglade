@@ -48,7 +48,7 @@ public enum ItemAction {
 			
 			case CHOP:
 				if (Debug.structureMode) {
-					EditorBoundsTool.interact(exactSelectionPt, true, false);
+					EditorBoundsTool.interact(exactSelectionPt, false, true);
 				}
 				return true;
 				

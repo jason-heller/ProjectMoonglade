@@ -4,7 +4,6 @@ import static map.tile.Tile.TILE_SIZE;
 
 import org.joml.Vector3f;
 
-import dev.Console;
 import map.Material;
 import map.Terrain;
 import scene.overworld.Overworld;
@@ -53,13 +52,19 @@ public class TilePicker {
 				tilePos.set(x, y, z);
 
 				normal = MathUtil.rayBoxEscapeNormal(point, dir, x, y, z, TILE_SIZE);
-				if ((Tile.getFacingByte(normal) & facing) == 0)
+				if (facingIndex >= 3) {
+					byte n = Tile.getFacingByte(normal);
+					if (n == 1 && (facingIndex != 3 && facingIndex != 4)) continue;
+					if (n == 2 && (facingIndex != 5 && facingIndex != 6)) continue;
+				} else if ((Tile.getFacingByte(normal) & facing) == 0) {
 					continue;
+				}
 
 				result = testTile(tilePos, tileFaceAdjust[4], normal, facingIndex);
 				if (result != null)
 					return result;
-
+				
+				// Since tiles only live in one of each axis per tile, in order to connect with them we need to test neighboring tiles
 				if (normal.x != 0f) {
 					result = testTile(tilePos, tileFaceAdjust[0], normal, facingIndex);
 				} else if (normal.y != 0f) {
@@ -92,6 +97,23 @@ public class TilePicker {
 			int dy = connections[j][1];
 			int dz = connections[j][2];
 			
+			// Adjust for slopes
+			if (facingIndex > 2) {
+				if (j == 6) continue;
+				
+				switch(facingIndex) {
+				case 3: dy -= dz;
+					break;
+				case 4: dy += dz;
+					break;
+				case 5: dy += dx;
+					break;
+				case 6: dy -= dx;
+					break;
+				}
+			}
+			
+			// Collide
 			int[] placeTileData = cnd.intToNode(cnd.getConnectionData(facingIndex, Material.BRICK));
 
 			tile = getTileAt(tilePos.x + dx + xOffset, tilePos.y + dy + yOffset, tilePos.z + dz + zOffset);
@@ -100,7 +122,11 @@ public class TilePicker {
 				int faceIndex = cnd.compare(placeTileData, tile, dx, dy, dz);
 				
 				if (faceIndex != -1) {
-					Console.log(faceOffset[0], faceOffset[1], faceOffset[2]);
+					
+					// Sloped tiles & floors span the entire tilespace, so if the tile checking function is checking neighbors, do not count this as a hit
+					if (faceIndex > 1 && faceOffset != tileFaceAdjust[4])
+						continue;
+					
 					return new Vector3f(tilePos.x + xOffset - faceOffset[0], tilePos.y + yOffset - faceOffset[1], tilePos.z + zOffset - faceOffset[2]);
 				}
 				

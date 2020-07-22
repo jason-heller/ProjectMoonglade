@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -24,7 +25,6 @@ import io.Input;
 import map.Chunk;
 import map.Terrain;
 import scene.PlayableScene;
-import scene.entity.utility.ItemEntity;
 import scene.overworld.Overworld;
 
 public class EntityHandler {
@@ -34,15 +34,16 @@ public class EntityHandler {
 	
 	private static Map<Texture, List<Entity>> entities;
 	private static Map<Chunk, List<Entity>> byChunk;
-	private static LinkedList<Entity> removalQueue;
+	private static LinkedList<Entity> removalQueue;//, addQueue;
 	
 	public static int entityRadius = 3;
 
 	public static void addEntity(Entity entity) {
+		//addQueue.add(entity);
 		if (entities.containsKey(entity.getDiffuse())) {
 			entities.get(entity.getDiffuse()).add(entity);
 		} else {
-			final List<Entity> ents = new ArrayList<Entity>();
+			final List<Entity> ents = new CopyOnWriteArrayList<Entity>();
 			ents.add(entity);
 			entities.put(entity.getDiffuse(), ents);
 		}
@@ -65,6 +66,7 @@ public class EntityHandler {
 		entities = new HashMap<Texture, List<Entity>>();
 		byChunk = new HashMap<Chunk, List<Entity>>();
 		removalQueue = new LinkedList<Entity>();
+		//addQueue = new LinkedList<Entity>();
 		itemRender = new ItemRender();
 		
 		EntityData.init();
@@ -154,15 +156,15 @@ public class EntityHandler {
 	}
 
 	private static void update(PlayableScene scene, Entity entity) {
-		Vector3f playerPos = scene.getPlayer().position;
+		Vector3f camPos = scene.getCamera().getPosition();
 		entity.update(scene);
 
 		if (entity.isClickable()) {
 			if (Input.isPressed("attack")
-					&& entity.getAabb().collide(playerPos, scene.getCamera().getDirectionVector()) < Overworld.PLAYER_REACH) {
+					&& entity.getAabb().collide(camPos, scene.getCamera().getDirectionVector()) < Overworld.PLAYER_REACH) {
 				entity.onClick(true, scene.getInventory());
 			} else if (Input.isPressed("use")
-					&& entity.getAabb().collide(playerPos, scene.getCamera().getDirectionVector()) < Overworld.PLAYER_REACH) {
+					&& entity.getAabb().collide(camPos, scene.getCamera().getDirectionVector()) < Overworld.PLAYER_REACH) {
 				entity.onClick(false, scene.getInventory());
 			}
 		}
@@ -214,6 +216,18 @@ public class EntityHandler {
 	}
 
 	public static void tick(Terrain terrain) {
+		/*for(Entity entity : addQueue) {
+			if (entities.containsKey(entity.getDiffuse())) {
+				entities.get(entity.getDiffuse()).add(entity);
+			} else {
+				final List<Entity> ents = new ArrayList<Entity>();
+				ents.add(entity);
+				entities.put(entity.getDiffuse(), ents);
+			}
+		}
+		
+		addQueue.clear();*/
+		
 		for (final Texture texture : entities.keySet()) {
 			final List<Entity> batch = entities.get(texture);
 			for (int j = 0, m = batch.size(); j < m; j++) {
@@ -286,8 +300,6 @@ public class EntityHandler {
 		if (entity.getPersistency() == 2) {
 			chunk.editFlags |= 0x08;
 		}
-		
-		Console.log("assigned ",entity,"to",chunk.dataX,chunk.dataZ);
 	}
 	
 	private static void removeChunkAssignment(Entity entity) {
@@ -302,7 +314,6 @@ public class EntityHandler {
 				chunk.editFlags = (byte) (chunk.editFlags - (byte)(chunk.editFlags & 0x08));
 			}
 		}
-		Console.log("removed ",entity,"from",chunk.dataX,chunk.dataZ);
 	}
 
 	public static GenericMeshShader getShader() {

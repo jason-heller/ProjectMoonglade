@@ -18,8 +18,8 @@ import ui.UI;
 
 public class Application {
 	
-	public static final String TITLE = "Moonglade"; //Vendure
-	public static final String VERSION = "Version 0.4.1 Build 2";
+	public static final String TITLE = "Moonglade [working title]"; //Vendure
+	public static final String VERSION = "Version 0.4.1 Build 3";
 	// Alpha Version 4, Minor 1, revision/patch 0
 	
 	public static Scene scene;

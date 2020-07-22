@@ -38,9 +38,6 @@ public abstract class PhysicsEntity extends Entity {
 	public float maxSpeed = 25f, maxAirSpeed = 5f, maxWaterSpeed = 1f;
 	public float friction = DEFAULT_FRICTION;
 	public float airFriction = 0f;
-	
-	public float width;
-	public float height;
 
 	public boolean visible = true;
 	
@@ -48,25 +45,8 @@ public abstract class PhysicsEntity extends Entity {
 
 	public PhysicsEntity(String model, String diffuse) {
 		super(model, diffuse);
-		aabb = new AABB(new Vector3f(), new Vector3f(width, height, width));
+		aabb = new AABB(new Vector3f(), new Vector3f());
 	}
-	
-	/*public PhysicsEntity() {
-		super(null, null);
-	}
-
-	public PhysicsEntity(String model, String diffuse) {
-		position = new Vector3f();
-		rotation = new Vector3f();
-		velocity = new Vector3f();
-		scale = 1f;
-		visible = true;
-		matrix = new Matrix4f();
-		this.model = model == null ? null : Resources.getModel(model);
-		this.diffuse = diffuse == null ? null : Resources.getTexture(diffuse);
-
-		aabb = new AABB(new Vector3f(), new Vector3f(width, height, width));
-	}*/
 
 	public void accelerate(Vector3f dir, float amount) {
 		if (climbing) {
@@ -118,7 +98,7 @@ public abstract class PhysicsEntity extends Entity {
 		if (waterHeight != Float.MIN_VALUE && waterHeight > position.y + .2f) {
 			submerged = true;
 			
-			if (waterHeight > position.y + height) {
+			if (waterHeight > position.y + aabb.getBounds().y*2) {
 				fullySubmerged = true;
 			}
 		}
@@ -139,7 +119,7 @@ public abstract class PhysicsEntity extends Entity {
 		tx = ((tx-1)/2);
 		tz = ((tz-1)/2);
 		
-		final float w = width-.01f;
+		final float w = aabb.getBounds().x-.01f;
 		
 		Chunk tr = terrain.getChunkAt(position.x+w, position.z-w),
 				bl = terrain.getChunkAt(position.x-w, position.z-w),
@@ -172,7 +152,7 @@ public abstract class PhysicsEntity extends Entity {
 	}
 	
 	private void collideWithProps(Terrain terrain) {
-		final float w = width-.01f;
+		final float w = aabb.getBounds().x-.01f;
 		testProp(terrain, position.x+w, position.z-w);
 		testProp(terrain, position.x-w, position.z-w);
 		testProp(terrain, position.x-w, position.z+w);
@@ -213,13 +193,13 @@ public abstract class PhysicsEntity extends Entity {
 	}
 
 	private void collideWithBuildings(Terrain t) {
-		aabb.setCenter(position.x, position.y + (height/2), position.z);
+		aabb.setCenter(position.x, position.y + aabb.getBounds().y, position.z);
 
 		Tile tile;
 		
 		for(float i = position.x - 1f; i <= position.x + 1f; i += 1f) {
 			for(float j = position.z - 1f; j <= position.z + 1f; j += 1f) {
-				for(float k = position.y + 1; k > position.y-1; k -= 1f) {
+				for(float k = position.y + 2; k > position.y-1; k -= 1f) {
 					Chunk chunkPtr = t.getChunkAt(i, j);
 					if (chunkPtr == null) continue;
 					
@@ -258,16 +238,16 @@ public abstract class PhysicsEntity extends Entity {
 
 		if (walls != 0) {
 			if (tile.isSolid(2) && (walls & 4) != 0) {
-				tileBounds.setMinMax(tx, ty, tz, tx+1, ty+.05f, tz+1);
+				tileBounds.setMinMax(tx, ty-.05f, tz, tx+1, ty+.05f, tz+1);
 				aabbCollide(tile.getMaterial(2), tileBounds);
 			}
 			
-			if (tile.isSolid(0) && (walls & 1) != 0/* && px < tx+width*/) {
+			if (tile.isSolid(0) && (walls & 1) != 0) {
 				tileBounds.setMinMax(tx, ty, tz-.05f, tx+1, ty+1, tz+.05f);
 				aabbCollide(tile.getMaterial(0), tileBounds);
 			}
 			
-			if (tile.isSolid(1) && (walls & 2) != 0/* && px > (tx + 1f) - width*/) {
+			if (tile.isSolid(1) && (walls & 2) != 0) {
 				tileBounds.setMinMax(tx+.95f, ty, tz, tx+1.05f, ty+1, tz+1);
 				aabbCollide(tile.getMaterial(1), tileBounds);
 			}
@@ -278,15 +258,13 @@ public abstract class PhysicsEntity extends Entity {
 			float dz = position.z - tz;//((position.z % 1f) + 2) % 1f;
 			
 			if (dx < 0 || dz < 0 || dx > 1|| dz > 1) {
-				float f = this.width/2f;
+				float f = aabb.getBounds().x;
 				tileBounds.setMinMax(tx+f, ty+f, tz+f, tx+(1-f), ty+(1-f), tz+(1-f));
 				aabbCollide(tile.getMaterial(3), tileBounds);
 				return;
 			}
 			
 			float yNew = 0;
-			
-			//if (Math.abs(position.x % 1f) > 1 || Math.abs(position.z % 1f) > 1) return;
 
 			if (tile.isSolid(3) && (walls & 64) != 0 && (position.y <= ty + (1 - dx) || previouslyGrounded)) {
 				yNew = ty + (1f - dx);
@@ -309,7 +287,7 @@ public abstract class PhysicsEntity extends Entity {
 				grounded = true;
 				position.y = yNew;
 			} else {
-				float f = this.width/2f;
+				float f = aabb.getBounds().x;
 				tileBounds.setMinMax(tx+f, ty+f, tz+f, tx+(1-f), ty+(1-f), tz+(1-f));
 				aabbCollide(tile.getMaterial(6), tileBounds);
 			}
@@ -325,12 +303,12 @@ public abstract class PhysicsEntity extends Entity {
 			float dy = aabbTop - position.y;
 			if (grounded && dy < ALLOWABLE_STEP && dy > 0) {
 				position.y = aabbTop;
-				aabb.setCenter(position.x, position.y + (height/2), position.z);
+				aabb.setCenter(position.x, position.y + aabb.getBounds().y, position.z);
 				return;
 			}
 			
 			position.add(Vector3f.mul(axis, manifold.getDepth()));
-			aabb.setCenter(position.x, position.y + (height/2), position.z);
+			aabb.setCenter(position.x, position.y + aabb.getBounds().y, position.z);
 			
 			if (axis.y == 1f) {
 				grounded = true;
@@ -362,8 +340,8 @@ public abstract class PhysicsEntity extends Entity {
 					+ ALLOWABLE_STEP) {
 				return;
 			}
-			if (position.x - width < x1) {
-				position.x = x1 + width;
+			if (position.x - aabb.getBounds().x < x1) {
+				position.x = x1 + aabb.getBounds().x;
 				velocity.x = 0;
 			}
 			break;
@@ -375,8 +353,8 @@ public abstract class PhysicsEntity extends Entity {
 					+ ALLOWABLE_STEP) {
 				return;
 			}
-			if (position.x + width > x1) {
-				position.x = x1 - width;
+			if (position.x + aabb.getBounds().x > x1) {
+				position.x = x1 - aabb.getBounds().x;
 				velocity.x = 0;
 			}
 			break;
@@ -388,8 +366,8 @@ public abstract class PhysicsEntity extends Entity {
 					+ ALLOWABLE_STEP) {
 				return;
 			}
-			if (position.z - width < z1) {
-				position.z = z1 + width;
+			if (position.z - aabb.getBounds().x < z1) {
+				position.z = z1 + aabb.getBounds().x;
 				velocity.z = 0;
 			}
 			break;
@@ -401,8 +379,8 @@ public abstract class PhysicsEntity extends Entity {
 					+ ALLOWABLE_STEP) {
 				return;
 			}
-			if (position.z + width > z1) {
-				position.z = z1 - width;
+			if (position.z + aabb.getBounds().x > z1) {
+				position.z = z1 - aabb.getBounds().x;
 				velocity.z = 0;
 			}
 			break;
@@ -449,7 +427,7 @@ public abstract class PhysicsEntity extends Entity {
 
 	@Override
 	public void update(Scene scene) {
-		aabb.setCenter(position.x, position.y + (height/2), position.z);
+		aabb.setCenter(position.x, position.y + aabb.getBounds().y, position.z);
 		
 		if (!submerged && !climbing) {
 			velocity.y = Math.max(velocity.y - gravity * Window.deltaTime, maxGravity);
@@ -508,7 +486,7 @@ public abstract class PhysicsEntity extends Entity {
 	
 	@Override
 	public void hurt(int  damage, Entity attacker, float invulnerabiltiyTime) {
-		if (invulnerabilityTimer == 0) {
+		if (invulnerabilityTimer == 0 && isHurtable()) {
 			hp -=  damage;
 			invulnerabilityTimer = invulnerabiltiyTime;
 			if (attacker != null) {

@@ -2,7 +2,7 @@ package scene.overworld;
 
 import core.Resources;
 
-public class OverworldResourcemanager {
+public class OverworldResourceManager {
 	public static void init() {
 		Resources.addSound("walk_grass", "walk_grass.ogg", 3, false);
 		Resources.addSound("walk_snow", "walk_snow.ogg", 2, true);

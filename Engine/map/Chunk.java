@@ -21,6 +21,7 @@ import procedural.terrain.WaterMeshBuilder;
 import scene.entity.EntityHandler;
 import scene.entity.utility.FallingTreeEntity;
 import scene.entity.utility.ItemEntity;
+import scene.overworld.inventory.Item;
 import util.ModelBuilderOld;
 
 public class Chunk {
@@ -176,10 +177,12 @@ public class Chunk {
 			props.damage -= damage;
 			
 			if (props.damage <= 0) {
-				float dx = ((relX+realX)*Chunk.POLYGON_SIZE)+.5f;
-				float dz = ((relZ+realZ)*Chunk.POLYGON_SIZE)+.5f;
-				float dy = this.getTerrain().getHeightAt(dx, dz);
-				EntityHandler.addEntity(new FallingTreeEntity(tile, dx, dy, dz, props.scale));
+				if (tile.getTool() == Item.AXE) {
+					float dx = ((relX+realX)*Chunk.POLYGON_SIZE)+.5f;
+					float dz = ((relZ+realZ)*Chunk.POLYGON_SIZE)+.5f;
+					float dy = this.getTerrain().getHeightAt(dx, dz);
+					EntityHandler.addEntity(new FallingTreeEntity(tile, dx, dy, dz, props.scale));
+				}
 				destroyProp(relX, relZ);
 			}
 		}

@@ -46,8 +46,6 @@ public class PlayerHandler {
 		entity.maxWaterSpeed = maxWaterSpeed;
 		entity.friction = friction;
 		entity.airFriction = airFriction;
-		entity.width = width;
-		entity.height = height;
 		entity.getAABB().setBounds(width/2f, height/2f, width/2f);
 	}
 

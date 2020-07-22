@@ -4,7 +4,6 @@ import org.joml.Vector3f;
 
 import gl.Camera;
 import map.Material;
-import scene.overworld.inventory.Item;
 import util.MathUtil;
 
 public class Tile {
@@ -102,15 +101,15 @@ public class Tile {
 		float yaw = camera.getYaw();
 		
 		switch((int)(Math.floor((yaw-45) / 90))) {
+		case 0:
+			return SLOPE_TOP;
 		case 1:
 			return SLOPE_RIGHT;
 		case 2:
 			return SLOPE_BOTTOM;
-		case 3:
-			return SLOPE_LEFT;
 		}
 		
-		return SLOPE_TOP;
+		return SLOPE_LEFT;
 	}
 
 	void append(byte wall, Material mat, byte flags) {
@@ -194,11 +193,6 @@ public class Tile {
 		}
 		
 		return output;
-	}
-
-	public Item getDrop() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	public boolean isSolid(int facingIndex) {

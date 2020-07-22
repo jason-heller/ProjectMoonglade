@@ -9,24 +9,23 @@ import geom.AABB;
 import gl.Camera;
 import gl.particle.ParticleEmitter;
 import scene.Scene;
-import scene.entity.utility.PhysicsEntity;
+import scene.entity.utility.LivingEntity;
 import util.RunLengthInputStream;
 import util.RunLengthOutputStream;
 
 
-public class PlayerEntity extends PhysicsEntity {
+public class PlayerEntity extends LivingEntity {
 	
 	private ParticleEmitter pe;
 	private boolean disable = false;
 	private float lastHeight = 0;
 
 	public PlayerEntity(Scene scene) {
-		super(null, null);
+		super(null, null, 10);
 		position.set(scene.getCamera().getPosition());
 		visible = false;
 		PlayerHandler.setEntity(this);
 		persistency = 3;
-		hp = 10;
 		
 		pe = new ParticleEmitter(Resources.getTexture("small_particles"),
 				40, .02f, .002f, 300, .04f);
@@ -96,7 +95,7 @@ public class PlayerEntity extends PhysicsEntity {
 	
 	@Override
 	public void hurt(int damage, Entity attacker, float invulnerabilityTime) {
-		if (this.invulnerabilityTimer == 0f) {
+		if (this.invulnerabilityTimer == 0f && isHurtable()) {
 			Camera camera = Application.scene.getCamera();
 			
 			Vector3f attackDir;

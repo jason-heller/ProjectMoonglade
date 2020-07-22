@@ -21,10 +21,6 @@ public class ConnectionNodeData {
 	// 0--------1
 	// -1 = no node
 	
-	/*private final int LEFT = nodesToInt(1, 5, 9, 6);
-	private final int BOTTOM = nodesToInt(0, 1, 2, 3);
-	private final int FRONT = nodesToInt(0, 5, 8, 4);*/
-	
 	private final int node0 = (int) pair3(0,0,0);
 	private final int node1 = (int) pair3(1,0,0);
 	private final int node2 = (int) pair3(0,0,1);
@@ -35,18 +31,13 @@ public class ConnectionNodeData {
 	private final int node6 = (int) pair3(0,1,1);
 	private final int node7 = (int) pair3(1,1,1);
 	
-	private final int LEFT = nodesToInt(node0, node1, node4, node5);
-	private final int BOTTOM = nodesToInt(node4, node5, node6, node7);
-	private final int FRONT = nodesToInt(node1, node5, node3, node7);
-
-	
-	private final int SLOPE_LEFT = nodesToInt(node0, node2, node5, node7);
-	private final int SLOPE_RIGHT = nodesToInt(node1, node3, node4, node6);
-	private final int SLOPE_TOP = nodesToInt(node0, node1, node6, node7);
-	private final int SLOPE_BOTTOM = nodesToInt(node2, node3, node4, node5);
-	//private final int SLOPE_RIGHT = nodesToInt(11, 1, -1, -1);
-	//private final int SLOPE_FRONT = nodesToInt(9, 3, 10, 0);
-	//private final int SLOPE_BACK = nodesToInt(10, 0, -1, -1);
+	private final int LEFT 			= nodesToInt(node0, node1, node4, node5);
+	private final int BOTTOM 		= nodesToInt(node4, node5, node6, node7);
+	private final int FRONT 		= nodesToInt(node1, node5, node3, node7);
+	private final int SLOPE_LEFT 	= nodesToInt(node2, node3, node4, node5);
+	private final int SLOPE_RIGHT 	= nodesToInt(node0, node1, node6, node7);
+	private final int SLOPE_TOP 	= nodesToInt(node0, node2, node5, node7);
+	private final int SLOPE_BOTTOM 	= nodesToInt(node1, node3, node4, node6);
 	
 	private final int[] DEFAULT_NODES = new int[] {
 		LEFT, FRONT, BOTTOM, SLOPE_LEFT, SLOPE_RIGHT, SLOPE_TOP, SLOPE_BOTTOM
@@ -121,7 +112,6 @@ public class ConnectionNodeData {
 	}
 
 	public int[] intToNode(int n) {
-		//long pos = NoiseUtil.szudzik(z, NoiseUtil.szudzik(x, y));
 		return new int[] { (n & 0xff), (n >> 8 & 0xff), (n >> 16 & 0xff), (n >> 24 & 0xff) };
 	}
 }

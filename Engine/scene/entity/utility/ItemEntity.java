@@ -27,6 +27,7 @@ public class ItemEntity extends PhysicsEntity {
 
 		this.setModel(Resources.getModel("cube"));
 		this.setDiffuse(Resources.getTexture("items"));// items
+		this.aabb.setBounds(.25f, .25f, .25f);
 
 		id = 1;
 	}

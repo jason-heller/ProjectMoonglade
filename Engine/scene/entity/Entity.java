@@ -34,6 +34,7 @@ public abstract class Entity {
 	protected int hp = 0;
 	protected float invulnerabilityTimer = 0f;
 	
+	private boolean hurtable = false;
 	protected boolean clickable = false;
 	
 	public boolean deactivated = false; // If deactivated, still exists in-game, but does not update or render
@@ -196,5 +197,13 @@ public abstract class Entity {
 
 	public int getSpawnRarity() {
 		return spawnRarity;
+	}
+	
+	public void setHurtable(boolean hurtable) { 
+		this.hurtable = hurtable;
+	}
+
+	public boolean isHurtable() {
+		return hurtable;
 	}
 }

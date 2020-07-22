@@ -29,6 +29,9 @@ enum CommandData {
 	structure_edit(true),
 	structure_export(true, "include_heights", "include_buildings", "include_envtiles"),
 	spawn_structure(true),
+	god(true),
+	hp(true),
+	kill(false),
 	
 	// Getters
 	version("VERSION", Application.class, GETTER, false),

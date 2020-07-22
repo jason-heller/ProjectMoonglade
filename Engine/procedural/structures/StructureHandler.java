@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import dev.Console;
+import io.StructureLoader;
 import map.Chunk;
 import map.Terrain;
 import map.prop.Props;
@@ -33,7 +34,7 @@ public class StructureHandler {
 		saveDataQueue = new HashMap<Integer, Map<Integer, List<StructPlacement>>>();
 		
 		structures = new HashMap<Structure, StructureData>();
-		//structures.put(Structure.PYLON, StructureLoader.read("pylon.str"));
+		structures.put(Structure.PYLON, StructureLoader.read("pylon.str"));
 	}
 	
 	
