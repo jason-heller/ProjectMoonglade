@@ -23,6 +23,8 @@ public class Weather {
 	private float prevWeather, targetWeather;
 	private float thunderTimer = 0, nextThunder = 10;
 	public boolean freeze = false;
+
+	private boolean sfxLooping;
 	
 	public static int weather = CLEAR;
 	
@@ -71,9 +73,13 @@ public class Weather {
 		
 		if (weather == RAIN || weather == THUNDER || weather == TORNADO) {
 			emitter.update(camera, weatherCell);
-			AudioHandler.loop("rain");
+			if (!sfxLooping) {
+				AudioHandler.loop("rain");
+				sfxLooping = true;
+			}
 		} else {
 			AudioHandler.stop("rain");
+			sfxLooping = false;
 		}
 		
 		updateWeatherCells();

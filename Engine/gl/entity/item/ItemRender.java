@@ -5,7 +5,6 @@ import java.util.List;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL20;
 
 import core.Resources;
 import gl.Camera;
@@ -42,8 +41,6 @@ public class ItemRender {
 		shader.diffuse.loadTexUnit(0);
 		
 		texture.bind(0);
-		GL20.glEnableVertexAttribArray(0);
-		GL20.glEnableVertexAttribArray(1);
 		Resources.QUAD2D.bind(0, 1);
 
 		final float size = Inventory.itemAtlasSize;
@@ -66,8 +63,6 @@ public class ItemRender {
 		}
 
 		Resources.QUAD2D.unbind(0, 1);
-		GL20.glDisableVertexAttribArray(0);
-		GL20.glDisableVertexAttribArray(1);
 		texture.unbind();
 		shader.stop();
 	}

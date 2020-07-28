@@ -224,7 +224,7 @@ public class Overworld extends PlayableScene {
 				_z += Chunk.VERTEX_COUNT*2;
 			} else if (_z > Chunk.VERTEX_COUNT*2) {
 				chunkPtr = terrain.get(chunkPtr.arrX, chunkPtr.arrZ+1);
-				_z += Chunk.VERTEX_COUNT*2;
+				_z -= Chunk.VERTEX_COUNT*2;
 			}
 			
 			final Material mat = selected.getMaterial();
@@ -248,7 +248,6 @@ public class Overworld extends PlayableScene {
 			}
 			
 			if (tile != null && (tile.getWalls() & facing) != 0) {
-				//TODO: CRASHES
 				EntityHandler.addEntity(new ItemEntity(getTileDropPos(selectionPt), tile.getMaterial(facingIndex).getDrop(), 1));
 			}
 			

@@ -48,7 +48,7 @@ public abstract class Biome {
 	
 	public abstract float augmentTerrainHeight(int x, int z, float currentHeight, int subseed, Random r);
 	public abstract Props getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r, Props[][] tileItems);
-	public abstract Structure getTerrainStructures(int x, int z, float currentHeight, int subseed, Random r);
+	public abstract Structure getTerrainStructures(int x, int z, int subseed, Random r, int quadrantSize);
 	public abstract float getWaterTable(int x, int z, float height, int subseed);
 	
 	public Moisture getMoisture() {

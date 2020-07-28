@@ -25,11 +25,6 @@ public class TerrainShader extends ShaderProgram {
 
 	public TerrainShader() {
 		super(VERTEX_SHADER, FRAGMENT_SHADER, "in_vertices", "in_uvs", "in_normals", "in_colors");
-		super.storeAllUniformLocations(projectionMatrix, viewMatrix, lightDirection, diffuse, toShadowSpace, depthTexture, shadowDistance, pcf, mapSize);
-		
-		/*grass.loadTexUnit(0);
-		bush.loadTexUnit(1);
-		snow.loadTexUnit(2);
-		sand.loadTexUnit(3);*/
+		super.storeAllUniformLocations(projectionMatrix, viewMatrix, lightDirection, diffuse, depthTexture, shadowDistance, pcf, mapSize, toShadowSpace);
 	}
 }

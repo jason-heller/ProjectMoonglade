@@ -18,40 +18,42 @@ import scene.overworld.inventory.tool.EditorBoundsTool;
 
 public enum ItemAction {
 	NONE, PAINT, DIG, CHOP, EAT;
-	
-	public boolean doAction(Overworld overworld, TerrainIntersection ti, Tile tile, Chunk chunk, int id, int facingIndex, boolean lmb) {
+
+	public boolean doAction(Overworld overworld, TerrainIntersection ti, Tile tile, Chunk chunk, int id,
+			int facingIndex, boolean lmb) {
 		Camera camera = overworld.getCamera();
 		Vector3f selectionPt = overworld.getSelectionPoint();
 		Vector3f exactSelectionPt = overworld.getExactSelectionPoint();
-	
+
 		PlayerEntity player = overworld.getPlayer();
-		
+
 		if (lmb) {
 			switch(this) {
 			case DIG:
 				return dig(ti, chunk, chunk.realX, chunk.realZ, selectionPt);
-				
+
 			case CHOP:
 				if (Debug.structureMode) {
-					EditorBoundsTool.interact(exactSelectionPt, true, false);
+					EditorBoundsTool.interact(selectionPt, true, false, facingIndex);
 					return true;
 				}
 				return chop(player, camera, ti, exactSelectionPt, exactSelectionPt, chunk, chunk.realX, chunk.realZ);
-				
+
 			default:
 				return true;
 			}
 		} else {
 			switch(this) {
 			case DIG:
+				if (chunk == null) return false;
 				return makeMound(chunk, chunk.realX, chunk.realZ, selectionPt);
-			
+
 			case CHOP:
 				if (Debug.structureMode) {
-					EditorBoundsTool.interact(exactSelectionPt, false, true);
+					EditorBoundsTool.interact(selectionPt, false, true, facingIndex);
 				}
 				return true;
-				
+
 			case PAINT:
 				if (tile != null && tile.getMaterial(facingIndex).isColorable()) {
 					paint(Item.get(id).getName(), facingIndex, tile);
@@ -59,13 +61,13 @@ public enum ItemAction {
 					return true;
 				}
 				return false;
-				
+
 			case EAT:
 				Inventory inv = overworld.getInventory();
 				inv.consume(inv.getSelectionPos());
 				overworld.getPlayer().heal(1);
 				return true;
-				
+
 			default:
 				return true;
 			}
@@ -75,10 +77,10 @@ public enum ItemAction {
 	private boolean chop(PlayerEntity player, Camera camera, TerrainIntersection ti, Vector3f selectionPt,
 			Vector3f exactSelectionPt, Chunk chunk, int cx, int cz) {
 		if (ti == null) {
-			
+
 			return true;
 		}
-		
+
 		StaticProp propTile = Props.get(ti.getProp());
 		if (propTile == null || !propTile.isDestroyableBy(Item.AXE)) {
 			AudioHandler.play("swing");
@@ -86,13 +88,14 @@ public enum ItemAction {
 		} else {
 			AudioHandler.play("chop_bark");
 		}
-		
+
 		Vector3f splashDir = new Vector3f(camera.getDirectionVector()).negate().normalize();
 		ParticleHandler.addSplash(propTile.getMaterial(), exactSelectionPt, splashDir);
-		//ParticleHandler.addBurst(Resources.getTexture("materials"), 0, 0, selectionPt);
-		
-		chunk.damangeProp(ti.getPropX(), ti.getPropZ(), (byte)15);
-		
+		// ParticleHandler.addBurst(Resources.getTexture("materials"), 0, 0,
+		// selectionPt);
+
+		chunk.damangeProp(ti.getPropX(), ti.getPropZ(), (byte) 15);
+
 		return true;
 	}
 
@@ -111,7 +114,9 @@ public enum ItemAction {
 	}
 
 	private boolean dig(TerrainIntersection ti, Chunk chunk, int cx, int cz, Vector3f selectionPt) {
-		StaticProp prop = Props.get(ti.getProp());
+		Props p = ti.getProp();
+		StaticProp prop = null;
+		if (p != null) prop = Props.get(p);
 		if (prop != null && prop.isDestroyableBy(Item.SPADE))
 			return false;
 
@@ -128,7 +133,7 @@ public enum ItemAction {
 	}
 
 	private void paint(String item, int facingIndex, Tile tile) {
-		switch(item) {
+		switch (item) {
 		case "red_paint":
 			tile.setFlags(facingIndex, (byte) 1);
 			break;

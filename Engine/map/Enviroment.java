@@ -3,7 +3,6 @@ package map;
 import org.joml.Vector3f;
 
 import core.Application;
-import core.Resources;
 import gl.Camera;
 import gl.skybox.Skybox;
 import gl.terrain.TerrainRender;
@@ -85,7 +84,7 @@ public class Enviroment {
 		
 		weather = new Weather(seed, 3);
 		terrain = new Terrain(this);
-		GenTerrain.initStructureHandler(terrain);
+		GenTerrain.initStructureHandler(terrain, biomeVoronoi, seed);
 		
 		x = (int) Math.floor(c.x / Chunk.CHUNK_SIZE) - Terrain.size/2;
 		z = (int) Math.floor(c.z / Chunk.CHUNK_SIZE) - Terrain.size/2;
@@ -128,7 +127,6 @@ public class Enviroment {
 	
 	public void update(Scene scene) {
 		final Camera camera = scene.getCamera();
-		
 		terrain.update(camera);
 	}
 
@@ -138,6 +136,8 @@ public class Enviroment {
 		
 		x = (int) Math.floor(camera.getPosition().x / Chunk.CHUNK_SIZE) - (Terrain.size / 2);
 		z = (int) Math.floor(camera.getPosition().z / Chunk.CHUNK_SIZE) - (Terrain.size / 2);
+		
+		GenTerrain.structureSpawnerUpdate(camera);
 		
 		weather.tick(camera);
 		biomeVoronoi.tick(camera.getPosition().x, camera.getPosition().z);//camera.getPosition().x, camera.getPosition().z
@@ -158,7 +158,7 @@ public class Enviroment {
 			if (Math.abs(dz) > 1) {
 				reposition(x, z);
 			} else {
-				terrain.shiftY(dz);
+				terrain.shiftZ(dz);
 				EntityHandler.setActivation(terrain);
 				//EntityControl.shiftY(terrain, dz);
 			}
@@ -215,5 +215,11 @@ public class Enviroment {
 
 	public Skybox getSkybox() {
 		return skybox;
+	}
+
+	public void reload() {
+		terrain.reload();
+		GenTerrain.resizeStructureSpawnRadius();
+		
 	}
 }

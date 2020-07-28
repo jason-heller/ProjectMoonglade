@@ -61,12 +61,9 @@ public class PineForestBiome extends Biome {
 	public float getWaterTable(int x, int z, float height, int subseed) {
 		return Float.MIN_VALUE;
 	}
+	
 	@Override
-	public Structure getTerrainStructures(int x, int z, float currentHeight, int subseed, Random r) {
-		if (r.nextInt(45000) == 0) {
-			return Structure.PYLON;
-		}
-		
+	public Structure getTerrainStructures(int x, int z, int subseed, Random r, int quadrantSize) {
 		return null;
 	}
 

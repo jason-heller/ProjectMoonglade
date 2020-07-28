@@ -49,8 +49,15 @@ public class DesertBiome extends Biome {
 		return Float.MIN_VALUE;
 	}
 	
-	@Override
-	public Structure getTerrainStructures(int x, int z, float currentHeight, int subseed, Random r) {
+	public Structure getTerrainStructures(int x, int z, int subseed, Random r, int quadrantSize) {
+		switch(quadrantSize) {
+		case 2:
+			if (r.nextInt(50) == 0) {
+				return Structure.TOMB;
+			}
+			break;
+		}
+		
 		return null;
 	}
 }

@@ -44,11 +44,7 @@ public class GrasslandBiome extends Biome {
 	}
 	
 	@Override
-	public Structure getTerrainStructures(int x, int z, float currentHeight, int subseed, Random r) {
-		/*if (x==0&&z==0) {
-			return Structure.BUTTE;
-		}*/
-		
+	public Structure getTerrainStructures(int x, int z, int subseed, Random r, int quadrantSize) {
 		return null;
 	}
 }

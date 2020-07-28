@@ -67,7 +67,7 @@ public class MysticForestBiome extends Biome {
 	}
 	
 	@Override
-	public Structure getTerrainStructures(int x, int z, float currentHeight, int subseed, Random r) {
+	public Structure getTerrainStructures(int x, int z, int subseed, Random r, int quadrantSize) {
 		return null;
 	}
 

@@ -18,7 +18,6 @@ import util.ModelBuilderOld;
 
 public class BuildingRender {
 	private static Texture materialTexture = null;
-	private static Matrix4f ZERO_MATRIX = new Matrix4f();
 	
 	public static int materialTextureScale = 32;
 	public static float materialAtlasSize;
@@ -60,9 +59,6 @@ public class BuildingRender {
 		shader.projectionViewMatrix.loadMatrix(camera.getProjectionViewMatrix());
 		shader.lightDirection.loadVec3(lightDir);
 
-		GL20.glEnableVertexAttribArray(0);
-		GL20.glEnableVertexAttribArray(1);
-		GL20.glEnableVertexAttribArray(2);
 		materialTexture.bind(0);
 		for (int i = 0; i < Terrain.size; i++) {
 			for (int j = 0; j < Terrain.size; j++) {
@@ -86,9 +82,6 @@ public class BuildingRender {
 			meshShader.projectionViewMatrix.loadMatrix(camera.getProjectionViewMatrix());
 			meshShader.lightDirection.loadVec3(lightDir);
 
-			GL20.glEnableVertexAttribArray(0);
-			GL20.glEnableVertexAttribArray(1);
-			GL20.glEnableVertexAttribArray(2);
 			selectorMatrix.identity();
 			selectorMatrix.translate(selectionPoint);
 			
@@ -136,9 +129,6 @@ public class BuildingRender {
 			}
 			GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
 			GL11.glEnable(GL11.GL_TEXTURE_2D);
-			GL20.glDisableVertexAttribArray(0);
-			GL20.glDisableVertexAttribArray(1);
-			GL20.glDisableVertexAttribArray(2);
 			GL30.glBindVertexArray(0);
 
 			meshShader.stop();

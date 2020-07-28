@@ -104,10 +104,14 @@ public class PlayableSceneUI {
 
 		if (Input.isPressed(Controls.get("pause"))) {
 			if (!paused) {
-				Input.requestMouseRelease();
-				paused = true;
-				AudioHandler.pause();
-				PlayerHandler.disable();
+				if (inventory.isOpen()) {
+					inventory.toggleOpen();
+				} else {
+					Input.requestMouseRelease();
+					paused = true;
+					AudioHandler.pause();
+					PlayerHandler.disable();
+				}
 			} else {
 				unpause();
 			}

@@ -29,8 +29,6 @@ public class WaterRender {
 	public void render(Camera camera, Enviroment env) {
 		timer += Window.deltaTime;
 		shader.start();
-		GL20.glEnableVertexAttribArray(0);
-		GL20.glEnableVertexAttribArray(1);
 		
 		shader.dudv.loadTexUnit(0);
 		shader.water.loadTexUnit(1);
@@ -62,9 +60,6 @@ public class WaterRender {
 		
 		GL11.glDisable(GL11.GL_BLEND);
 		GL11.glEnable(GL11.GL_CULL_FACE);
-		
-		GL20.glDisableVertexAttribArray(0);
-		GL20.glDisableVertexAttribArray(1);
 		
 		shader.stop();
 	}

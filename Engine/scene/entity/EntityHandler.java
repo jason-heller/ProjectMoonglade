@@ -99,9 +99,6 @@ public class EntityHandler {
 		shader.projectionViewMatrix.loadMatrix(camera.getProjectionViewMatrix());
 		shader.lightDirection.loadVec3(lightDir);
 		shader.color.loadVec4(1, 1, 1, 1);
-		GL20.glEnableVertexAttribArray(0);
-		GL20.glEnableVertexAttribArray(1);
-		GL20.glEnableVertexAttribArray(2);
 		
 		if (scene.getUi().isPaused()) {
 			return;
@@ -141,9 +138,6 @@ public class EntityHandler {
 			}
 		}
 	
-		GL20.glDisableVertexAttribArray(0);
-		GL20.glDisableVertexAttribArray(1);
-		GL20.glDisableVertexAttribArray(2);
 		GL30.glBindVertexArray(0);
 		shader.stop();
 		
@@ -175,9 +169,6 @@ public class EntityHandler {
 		shader.projectionViewMatrix.loadMatrix(camera.getProjectionMatrix());
 		shader.lightDirection.loadVec3(lightDir);
 		shader.color.loadVec4(1, 1, 1, 1);
-		GL20.glEnableVertexAttribArray(0);
-		GL20.glEnableVertexAttribArray(1);
-		GL20.glEnableVertexAttribArray(2);
 
 		GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
 		//GL11.glDisable(GL11.GL_DEPTH_TEST);
@@ -188,9 +179,6 @@ public class EntityHandler {
 		model.unbind(0, 1, 2);
 		//GL11.glEnable(GL11.GL_DEPTH_TEST);
 		
-		GL20.glDisableVertexAttribArray(0);
-		GL20.glDisableVertexAttribArray(1);
-		GL20.glDisableVertexAttribArray(2);
 		GL30.glBindVertexArray(0);
 		shader.stop();
 	}
@@ -199,18 +187,12 @@ public class EntityHandler {
 		shader.start();
 		shader.projectionViewMatrix.loadMatrix(camera.getProjectionViewMatrix());
 		shader.lightDirection.loadVec3(lightDir);
-		GL20.glEnableVertexAttribArray(0);
-		GL20.glEnableVertexAttribArray(1);
-		GL20.glEnableVertexAttribArray(2);
 
 		entity.getDiffuse().bind(0);
 		entity.getModel().bind(0, 1, 2);
 		shader.modelMatrix.loadMatrix(entity.getMatrix());
 		GL11.glDrawElements(GL11.GL_TRIANGLES, entity.getModel().getIndexCount(), GL11.GL_UNSIGNED_INT, 0);
 
-		GL20.glDisableVertexAttribArray(0);
-		GL20.glDisableVertexAttribArray(1);
-		GL20.glDisableVertexAttribArray(2);
 		GL30.glBindVertexArray(0);
 		shader.stop();
 	}

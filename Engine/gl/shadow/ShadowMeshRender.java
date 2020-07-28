@@ -30,7 +30,6 @@ public class ShadowMeshRender {
 	}
 
 	protected void render(Matrix4f projectionViewMatrix, List<Entity> entities, List<Chunk> chunks) {
-
 		for (Entity entity : entities) {
 			Model model = entity.getModel();
 			model.bind(0, 1);
@@ -56,8 +55,6 @@ public class ShadowMeshRender {
 						GL11.GL_UNSIGNED_INT, 0);
 			}
 		}
-		GL20.glDisableVertexAttribArray(0);
-		GL20.glDisableVertexAttribArray(1);
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
 		GL30.glBindVertexArray(0);
 	}

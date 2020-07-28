@@ -39,8 +39,9 @@ public class Window {
 		
 		try {
 			System.setProperty("org.lwjgl.opengl.Window.undecorated", hasBorder ? "true" : "false");
-			ContextAttribs attribs = new ContextAttribs(3,3).withProfileCore(true).withForwardCompatible(true);
-			Display.create(new PixelFormat().withDepthBits(24), attribs);
+			//ContextAttribs attribs = new ContextAttribs(3,3).withProfileCore(true).withForwardCompatible(true);
+			//Display.create(new PixelFormat().withDepthBits(24), attribs);
+			Display.create();
 			Display.setTitle(windowTitle);
 			Display.setInitialBackground(1, 1, 1);
 			Display.setVSyncEnabled(false);

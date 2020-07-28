@@ -37,7 +37,7 @@ public class TemperateMountainBiome extends Biome {
 	
 	@Override
 	public Props getTerrainTileItems(int x, int z, float currentHeight, int subseed, Random r, Props[][] tileItems) {
-		if (currentHeight > 32f) {
+		/*if (currentHeight > 32f) {
 			int tile = r.nextInt(1000);
 			switch(tile) { 
 			case 1: return Props.ROCK;
@@ -77,7 +77,7 @@ public class TemperateMountainBiome extends Biome {
 			if (n < .1) {
 				return Props.VINE;
 			}
-		}
+		}*/
 		
 		return null;
 	}
@@ -88,7 +88,7 @@ public class TemperateMountainBiome extends Biome {
 	}
 	
 	@Override
-	public Structure getTerrainStructures(int x, int z, float currentHeight, int subseed, Random r) {
+	public Structure getTerrainStructures(int x, int z, int subseed, Random r, int quadrantSize) {
 		return null;
 	}
 }

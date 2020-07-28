@@ -32,6 +32,7 @@ enum CommandData {
 	god(true),
 	hp(true),
 	kill(false),
+	fill(true, "id/item"),
 	
 	// Getters
 	version("VERSION", Application.class, GETTER, false),

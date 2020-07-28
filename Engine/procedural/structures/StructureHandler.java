@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import dev.Console;
+import gl.Camera;
 import io.StructureLoader;
 import map.Chunk;
 import map.Terrain;
@@ -14,30 +15,38 @@ import map.prop.Props;
 import map.tile.BuildData;
 import map.tile.BuildSector;
 import map.tile.Tile;
+import procedural.biome.BiomeVoronoi;
 
 public class StructureHandler {
 	//Have a list of all possible structures
 	
 	private Terrain terrain;
 	public Map<Structure, StructureData> structures;
+	private StructureSpawner spawner;
 
-	private Map<Integer, Map<Integer, List<StructPlacement>>> saveDataQueue;	// Data structure hell
+	private StructurePositionMap saveDataQueue;
 	// When a structure is placed into the world, any chunks that are unloaded that it overlaps will will need to 
 	// save it's existence so that they can finish building the structure upon their loading
 	//
 	// So when a structure is made, it'll check for unloaded chunks it overlaps, each one will have it's X, Z saved into the
 	// keys of this map, and the value will be the structures X, Z, and id in the structures datastruct
 
-	
-	public StructureHandler(Terrain terrain) {
-		this.terrain = terrain;
-		saveDataQueue = new HashMap<Integer, Map<Integer, List<StructPlacement>>>();
-		
-		structures = new HashMap<Structure, StructureData>();
+	private void loadStructures() {
 		structures.put(Structure.PYLON, StructureLoader.read("pylon.str"));
+		structures.put(Structure.TOMB, StructureLoader.read("tomb.str"));
 	}
 	
+	public StructureHandler(Terrain terrain, BiomeVoronoi biomeVoronoi, long seed) {
+		this.terrain = terrain;
+		saveDataQueue = new StructurePositionMap();
+		structures = new HashMap<Structure, StructureData>();
+		
+		loadStructures();
+		
+		spawner = new StructureSpawner(this, biomeVoronoi, seed);
+	}
 	
+
 	/** Adds a structure to the map
 	 * @param chunk
 	 * @param x
@@ -45,24 +54,30 @@ public class StructureHandler {
 	 * @param z
 	 * @param struct
 	 */
-	public void addStructure(Chunk chunk, int x, int y, int z, Structure struct) {
+	public void addStructure(int x, int y, int z, Structure struct, int quadrantIndex) {
 		StructureData data = structures.get(struct);
-		final int width = (int) Math.ceil(data.getWidth() / (float)Chunk.CHUNK_SIZE);
-		final int length = (int) Math.ceil(data.getLength() / (float)Chunk.CHUNK_SIZE);
+
+		int quadrantSize = StructureSpawner.quadrants[quadrantIndex];
+		int tilesPerQuadrant = Chunk.CHUNK_SIZE * quadrantSize;
+		final int width  = (int) Math.ceil(data.getWidth()  / (float)tilesPerQuadrant);
+		final int length = (int) Math.ceil(data.getLength() / (float)tilesPerQuadrant);
 		
-		for(int i = 0; i <= width; i ++) {
-			for(int j = 0; j <= length; j ++) {
-				int dataX = chunk.dataX + i;// * Chunk.CHUNK_SIZE;
-				int dataZ = chunk.dataZ + j;// * Chunk.CHUNK_SIZE;
+		int regX = Math.floorDiv(x, tilesPerQuadrant);
+		int regZ = Math.floorDiv(z, tilesPerQuadrant);
+		
+		for(int i = 0; i <= width; i++) {
+			for(int j = 0; j <= length; j++) {
+				int dataX = regX + i;
+				int dataZ = regZ + j;
 				List<StructPlacement> list;
 
 				//if (arrX > Terrain.size || arrZ > Terrain.size) {
-					Map<Integer, List<StructPlacement>> batch = saveDataQueue.get(dataX);
+					Map<Integer, List<StructPlacement>> batch = saveDataQueue.get(quadrantIndex, dataX);
 					if (batch == null) {
 						batch = new HashMap<Integer, List<StructPlacement>>();
 						list = new ArrayList<StructPlacement>();
 						batch.put(dataZ, list);
-						saveDataQueue.put(dataX, batch);
+						saveDataQueue.put(quadrantIndex, dataX, batch);
 					} else {
 						list = batch.get(dataZ);
 						
@@ -72,10 +87,9 @@ public class StructureHandler {
 						batch.put(dataZ, list);
 					}
 					
-					y = (int)Math.floor(terrain.getHeightAt(x, z)-.5f);
+					//y = (int)Math.floor(terrain.getHeightAt(x, z)-.5f);
 					
 					list.add(new StructPlacement(x, y, z, struct));
-					Console.log("added structure to ",dataX,dataZ);
 					/* }else {
 					buildStructurePartial(terrain.get(arrX, arrZ), x, y, z, struct);
 				}*/
@@ -83,41 +97,34 @@ public class StructureHandler {
 		}
 	}
 	
-	// For debugging ONLY
-	public void flush() {
-		for(int arrX : saveDataQueue.keySet()) {
-			for(int arrZ : saveDataQueue.get(arrX).keySet()) {
-				for(StructPlacement strPlace : saveDataQueue.get(arrX).get(arrZ)) {
-					for(Chunk[] stripe : terrain.get()) {
-						for(Chunk chunk : stripe) {
-							if (chunk.arrX == arrX && chunk.arrZ == arrZ) {
-								buildStructurePartial(chunk, strPlace);
-								chunk.getBuilding().buildModel();
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	
 	public void checkForStructure(Chunk chunk) {
-		Map<Integer, List<StructPlacement>> batch = saveDataQueue.get(chunk.dataX);
-		
-		if (batch == null) {
-			return;
-		}
-		
-		List<StructPlacement> structPlacements = batch.get(chunk.dataZ);
-		
-		if (structPlacements != null) {
-			Iterator<StructPlacement> iter = structPlacements.iterator();
-			while(iter.hasNext()) {
-				StructPlacement structPlacement = iter.next();
-				buildStructurePartial(chunk, structPlacement);
-				iter.remove();
-				//Console.log("removed",chunk.dataX,chunk.dataZ);
+		for(int quadrantIndex = 0; quadrantIndex < StructureSpawner.quadrants.length; quadrantIndex++) {
+			int quadrant = StructureSpawner.quadrants[quadrantIndex];
+			int x = Math.floorDiv(chunk.dataX, quadrant);
+			int z = Math.floorDiv(chunk.dataZ, quadrant);
+			
+			Map<Integer, List<StructPlacement>> batch = saveDataQueue.get(quadrantIndex, x);
+			
+			if (batch == null) {
+				continue;
 			}
+			
+			List<StructPlacement> structPlacements = batch.get(z);
+			
+			if (structPlacements != null) {
+				Iterator<StructPlacement> iter = structPlacements.iterator();
+				while(iter.hasNext()) {
+					StructPlacement structPlacement = iter.next();
+					buildStructurePartial(chunk, structPlacement);
+					//iter.remove();
+				}
+				
+				//batch.remove(z);
+			}
+			
+			/*if (batch.size() == 0) {
+				saveDataQueue.remove(quadrantIndex, x);
+			}*/
 		}
 	}
 
@@ -147,6 +154,10 @@ public class StructureHandler {
 		int tileX = 0, tileZ = 0;
 		
 		int offsetY = structPlacement.y;
+		
+		if (offsetY == 0) {
+			//offsetY = (int)chunk.heightmap[dx][dz];
+		}
 		
 		for(int i = dx; i < dx+width; i++) {
 			for(int j = dz; j < dz+length; j++) {
@@ -194,6 +205,41 @@ public class StructureHandler {
 
 	public Terrain getTerrain() {
 		return terrain;
+	}
+	
+	// For debugging ONLY
+	public void flush() {
+		for(int quadrantIndex = 0; quadrantIndex < StructureSpawner.quadrants.length; quadrantIndex++) {
+			for(int arrX : saveDataQueue.keySet(quadrantIndex)) {
+				for(int arrZ : saveDataQueue.get(quadrantIndex, arrX).keySet()) {
+					for(StructPlacement strPlace : saveDataQueue.get(quadrantIndex, arrX).get(arrZ)) {
+						for(Chunk[] stripe : terrain.get()) {
+							for(Chunk chunk : stripe) {
+								if (chunk.arrX == arrX && chunk.arrZ == arrZ) {
+									buildStructurePartial(chunk, strPlace);
+									chunk.getBuilding().buildModel();
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+
+	public void update(Camera camera) {
+		spawner.update(camera);
+	}
+
+
+	public void resizeSpawnRadius() {
+		spawner.resize();
+	}
+
+
+	public void clear(int quadrantIndex) {
+		saveDataQueue.clear(quadrantIndex);
 	}
 }
 

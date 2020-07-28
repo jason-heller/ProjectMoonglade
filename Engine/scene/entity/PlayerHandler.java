@@ -21,10 +21,10 @@ public class PlayerHandler {
 	private static PhysicsEntity entity;
 
 	public static float jumpVelocity = 8f;
-	public static float friction = 15f, airFriction = 0f;
-	public static float maxSpeed = 80f, maxAirSpeed = 4f, maxWaterSpeed = 32f;
-	public static float accelSpeed = 80f, airAccel = 3f, waterAccel = 32f;
-
+	public static float friction = 15f, airFriction = .5f;
+	public static float maxSpeed = 25f, maxAirSpeed = 4f, maxWaterSpeed = 32f;
+	public static float accelSpeed = 80f, airAccel = 5f, waterAccel = 32f;
+	
 	private static final float CAMERA_STANDING_HEIGHT = 1.6f;
 	private static final float CAMERA_CROUCHING_HEIGHT = 1f;
 	

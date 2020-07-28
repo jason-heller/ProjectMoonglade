@@ -15,6 +15,7 @@ import gl.Window;
 import map.Chunk;
 import map.Enviroment;
 import map.Terrain;
+import map.tile.Tile;
 import map.weather.Weather;
 import procedural.structures.Structure;
 import procedural.terrain.GenTerrain;
@@ -25,6 +26,7 @@ import scene.overworld.Overworld;
 import scene.overworld.inventory.Inventory;
 import scene.overworld.inventory.Item;
 import scene.overworld.inventory.ItemData;
+import scene.overworld.inventory.tool.EditorBoundsTool;
 
 public class CommandMethods {
 	public static void logMessage(String msg) {
@@ -250,10 +252,38 @@ public class CommandMethods {
 		
 		ItemData itemData = Item.get(item);
 		
-		
-		
 		if (itemData.getId() != 0) {
 			inv.addItem(itemData, amount);
+		}
+	}
+	
+	public static void fill(String item) {
+		if (!(Application.scene instanceof Overworld)) {
+			Console.log("Cannot use this command outside gameplay");
+			return;
+		}
+		
+		Overworld overworld = (Overworld) Application.scene;
+		ItemData itemData = Item.get(item);
+		
+		Terrain terrain = overworld.getEnviroment().getTerrain();
+		
+		if (itemData.getId() != 0 || item.equals("air")) {
+			int fill = 0;
+			final Vector3f p1 = new Vector3f(Math.min(EditorBoundsTool.p1.x, EditorBoundsTool.p2.x), Math.min(EditorBoundsTool.p1.y, EditorBoundsTool.p2.y), Math.min(EditorBoundsTool.p1.z, EditorBoundsTool.p2.z));
+			final Vector3f p2 = new Vector3f(Math.max(EditorBoundsTool.p1.x, EditorBoundsTool.p2.x), Math.max(EditorBoundsTool.p1.y, EditorBoundsTool.p2.y), Math.max(EditorBoundsTool.p1.z, EditorBoundsTool.p2.z));
+			byte wall = overworld.getCamFacingByte();
+			
+			for(int x = ((int)p1.x); x <= p2.x; x++) {
+				for(int y = ((int)p1.y); y <= p2.y; y++) {
+					for(int z = ((int)p1.z); z <= p2.z; z++) {
+						terrain.getChunkAt(x, z).setTile(Math.floorMod(x, Chunk.CHUNK_SIZE), y, Math.floorMod(z, Chunk.CHUNK_SIZE), wall, itemData.getMaterial(), (byte) 0);
+						fill++;
+					}
+				}
+			}
+			
+			Console.log("filled " + fill + " tiles");
 		}
 	}
 	

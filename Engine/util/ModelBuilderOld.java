@@ -364,14 +364,14 @@ public class ModelBuilderOld {
 		float[] vertices = tiledModel.getVertices();
 		float[] uvs = tiledModel.getUvs();
 		float[] normals = tiledModel.getNormals();
-		
+
 		for (int i = 0; i < len; i++) {
-			addVertex(rx + vertices[i * 3]*scale, ry + vertices[i * 3 + 1]*scale, rz + vertices[i * 3 + 2]*scale);
+			addVertex(rx + vertices[i * 3] * scale, ry + vertices[i * 3 + 1] * scale, rz + vertices[i * 3 + 2] * scale);
 			addTextureCoord(uvs[i * 2], uvs[i * 2 + 1]);
 			addNormal(normals[i * 3], normals[i * 3 + 1], normals[i * 3 + 2]);
-			addColor(1, 1, 1, 0);
+			addColor(1,1,1,0);
 		}
-		
+
 		int[] indices = tiledModel.getIndices();
 		addRelativeIndices(len, indices);
 	}

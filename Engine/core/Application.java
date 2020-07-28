@@ -2,6 +2,8 @@ package core;
 
 
 import org.lwjgl.opengl.Display;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.util.glu.GLU;
 
 import audio.AudioHandler;
 import dev.Console;

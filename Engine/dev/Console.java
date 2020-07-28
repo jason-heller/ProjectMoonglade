@@ -238,7 +238,7 @@ public class Console {
 		input = "";
 		predictions.clear();
 
-		playerWasAlreadyDisabled = false;// TODO: THIS
+		playerWasAlreadyDisabled = false;
 
 		if (visible) {
 			Input.requestMouseRelease();
@@ -392,7 +392,7 @@ public class Console {
 			
 			String[] inputSpace = input.split(" ");
 			
-			if (input.indexOf("give") == 0 && inputSpace.length >= 1  && inputSpace.length < 3) {
+			if ((input.indexOf("give") == 0 || input.indexOf("fill") == 0) && inputSpace.length >= 1  && inputSpace.length < 3) {
 				predictEnum(inputSpace.length == 2 ? inputSpace[1] : "", Item.names());
 			}
 			
@@ -433,6 +433,10 @@ public class Console {
 		}
 
 		if (Input.isPressed(Keyboard.KEY_GRAVE)) {
+			toggle();
+		}
+		
+		if (visible && Input.isPressed(Keyboard.KEY_ESCAPE)) {
 			toggle();
 		}
 	}

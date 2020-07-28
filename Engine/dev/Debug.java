@@ -1,5 +1,9 @@
 package dev;
 
+import static org.lwjgl.opengl.GL11.*;
+
+import org.lwjgl.LWJGLException;
+import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL15;
 
 import core.Application;
@@ -84,5 +88,47 @@ public class Debug {
 				+ "time: " + (int)Enviroment.exactTime+"\n"
 				+ "facing: " + overworld.getCamFacingByte()
 				, 5, 5, .25f, false);
+	}
+
+	public static void testGLError() {
+		try {
+			if (!Display.isCurrent())
+				return;
+		} catch (LWJGLException e) {
+			e.printStackTrace();
+			return;
+		}
+		String AllErrors = "";
+		int GL_Error;
+		do {
+			GL_Error = glGetError();
+			switch (GL_Error) {
+			case GL_NO_ERROR:
+				break;
+			case GL_INVALID_ENUM:
+				AllErrors += "GL_INVALID_ENUM";
+				break;
+			case GL_INVALID_VALUE:
+				AllErrors += "GL_INVALID_VALUE";
+				break;
+			case GL_INVALID_OPERATION:
+				AllErrors += "GL_INVALID_OPERATION";
+				break;
+			case GL_STACK_OVERFLOW:
+				AllErrors += "GL_STACK_OVERFLOW";
+				break;
+			case GL_STACK_UNDERFLOW:
+				AllErrors += "GL_STACK_UNDERFLOW";
+				break;
+			case GL_OUT_OF_MEMORY:
+				AllErrors += "GL_OUT_OF_MEMORY";
+				break;
+			default:
+				AllErrors += "unknown gl error";
+				break;
+			}
+		} while (GL_Error != GL_NO_ERROR);
+
+		System.err.println(AllErrors);
 	}
 }

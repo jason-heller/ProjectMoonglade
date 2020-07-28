@@ -4,6 +4,7 @@ import java.util.Random;
 
 import org.joml.Vector3f;
 
+import gl.Camera;
 import map.Chunk;
 import map.Enviroment;
 import map.Moisture;
@@ -16,7 +17,6 @@ import procedural.biome.Biome;
 import procedural.biome.BiomeData;
 import procedural.biome.BiomeVoronoi;
 import procedural.structures.Structure;
-import procedural.structures.StructureData;
 import procedural.structures.StructureHandler;
 
 public class GenTerrain {
@@ -47,7 +47,6 @@ public class GenTerrain {
 	public static float[][] buildTerrain(Chunk chunk, int x, int y, int z, int vertexStripeSize, int polygonSize, BiomeVoronoi biomeVoronoi) {
 		float terrainHeight;
 		Props prop;
-		Structure structure;
 		float[][] heights = chunk.heightmap;
 		float[][] waterTable = chunk.waterTable;
 		Props[][] props = chunk.chunkProps.getPropMap();
@@ -92,11 +91,6 @@ public class GenTerrain {
 				if (needsTileItems && i != vertexStripeSize-1 && j != vertexStripeSize-1) {
 					prop = getTerrainProps(x+i,z+j, heights[(i*2)+1][(j*2)+1], biomeData, r2, props);
 					props[i][j] = prop;
-					
-					structure = getTerrainStructure(x+i,z+j, heights[(i*2)+1][(j*2)+1], waterTable[i][j], biomeData, r2);
-					if (structure != null) {
-						structureHandler.addStructure(chunk, x+i, 0, z+j, structure);
-					}
 				}
 			}
 		}
@@ -112,6 +106,10 @@ public class GenTerrain {
 		
 		chunk.getMax().y += 10;
 		return heights;
+	}
+	
+	public static void structureSpawnerUpdate(Camera camera) {
+		structureHandler.update(camera);
 	}
 	
 	public static void buildStructures(Chunk chunk) {
@@ -130,17 +128,6 @@ public class GenTerrain {
 	
 		chunk.getMax().y += 10;
 		return heights;
-	}
-	
-	private static Structure getTerrainStructure(int x, int z, float currentHeight, float waterHeight, BiomeData biomeData, Random r) {
-		
-		if ((r.nextInt(25)) == 0) {
-			return GenGlobalStructures.getTerrainStructures(x, z, currentHeight, waterHeight, biomeData.getSubseed(), r);
-		}
-		
-		Biome biome = biomeData.getInfluencingBiomes()[biomeData.mainBiomeId];
-		return biome.getTerrainStructures(x, z, currentHeight, biomeData.getSubseed(), r);
-	
 	}
 
 	private static Props getTerrainProps(int x, int z, float currentHeight, BiomeData biomeData, Random r, Props[][] tileItems) {
@@ -187,15 +174,17 @@ public class GenTerrain {
 		return Moisture.values()[(int) (moistureWeight/wetNum)];
 	}
 
-	public static void initStructureHandler(Terrain terrain) {
-		structureHandler = new StructureHandler(terrain);
+	public static void initStructureHandler(Terrain terrain, BiomeVoronoi biomeVoronoi, long seed) {
+		structureHandler = new StructureHandler(terrain, biomeVoronoi, seed);
 	}
 
 	public static void buildStructure(Structure structure, Vector3f at) {
-		Terrain terrain = structureHandler.getTerrain();
-		Chunk chunk = terrain.getChunkAt(at.x, at.z);
-		structureHandler.addStructure(chunk, (int)at.x, (int)at.y, (int)at.z, structure);
+		structureHandler.addStructure((int)at.x, (int)at.y, (int)at.z, structure, 1);
 		structureHandler.flush();
 		
+	}
+
+	public static void resizeStructureSpawnRadius() {
+		structureHandler.resizeSpawnRadius();
 	}
 }

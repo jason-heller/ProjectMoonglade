@@ -1,6 +1,8 @@
 package gl;
 
+import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.util.glu.GLU;
 
 import core.Resources;
 import gl.fbo.FrameBuffer;
@@ -78,7 +80,5 @@ public class Render {
 			ParticleHandler.render(scene.getCamera());
 			ow.getInventory().render(camera, e.getLightDirection());
 		}
-		
-		
 	}
 }

@@ -1,3 +1,4 @@
+/res/
 /audio/
 /be/
 /core/
@@ -6,11 +7,10 @@
 /gl/
 /gr/
 /io/
-/org/
 /map/
+/org/
 /procedural/
 /scene/
 /shader/
 /ui/
 /util/
-/res/

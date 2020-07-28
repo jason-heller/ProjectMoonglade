@@ -196,7 +196,7 @@ public class Terrain {
 		//streamer.load();
 	}
 
-	public void shiftY(int dz) {
+	public void shiftZ(int dz) {
 		final byte shiftDir = (byte) Math.signum(dz);
 		final int shiftStartPos = shiftDir == 1 ? 1 : size - 2;
 		final int shiftEndPos = shiftDir == 1 ? size : -1;

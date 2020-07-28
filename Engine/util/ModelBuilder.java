@@ -6,6 +6,7 @@ import java.util.List;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL15;
 
+import dev.Console;
 import gl.res.Model;
 import gl.res.PropModel;
 import gl.res.Vbo;
@@ -166,6 +167,7 @@ public class ModelBuilder {
 	public Vbo[] asVbos() {
 		indexRel = 0;
 		final Vbo[] vbos = new Vbo[attribs.size() + 1];
+		final int indexVbo = attribs.size();
 
 		for (int i = 0; i < attribs.size(); i++) {
 			vbos[i] = Vbo.create(GL15.GL_ARRAY_BUFFER);
@@ -174,10 +176,10 @@ public class ModelBuilder {
 			vbos[i].unbind();
 		}
 
-		vbos[4] = Vbo.create(GL15.GL_ELEMENT_ARRAY_BUFFER);
-		vbos[4].bind();
-		vbos[4].storeData(getIndexArray());
-		vbos[4].unbind();
+		vbos[indexVbo] = Vbo.create(GL15.GL_ELEMENT_ARRAY_BUFFER);
+		vbos[indexVbo].bind();
+		vbos[indexVbo].storeData(getIndexArray());
+		vbos[indexVbo].unbind();
 
 		return vbos;
 	}

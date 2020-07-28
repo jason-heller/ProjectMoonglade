@@ -62,7 +62,6 @@ public class LineRender {
 		GL11.glDisable(GL11.GL_CULL_FACE);
 		shader.start();
 		line.bind();
-		GL20.glEnableVertexAttribArray(0);
 		shader.projectionViewMatrix.loadMatrix(cam.getProjectionViewMatrix());
 		int j = 0;
 		for (int i = 0; i < points.size(); i += 2) {
@@ -73,7 +72,6 @@ public class LineRender {
 		}
 		// GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
 		GL11.glEnable(GL11.GL_CULL_FACE);
-		GL20.glDisableVertexAttribArray(0);
 		line.unbind();
 		shader.stop();
 	}
@@ -87,7 +85,6 @@ public class LineRender {
 		GL11.glDisable(GL11.GL_CULL_FACE);
 		shader.start();
 		line.bind();
-		GL20.glEnableVertexAttribArray(0);
 		shader.projectionViewMatrix.loadMatrix(cam.getProjectionViewMatrix());
 		shader.color.loadVec3(1, 0, 1);
 		shader.point1.loadVec3(p1);
@@ -95,7 +92,6 @@ public class LineRender {
 		GL11.glDrawArrays(GL11.GL_LINE_STRIP, 0, 2);
 		// GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
 		GL11.glEnable(GL11.GL_CULL_FACE);
-		GL20.glDisableVertexAttribArray(0);
 		line.unbind();
 		GL11.glEnable(GL11.GL_DEPTH_TEST);
 		shader.stop();
@@ -109,7 +105,6 @@ public class LineRender {
 		GL11.glDisable(GL11.GL_CULL_FACE);
 		shader.start();
 		line.bind();
-		GL20.glEnableVertexAttribArray(0);
 		shader.projectionViewMatrix.loadMatrix(cam.getProjectionViewMatrix());
 		shader.color.loadVec3(color);
 		shader.point1.loadVec3(p1);
@@ -127,7 +122,6 @@ public class LineRender {
 		GL11.glDisable(GL11.GL_CULL_FACE);
 		shader.start();
 		line.bind();
-		GL20.glEnableVertexAttribArray(0);
 		shader.projectionViewMatrix.loadMatrix(camera.getProjectionViewMatrix());
 		shader.color.loadVec3(1, 0, 1);
 		shader.point1.loadVec3(p1.x, p1.y, p1.z);

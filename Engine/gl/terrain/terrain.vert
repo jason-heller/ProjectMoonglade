@@ -31,15 +31,15 @@ void main(void) {
 	shadowCoords.w = clamp(1.0 - distance, 0.0, 1.0);
 	
 	gl_Position = projectionMatrix * camSpace;
-
-	pass_colors = in_colors;
 	
 	if (in_normals.y <= 0.0) {
 		pass_uvs = vec4(in_uvs.xy, 0.0, 0.0);
-	}
-	else {
+	} else {
 		float tex_dx = fract(in_colors.w);
-		pass_uvs = vec4(in_uvs.xy, tex_dx, (in_colors.w - tex_dx)/100.0);
+		pass_uvs = vec4(in_uvs.xy, tex_dx, (in_colors.w - tex_dx) / 100.0);
 	}
+	
 	pass_normals = in_normals;
+	pass_colors = in_colors;
+	
 }

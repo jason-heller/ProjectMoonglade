@@ -48,17 +48,17 @@ public class BiomeVoronoi {
 		
 		biomeDeformNoise = new SimplexVectorField(seed << 3);
 		
-		buildArray(0, 0);
+		populate(0, 0);
 		//update(px, py);
 	}
 	
-	public void buildArray(int camX, int camZ) {
+	public void populate(int camX, int camZ) {
 		x = camX;
 		y = camZ;
 		
 		for(int i = 0; i < arrSize; i++) {
 			for(int j = 0; j < arrSize; j++) {
-				setPoint(x+i-2,y+j-2,i,j);
+				points[i][j] = getPoint(x+i-2,y+j-2);
 			}
 		}
 	}
@@ -69,7 +69,7 @@ public class BiomeVoronoi {
 		if (x != camX) {
 			final int dx = camX - x;
 			if (Math.abs(dx) > 1) {
-				buildArray(camX, camZ);
+				populate(camX, camZ);
 			} else {
 				shiftX(dx);
 			}
@@ -79,7 +79,7 @@ public class BiomeVoronoi {
 		if (y != camZ) {
 			final int dz = camZ - y;
 			if (Math.abs(dz) > 1) {
-				buildArray(camX, camZ);
+				populate(camX, camZ);
 			} else {
 				shiftY(dz);
 			}
@@ -221,7 +221,7 @@ public class BiomeVoronoi {
 			final int i = shiftDir == 1 ? arrSize - 1 : 0;
 			final int nx = points[i][j].arrX + shiftDir;
 			final int nz = points[i][j].arrZ;
-			setPoint(nx, nz, i, j);
+			points[i][j] = getPoint(nx, nz);
 		}
 	}
 
@@ -240,11 +240,11 @@ public class BiomeVoronoi {
 			final int j = shiftDir == 1 ? arrSize - 1 : 0;
 			final int nx = points[i][j].arrX;
 			final int nz = points[i][j].arrZ + shiftDir;
-			setPoint(nx, nz, i, j);
+			points[i][j] = getPoint(nx, nz);
 		}
 	}
 
-	private void setPoint(int nx, int ny, int i, int j) {
+	public BiomeNode getPoint(int nx, int ny) {
 		BiomeNode node = new BiomeNode();
 		node.arrX = nx;
 		node.arrZ = ny;
@@ -265,7 +265,8 @@ public class BiomeVoronoi {
 		
 			node.biome = singularBiome;
 		}
-		points[i][j] = node;
+		
+		return node;
 	}
 	
 	public BiomeNode getClosest() {

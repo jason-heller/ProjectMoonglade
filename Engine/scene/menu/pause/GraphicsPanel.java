@@ -151,7 +151,7 @@ public class GraphicsPanel extends GuiPanel {
 					Enviroment enviroment = ((Overworld) Application.scene).getEnviroment();
 					//enviroment.x += (oldSize - Terrain.size) / 2;
 					//enviroment.z += (oldSize - Terrain.size) / 2;
-					enviroment.getTerrain().reload();
+					enviroment.reload();
 				}
 			}
 

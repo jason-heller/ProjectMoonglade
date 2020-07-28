@@ -69,13 +69,7 @@ public class Inventory {
 	public void update(PlayableSceneUI ui) {
 
 		if (Input.isPressed("use_backpack")) {
-			open = !open;
-
-			if (!open) {
-				Input.requestMouseGrab();
-			} else {
-				Input.requestMouseRelease();
-			}
+			toggleOpen();
 		}
 		
 		if (ui.isPaused()) return;
@@ -203,6 +197,16 @@ public class Inventory {
 			}
 		}
 		viewmodel.update(open);
+	}
+
+	public void toggleOpen() {
+		open = !open;
+
+		if (!open) {
+			Input.requestMouseGrab();
+		} else {
+			Input.requestMouseRelease();
+		}
 	}
 
 	public static void drawItem(ItemData data, int dx, int dy, float s) {
