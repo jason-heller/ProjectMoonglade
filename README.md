@@ -20,7 +20,7 @@ It uses OpenGL for rendering via LWJGL2, and uses its own engine.
 Include the required libraies in your project's build path, as well as the source code to this project. Be sure to include LWJGL's natives as well.
 
 # Running the Project
-Check the releases for compiled builds, unzip the contents into a folder, and run the jar file. Should any issues arise (such as the program terminating immediately on startup, you can trace the cause of the problem by running this batch file in the same directory as the jar instead of running the jar directly:
+Check the releases for compiled builds, unzip the contents into a folder, and run the jar file. Should any issues arise, such as the program terminating immediately on startup, you can trace the cause of the problem by running this batch file in the same directory as the jar instead of running the jar directly:
 
 ```
 java -jar (JARNAME).jar
